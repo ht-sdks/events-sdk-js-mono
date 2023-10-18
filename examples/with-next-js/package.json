@@ -5,7 +5,7 @@
   "scripts": {
     ".": "yarn run -T turbo run --filter=@example/with-next-js",
     "concurrently": "yarn run -T concurrently",
-    "dev": "yarn partytown && yarn concurrently 'yarn run -T watch --filter=with-next-js' 'sleep 10 && next dev'",
+    "dev": "yarn partytown && yarn concurrently 'yarn run -T watch --filter=with-next-js' 'sleep 10 && next dev -p 3444'",
     "build": "yarn partytown && next build",
     "partytown": "partytown copylib public/~partytown",
     "start": "next start",
