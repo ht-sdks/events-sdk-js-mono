@@ -45,7 +45,8 @@ function chunks(batch: object[]): Array<object[]> {
 
 export default function batch(
   apiHost: string,
-  config?: BatchingDispatchConfig
+  config?: BatchingDispatchConfig,
+  protocol = 'https'
 ) {
   let buffer: object[] = []
   let pageUnloaded = false
@@ -66,10 +67,11 @@ export default function batch(
       return newEvent
     })
 
-    return fetch(`https://${apiHost}/b`, {
+    return fetch(`${protocol}://${apiHost}/v1/batch`, {
       keepalive: pageUnloaded,
       headers: {
-        'Content-Type': 'text/plain',
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
       method: 'post',
       body: JSON.stringify({

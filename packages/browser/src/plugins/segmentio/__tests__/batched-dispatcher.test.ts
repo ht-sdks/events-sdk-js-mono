@@ -92,11 +92,12 @@ describe('Batching', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
     expect(fetch.mock.calls[0]).toMatchInlineSnapshot(`
       Array [
-        "https://https://api.segment.io/b",
+        "https://https://api.segment.io/v1/batch",
         Object {
           "body": "{\\"batch\\":[{\\"event\\":\\"first\\"},{\\"event\\":\\"second\\"},{\\"event\\":\\"third\\"}],\\"sentAt\\":\\"1993-06-09T00:00:00.000Z\\"}",
           "headers": Object {
-            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
           },
           "keepalive": false,
           "method": "post",
@@ -150,11 +151,12 @@ describe('Batching', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
     expect(fetch.mock.calls[0]).toMatchInlineSnapshot(`
       Array [
-        "https://https://api.segment.io/b",
+        "https://https://api.segment.io/v1/batch",
         Object {
           "body": "{\\"batch\\":[{\\"event\\":\\"first\\"},{\\"event\\":\\"second\\"}],\\"sentAt\\":\\"1993-06-09T00:00:10.000Z\\"}",
           "headers": Object {
-            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
           },
           "keepalive": false,
           "method": "post",
@@ -185,11 +187,12 @@ describe('Batching', () => {
 
     expect(fetch.mock.calls[0]).toMatchInlineSnapshot(`
       Array [
-        "https://https://api.segment.io/b",
+        "https://https://api.segment.io/v1/batch",
         Object {
           "body": "{\\"batch\\":[{\\"event\\":\\"first\\"}],\\"sentAt\\":\\"1993-06-09T00:00:10.000Z\\"}",
           "headers": Object {
-            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
           },
           "keepalive": false,
           "method": "post",
@@ -199,11 +202,12 @@ describe('Batching', () => {
 
     expect(fetch.mock.calls[1]).toMatchInlineSnapshot(`
       Array [
-        "https://https://api.segment.io/b",
+        "https://https://api.segment.io/v1/batch",
         Object {
           "body": "{\\"batch\\":[{\\"event\\":\\"second\\"}],\\"sentAt\\":\\"1993-06-09T00:00:21.000Z\\"}",
           "headers": Object {
-            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
           },
           "keepalive": false,
           "method": "post",
@@ -230,11 +234,12 @@ describe('Batching', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
     expect(fetch.mock.calls[0]).toMatchInlineSnapshot(`
       Array [
-        "https://https://api.segment.io/b",
+        "https://https://api.segment.io/v1/batch",
         Object {
           "body": "{\\"batch\\":[{\\"event\\":\\"first\\"},{\\"event\\":\\"second\\"}],\\"sentAt\\":\\"1993-06-09T00:00:00.000Z\\"}",
           "headers": Object {
-            "Content-Type": "text/plain",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
           },
           "keepalive": false,
           "method": "post",

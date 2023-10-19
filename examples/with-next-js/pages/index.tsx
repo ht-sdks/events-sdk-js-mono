@@ -35,14 +35,23 @@ function Home(): React.ReactElement {
   const [analytics, setAnalytics] = useState<Analytics | undefined>(undefined)
 
   const writeKeyRef = useRef<HTMLInputElement>()
-  const cdnURLRef = useRef<HTMLInputElement>()
+  // const cdnURLRef = useRef<HTMLInputElement>()
+  const apiProtocolRef = useRef<HTMLInputElement>()
+  const apiHostRef = useRef<HTMLInputElement>()
+  const deliveryRef = useRef<HTMLInputElement>()
 
   const {
     analytics: analyticsBrowser,
-    cdnURL,
-    setCDNUrl,
+    // cdnURL,
+    // setCDNUrl,
+    apiHost,
+    setApiHost,
+    apiProtocol,
+    setApiProtocol,
     writeKey,
     setWriteKey,
+    delivery,
+    setDelivery,
   } = useAnalytics()
 
   const mockTraits = (): string => {
@@ -108,18 +117,40 @@ function Home(): React.ReactElement {
         onSubmit={(e) => {
           e.preventDefault()
           setWriteKey(writeKeyRef!.current!.value)
-          setCDNUrl(cdnURLRef!.current!.value)
+          // setCDNUrl(cdnURLRef!.current!.value)
+          setApiHost(apiHostRef!.current!.value)
+          setApiProtocol(apiProtocolRef!.current!.value)
+          setDelivery(deliveryRef!.current!.checked ? 'batching' : 'standard')
         }}
       >
-        <label>
+        {/* <label>
           CDN:
           <input type="text" ref={cdnURLRef} defaultValue={cdnURL} />
+        </label> */}
+        <label>
+          Protocol:
+          <input type="text" ref={apiProtocolRef} defaultValue={apiProtocol} />
+        </label>
+        <br />
+        <label>
+          API Host:
+          <input type="text" ref={apiHostRef} defaultValue={apiHost} />
         </label>
         <br />
         <label>
           Writekey:
           <input type="text" ref={writeKeyRef} defaultValue={writeKey} />
         </label>
+        <br />
+        <label>
+          Batching:
+          <input
+            type="checkbox"
+            ref={deliveryRef}
+            defaultChecked={delivery === 'batching'}
+          />
+        </label>
+        <br />
         <input type="submit" value="Load Analytics" />
       </form>
 

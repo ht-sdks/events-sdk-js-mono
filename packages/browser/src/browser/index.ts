@@ -295,6 +295,32 @@ async function registerPlugins(
   return ctx
 }
 
+const defaultSegmentSettings: SegmentioSettings = {
+  apiKey: 'WRITE_KEY',
+  apiHost: 'us-east-1.hightouch-events.com',
+  protocol: 'https',
+  unbundledIntegrations: [],
+  addBundledMetadata: true,
+  maybeBundledConfigIds: {},
+  deliveryStrategy: {
+    strategy: 'batching',
+    config: { timeout: 30, size: 100 },
+  },
+}
+
+const defaultSettings: LegacySettings = {
+  integrations: {},
+  plan: {
+    track: { __default: { enabled: true, integrations: {} } },
+    identify: { __default: { enabled: true } },
+    group: { __default: { enabled: true } },
+  },
+  enabledMiddleware: {},
+  metrics: { sampleRate: 0.0 },
+  legacyVideoPluginsEnabled: false,
+  remotePlugins: [],
+}
+
 async function loadAnalytics(
   settings: AnalyticsBrowserSettings,
   options: InitOptions = {},
@@ -305,9 +331,16 @@ async function loadAnalytics(
   // this is an ugly side-effect, but it's for the benefits of the plugins that get their cdn via getCDN()
   if (settings.cdnURL) setGlobalCDNUrl(settings.cdnURL)
 
-  let legacySettings =
-    settings.cdnSettings ??
-    (await loadLegacySettings(settings.writeKey, settings.cdnURL))
+  let legacySettings
+  if (settings.cdnSettings) {
+    legacySettings = settings.cdnSettings
+  } else {
+    defaultSettings.integrations['Segment.io'] = {
+      ...defaultSegmentSettings,
+      ...(settings.writeKey ? { apiKey: settings.writeKey } : {}),
+    }
+    legacySettings = defaultSettings
+  }
 
   if (options.updateCDNSettings) {
     legacySettings = options.updateCDNSettings(legacySettings)
