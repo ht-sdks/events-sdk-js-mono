@@ -17,15 +17,18 @@ export async function post(
   event: SegmentEvent,
   writeKey: string
 ): Promise<SegmentEvent> {
-  const res = await fetch(`https://api.segment.io/v1/${event.type}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'analytics-node-next/latest',
-      Authorization: `Basic ${btoa(writeKey)}`,
-    },
-    body: JSON.stringify(event),
-  })
+  const res = await fetch(
+    `https://us-east-1.hightouch-events.com/v1/${event.type}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'analytics-node-next/latest',
+        Authorization: `Basic ${btoa(writeKey)}`,
+      },
+      body: JSON.stringify(event),
+    }
+  )
 
   if (!res.ok) {
     throw new Error('Message Rejected')

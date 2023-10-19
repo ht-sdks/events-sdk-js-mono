@@ -18,7 +18,7 @@ const helpers = {
   assertFetchCallRequest: (
     ...[url, options]: typeof testFetch['mock']['lastCall']
   ) => {
-    expect(url).toBe('https://api.segment.io/v1/batch')
+    expect(url).toBe('https://us-east-1.hightouch-events.com/v1/batch')
     expect(options.headers).toEqual({
       Authorization: 'Basic Zm9vOg==',
       'Content-Type': 'application/json',

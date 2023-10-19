@@ -67,7 +67,7 @@ export class Publisher {
     this._flushInterval = flushInterval
     this._auth = b64encode(`${writeKey}:`)
     this._url = tryCreateFormattedUrl(
-      host ?? 'https://api.segment.io',
+      host ?? 'https://us-east-1.hightouch-events.com',
       path ?? '/v1/batch'
     )
     this._httpRequestTimeout = httpRequestTimeout ?? 10000

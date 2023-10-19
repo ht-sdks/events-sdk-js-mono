@@ -21,7 +21,7 @@ export function assertHTTPRequestOptions(
   { data, headers, method, url }: HTTPClientRequest,
   contexts: Context[]
 ) {
-  expect(url).toBe('https://api.segment.io/v1/batch')
+  expect(url).toBe('https://us-east-1.hightouch-events.com/v1/batch')
   expect(method).toBe('POST')
   expect(headers).toMatchInlineSnapshot(`
     Object {

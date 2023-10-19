@@ -95,7 +95,7 @@ describe(mergedOptions, () => {
   it('works with boolean overrides', () => {
     const cdn = {
       integrations: {
-        'Segment.io': { apiHost: 'api.segment.io' },
+        'Segment.io': { apiHost: 'us-east-1.hightouch-events.com' },
         'Google Tag Manager': {
           ghost: '👻',
         },
