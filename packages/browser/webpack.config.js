@@ -8,7 +8,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
 const ASSET_PATH = isProd
-  ? 'https://cdn.segment.com/analytics-next/bundles/'
+  ? 'https://cdn.hightouch-events.com/analytics-next/bundles/'
   : '/dist/umd/'
 
 const plugins = [

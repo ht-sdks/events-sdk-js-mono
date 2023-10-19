@@ -71,4 +71,4 @@ yarn release
 
 Feature branches are automatically released under:
 
-- `http://cdn.segment.com/analytics-next/br/<branch>/<latest|sha>/standalone.js.gz`
+- `http://cdn.hightouch-events.com/analytics-next/br/<branch>/<latest|sha>/standalone.js.gz`
