@@ -102,7 +102,7 @@ describe('CSP Detection', () => {
     handlers['securitypolicyviolation'].forEach((handler) => {
       handler({
         // @ts-ignore
-        blockedURI: 'cdn.segment.com',
+        blockedURI: 'cdn.hightouch-events.com',
       })
     })
 
@@ -130,7 +130,7 @@ describe('CSP Detection', () => {
 
     const event = new window.Event('securitypolicyviolation') as any
     event.disposition = 'report'
-    event.blockedURI = 'cdn.segment.com'
+    event.blockedURI = 'cdn.hightouch-events.com'
     document.dispatchEvent(event)
     expect(cspSpy).toBeCalled()
     expect(warnSpy).not.toHaveBeenCalled()

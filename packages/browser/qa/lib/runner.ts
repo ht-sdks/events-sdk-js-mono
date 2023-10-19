@@ -29,7 +29,7 @@ export async function run(params: ComparisonParams) {
       const request = route.request()
 
       if (
-        request.url().includes('cdn.segment') ||
+        request.url().includes('cdn.hightouch-events') ||
         request.url().includes('cdn-settings') ||
         request.url().includes('localhost') ||
         request.url().includes('unpkg')

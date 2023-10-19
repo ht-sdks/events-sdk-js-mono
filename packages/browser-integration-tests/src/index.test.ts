@@ -9,7 +9,7 @@ test.describe('Standalone tests', () => {
   test.describe('Actions Amplitude', () => {
     test.beforeEach(async ({ context }) => {
       await context.route(
-        'https://cdn.segment.com/v1/projects/*/settings',
+        'https://cdn.hightouch-events.com/v1/projects/*/settings',
         (route, request) => {
           if (request.method().toLowerCase() !== 'get') {
             return route.continue()
@@ -27,7 +27,7 @@ test.describe('Standalone tests', () => {
                   name: 'Amplitude (Actions)',
                   creationName: 'Actions Amplitude',
                   libraryName: 'amplitude-pluginsDestination',
-                  url: 'https://cdn.segment.com/next-integrations/actions/amplitude-plugins/6765cb3cf169443c119b.js',
+                  url: 'https://cdn.hightouch-events.com/next-integrations/actions/amplitude-plugins/6765cb3cf169443c119b.js',
                   settings: {
                     versionSettings: { componentTypes: [] },
                     subscriptions: [
@@ -70,7 +70,7 @@ test.describe('Standalone tests', () => {
   test.describe('Braze Cloud Mode (Actions)', () => {
     test.beforeEach(async ({ context }) => {
       await context.route(
-        'https://cdn.segment.com/v1/projects/*/settings',
+        'https://cdn.hightouch-events.com/v1/projects/*/settings',
         (route, request) => {
           if (request.method().toLowerCase() !== 'get') {
             return route.continue()
@@ -88,7 +88,7 @@ test.describe('Standalone tests', () => {
                   name: 'Braze Cloud Mode (Actions)',
                   creationName: 'Braze Cloud Mode (Actions)',
                   libraryName: 'braze-cloud-pluginsDestination',
-                  url: 'https://cdn.segment.com/next-integrations/actions/braze-cloud-plugins/2d52367988cd53a99b14.js',
+                  url: 'https://cdn.hightouch-events.com/next-integrations/actions/braze-cloud-plugins/2d52367988cd53a99b14.js',
                   settings: {
                     versionSettings: { componentTypes: ['server'] },
                     type: 'server',

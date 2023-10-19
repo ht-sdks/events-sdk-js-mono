@@ -101,7 +101,7 @@ export interface AnalyticsBrowserSettings extends AnalyticsSettings {
    */
   cdnSettings?: LegacySettings & Record<string, unknown>
   /**
-   * If provided, will override the default Segment CDN (https://cdn.segment.com) for this application.
+   * If provided, will override the default Segment CDN (https://cdn.hightouch-events.com) for this application.
    */
   cdnURL?: string
 }

@@ -399,9 +399,9 @@ describe('remote loading', () => {
 
     expect(sources).toMatchObject(
       expect.arrayContaining([
-        'https://cdn.segment.com/next-integrations/integrations/amplitude/latest/amplitude.dynamic.js.gz',
+        'https://cdn.hightouch-events.com/next-integrations/integrations/amplitude/latest/amplitude.dynamic.js.gz',
         expect.stringContaining(
-          'https://cdn.segment.com/next-integrations/integrations/vendor/commons'
+          'https://cdn.hightouch-events.com/next-integrations/integrations/vendor/commons'
         ),
         'https://cdn.amplitude.com/libs/amplitude-5.2.2-min.gz.js',
       ])
@@ -417,9 +417,9 @@ describe('remote loading', () => {
 
     expect(sources).toMatchObject(
       expect.arrayContaining([
-        'https://cdn.segment.com/next-integrations/integrations/YW1wbGl0dWRl/latest/YW1wbGl0dWRl.dynamic.js.gz',
+        'https://cdn.hightouch-events.com/next-integrations/integrations/YW1wbGl0dWRl/latest/YW1wbGl0dWRl.dynamic.js.gz',
         expect.stringContaining(
-          'https://cdn.segment.com/next-integrations/integrations/vendor/commons'
+          'https://cdn.hightouch-events.com/next-integrations/integrations/vendor/commons'
         ),
         'https://cdn.amplitude.com/libs/amplitude-5.2.2-min.gz.js',
       ])

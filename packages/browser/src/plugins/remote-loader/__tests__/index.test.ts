@@ -78,7 +78,7 @@ describe('Remote Loader', () => {
           {
             name: 'remote plugin',
             creationName: 'remote plugin',
-            url: 'https://cdn.segment.com/actions/file.js',
+            url: 'https://cdn.hightouch-events.com/actions/file.js',
             libraryName: 'testPlugin',
             settings: {},
           },
@@ -92,7 +92,7 @@ describe('Remote Loader', () => {
   })
 
   it('should work if the cdn is staging', async () => {
-    const stagingURL = 'https://cdn.segment.build/actions/foo.js'
+    const stagingURL = 'https://cdn.hightouch-events.build/actions/foo.js'
 
     window.analytics = {}
     window.analytics._cdn = 'foo.com'
@@ -156,7 +156,7 @@ describe('Remote Loader', () => {
             name: 'Braze Web Mode (Actions)',
             creationName: 'Braze Web Mode (Actions)',
             libraryName: 'brazeDestination',
-            url: 'https://cdn.segment.com/next-integrations/actions/braze/a6f95f5869852b848386.js',
+            url: 'https://cdn.hightouch-events.com/next-integrations/actions/braze/a6f95f5869852b848386.js',
             settings: {
               api_key: 'test-api-key',
               versionSettings: {

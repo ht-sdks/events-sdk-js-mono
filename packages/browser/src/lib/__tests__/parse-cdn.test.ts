@@ -42,14 +42,14 @@ beforeEach(async () => {
 
 it('detects the existing segment cdn', () => {
   withTag(`
-    <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+    <script src="https://cdn.hightouch-events.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })
 
 it('should return the overridden cdn if window.analytics._cdn is mutated', () => {
   withTag(`
-  <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+  <script src="https://cdn.hightouch-events.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
   // @ts-ignore
   ;(window.analytics as any) = {
@@ -63,9 +63,9 @@ it('if analytics is not loaded yet, should still return cdn', () => {
   // @ts-ignore
   window.analytics = undefined as any
   withTag(`
-  <script src="https://cdn.segment.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
+  <script src="https://cdn.hightouch-events.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })
 
 it('detects custom cdns that match Segment in domain instrumentation patterns', () => {
@@ -79,10 +79,10 @@ it('falls back to Segment if CDN is used as a proxy', () => {
   withTag(`
     <script src="https://my.cdn.proxy/custom-analytics.min.js" />
   `)
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })
 
 it('falls back to Segment if the script is not at all present on the page', () => {
   withTag('')
-  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.segment.com"`)
+  expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })

@@ -88,7 +88,7 @@ export interface CDNSettingsRemotePlugin {
    */
   name: string
   /** The url of the javascript file to load
-   * @example https://cdn.segment.com/next-integrations/actions/amplitude-plugins/67621cf169443c119b.js
+   * @example https://cdn.hightouch-events.com/next-integrations/actions/amplitude-plugins/67621cf169443c119b.js
    */
   url: string
   /** The UMD/global name the plugin uses. Plugins are expected to exist here with the `PluginFactory` method signature

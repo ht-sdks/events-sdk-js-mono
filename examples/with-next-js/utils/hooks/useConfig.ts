@@ -7,7 +7,10 @@ export const useWriteKey = () =>
   )
 
 export const useCDNUrl = () =>
-  useLocalStorage('segment_playground_cdn_url', 'https://cdn.segment.com')
+  useLocalStorage(
+    'segment_playground_cdn_url',
+    'https://cdn.hightouch-events.com'
+  )
 
 export const useApiHost = () =>
   useLocalStorage('segment_api_host', 'us-east-1.hightouch-events.com')

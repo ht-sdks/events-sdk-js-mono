@@ -86,7 +86,7 @@ describe('Remote Middleware', () => {
 
     expect(sources).toMatchInlineSnapshot(`
       Array [
-        "https://cdn.segment.com/next-integrations/middleware/analytics.js-middleware-braze-deduplicate/latest/analytics.js-middleware-braze-deduplicate.js.gz",
+        "https://cdn.hightouch-events.com/next-integrations/middleware/analytics.js-middleware-braze-deduplicate/latest/analytics.js-middleware-braze-deduplicate.js.gz",
       ]
     `)
   })
@@ -108,7 +108,7 @@ describe('Remote Middleware', () => {
 
     expect(ctx.logs().map((l) => l.message)).toMatchInlineSnapshot(`
       Array [
-        [Error: Failed to load https://cdn.segment.com/next-integrations/middleware/analytics.js-middleware-that-does-not-exist/latest/analytics.js-middleware-that-does-not-exist.js.gz],
+        [Error: Failed to load https://cdn.hightouch-events.com/next-integrations/middleware/analytics.js-middleware-that-does-not-exist/latest/analytics.js-middleware-that-does-not-exist.js.gz],
       ]
     `)
   })

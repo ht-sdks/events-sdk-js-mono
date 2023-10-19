@@ -16,11 +16,11 @@ const samples = process.env.QA_SOURCES.split(',')
 
 function compareSchema(results: RemovePromise<ReturnType<typeof run>>) {
   const classicReqs = results.classic.networkRequests
-    .filter((n) => n.url.includes('api.segment') && !n.url.endsWith('/m'))
+    .filter((n) => n.url.includes('us-east-1.hightouch-events') && !n.url.endsWith('/m'))
     .sort()
 
   const nextReqs = results.next.networkRequests
-    .filter((n) => n.url.includes('api.segment') && !n.url.endsWith('/m'))
+    .filter((n) => n.url.includes('us-east-1.hightouch-events') && !n.url.endsWith('/m'))
     .sort()
 
   nextReqs.forEach((req, index) => {

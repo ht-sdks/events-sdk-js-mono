@@ -11,7 +11,7 @@ test.describe('Segment.io Retries', () => {
   test.beforeEach(standaloneMock)
   test.beforeEach(async ({ context }) => {
     await context.route(
-      'https://cdn.segment.com/v1/projects/*/settings',
+      'https://cdn.hightouch-events.com/v1/projects/*/settings',
       (route, request) => {
         if (request.method().toLowerCase() !== 'get') {
           return route.continue()
