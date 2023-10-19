@@ -32,9 +32,8 @@ export const AnalyticsProvider: React.FC = ({ children }) => {
   const analytics = React.useMemo(() => {
     console.log(
       `AnalyticsBrowser loading...`,
-      JSON.stringify({ writeKey, cdnURL })
+      JSON.stringify({ writeKey, delivery, apiProtocol, apiHost }, null, 4)
     )
-    console.log('NEW LOAD', delivery)
     return AnalyticsBrowser.load({
       writeKey,
       cdnURL,
