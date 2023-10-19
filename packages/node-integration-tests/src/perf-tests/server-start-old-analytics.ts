@@ -4,7 +4,11 @@ import { trackEventSmall } from '../server/fixtures'
 
 startServer()
   .then((app) => {
-    const analytics = new Analytics('foo', { flushInterval: 1000, flushAt: 15 })
+    const analytics = new Analytics('foo', {
+      flushInterval: 1000,
+      flushAt: 15,
+      host: 'https://us-east-1.hightouch-events.com',
+    })
     app.get('/', (_, res) => {
       analytics.track(trackEventSmall)
       res.sendStatus(200)
