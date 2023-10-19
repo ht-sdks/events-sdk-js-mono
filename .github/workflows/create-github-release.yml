@@ -1,9 +1,11 @@
 # Creating the github release is the final step of the release.
 name: Create Github Release
-on:
-  push:
-    tags:
-      - "@segment/*"
+
+# # for now, manual only
+# on:
+#   push:
+#     tags:
+#       - "@segment/*"
 
 jobs:
   github_release:

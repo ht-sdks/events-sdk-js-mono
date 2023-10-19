@@ -1,12 +1,13 @@
 name: Changeset Release Creator
 
-on:
-  push:
-    paths:
-      - ".changeset/**"
-      - "packages/**"
-    branches:
-      - master
+# # for now, manual trigger only
+# on:
+#   push:
+#     paths:
+#       - ".changeset/**"
+#       - "packages/**"
+#     branches:
+#       - DISABLED
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
