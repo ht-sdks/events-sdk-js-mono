@@ -37,14 +37,14 @@ const config = {
     index: {
       import: path.resolve(__dirname, 'src/browser/browser-umd.ts'),
       library: {
-        name: 'AnalyticsNext',
+        name: 'HtEvents',
         type: 'umd',
       },
     },
     standalone: {
       import: path.resolve(__dirname, 'src/browser/standalone.ts'),
       library: {
-        name: 'AnalyticsNext',
+        name: 'HtEvents',
         type: 'window',
       },
     },
