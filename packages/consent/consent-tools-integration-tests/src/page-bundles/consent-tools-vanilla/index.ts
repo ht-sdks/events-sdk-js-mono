@@ -7,11 +7,11 @@ const withCMP = createWrapper({
   getCategories: () => fakeCategories,
 })
 
-const analytics = new AnalyticsBrowser()
+const htevents = new AnalyticsBrowser()
 
-withCMP(analytics).load({
+withCMP(htevents).load({
   writeKey: 'foo',
 })
 
 // for testing
-;(window as any).analytics = analytics
+;(window as any).htevents = htevents

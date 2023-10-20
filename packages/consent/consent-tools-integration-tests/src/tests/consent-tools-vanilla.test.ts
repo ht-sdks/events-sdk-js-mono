@@ -9,7 +9,7 @@ it('should stamp each event', async () => {
   await page.load()
 
   const ctx = await browser.execute(() => {
-    return window.analytics.track('hello')
+    return window.htevents.track('hello')
   })
 
   expect((ctx.event.context as any).consent).toEqual({

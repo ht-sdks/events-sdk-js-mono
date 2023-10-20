@@ -14,7 +14,7 @@ export const getInitializedAnalytics = (
   if (isSnippetUser) {
     const opts = (analytics as any)._loadOptions ?? {}
     const globalAnalytics = (window as any)[
-      opts?.globalAnalyticsKey ?? 'analytics'
+      opts?.globalAnalyticsKey ?? 'htevents'
     ]
     if ((globalAnalytics as any).initialized) {
       return globalAnalytics

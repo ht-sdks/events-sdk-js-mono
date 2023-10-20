@@ -23,7 +23,7 @@ class OneTrustPage extends BasePage {
 
     void browser.execute(() => {
       window._segmentConsentCalls ??= 0
-      window.analytics.on('track', (name) => {
+      window.htevents.on('track', (name) => {
         if (name.includes('Segment Consent')) {
           window._segmentConsentCalls += 1
         }
