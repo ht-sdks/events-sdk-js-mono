@@ -8,8 +8,9 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
 const ASSET_PATH = isProd
-  ? // path needs to match pathPrefix in release.js
-    'https://cdn.hightouch-events.com/release-test/bundles/'
+  ? // $releast-test path needs to match pathPrefix in release.js
+    // GITHUB_REF_NAME should be populated in github action
+    `https://cdn.hightouch-events.com/release-test/${process.env.GITHUB_REF_NAME}/`
   : '/dist/umd/'
 
 const plugins = [

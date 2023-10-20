@@ -23,6 +23,8 @@ if (!secretAccessKey) throw new Error('Missing AWS_SECRET_ACCESS_KEY')
 const sessionToken = process.env.AWS_SESSION_TOKEN
 if (!sessionToken) throw new Error('Missing AWS_SESSION_TOKEN')
 
+// TODO: remove pathPrefix when cutting over from old repo to new repo
+// TODO: grep for comments refering to 'pathPrefix'
 const pathPrefix = 'release-test' // TODO: Replaceme
 
 const getBranch = async () =>
@@ -59,7 +61,7 @@ async function upload(meta) {
 
     const options = {
       Bucket: bucket,
-      Key: path.join(pathPrefix, meta.branch, meta.sha, f),
+      Key: path.join(pathPrefix, meta.branch, f),
       Body: await fs.readFile(filePath),
       ContentType:
         mime.getType(filePath.replace('.gz', '')) || 'application/javascript',
@@ -75,26 +77,27 @@ async function upload(meta) {
 
     const output = await s3.putObject(options).promise()
 
+    // TODO should only do this when deploying production tags (not beta or test ones)
     // put latest version with only 5 minutes caching
     await s3
       .putObject({
         ...options,
         CacheControl: 'public,max-age=300,immutable',
-        Key: path.join(pathPrefix, meta.branch, 'latest', f),
+        Key: path.join(pathPrefix, 'latest', f),
       })
       .promise()
 
-    // put chunks in a separate path. Regardless of branch, version, etc.
-    // there are immutable scripts that will be loaded by webpack in runtime
-    if (filePath.includes('bundle')) {
-      await s3
-        .putObject({
-          ...options,
-          Key: path.join(pathPrefix, 'bundles', f),
-          CacheControl: 'public,max-age=31536000,immutable',
-        })
-        .promise()
-    }
+    // // put chunks in a separate path. Regardless of branch, version, etc.
+    // // there are immutable scripts that will be loaded by webpack in runtime
+    // if (filePath.includes('bundle')) {
+    //   await s3
+    //     .putObject({
+    //       ...options,
+    //       Key: path.join(pathPrefix, 'bundles', f),
+    //       CacheControl: 'public,max-age=31536000,immutable',
+    //     })
+    //     .promise()
+    // }
 
     progress++
     logUpdate(`Progress: ${progress}/${total}`)
