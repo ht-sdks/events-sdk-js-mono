@@ -95,7 +95,7 @@ describe(mergedOptions, () => {
   it('works with boolean overrides', () => {
     const cdn = {
       integrations: {
-        'Segment.io': { apiHost: 'us-east-1.hightouch-events.com' },
+        'Hightouch.io': { apiHost: 'us-east-1.hightouch-events.com' },
         'Google Tag Manager': {
           ghost: '👻',
         },
@@ -104,7 +104,7 @@ describe(mergedOptions, () => {
     const overrides = {
       integrations: {
         All: false,
-        'Segment.io': { apiHost: 'mgs.instacart.com/v2' },
+        'Hightouch.io': { apiHost: 'mgs.instacart.com/v2' },
         'Google Tag Manager': true,
       },
     }
@@ -114,7 +114,7 @@ describe(mergedOptions, () => {
         "Google Tag Manager": Object {
           "ghost": "👻",
         },
-        "Segment.io": Object {
+        "Hightouch.io": Object {
           "apiHost": "mgs.instacart.com/v2",
         },
       }

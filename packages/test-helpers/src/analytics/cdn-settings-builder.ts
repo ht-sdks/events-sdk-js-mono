@@ -21,7 +21,7 @@ export class CDNSettingsBuilder {
   } = {}) {
     const settings = baseCDNSettings || {
       integrations: {
-        'Segment.io': {
+        'Hightouch.io': {
           apiKey: writeKey,
           unbundledIntegrations: [],
           addBundledMetadata: true,

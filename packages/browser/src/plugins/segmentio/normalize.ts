@@ -30,7 +30,7 @@ export function normalize(
 
   for (const key in integrations) {
     const integration = integrations[key]
-    if (key === 'Segment.io') {
+    if (key === 'Hightouch.io') {
       bundled.push(key)
     }
     if (integration.bundlingStatus === 'bundled') {

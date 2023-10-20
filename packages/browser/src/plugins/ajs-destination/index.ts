@@ -204,14 +204,14 @@ export class LegacyDestination implements DestinationPlugin {
     const plan = this.options?.plan?.track
     const ev = ctx.event.event
 
-    if (plan && ev && this.name !== 'Segment.io') {
+    if (plan && ev && this.name !== 'Hightouch.io') {
       // events are always sent to segment (legacy behavior)
       const planEvent = plan[ev]
       if (!isPlanEventEnabled(plan, planEvent)) {
         ctx.updateEvent('integrations', {
           ...ctx.event.integrations,
           All: false,
-          'Segment.io': true,
+          'Hightouch.io': true,
         })
         ctx.cancel(
           new ContextCancelation({

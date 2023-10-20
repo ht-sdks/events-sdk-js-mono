@@ -382,7 +382,7 @@ describe('Initialization', () => {
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(segmentio).toBeUndefined()
@@ -390,12 +390,12 @@ describe('Initialization', () => {
 
     it('does not load Segment.io if its set to false', async () => {
       const options: { integrations?: { [key: string]: boolean } } = {
-        integrations: { 'Segment.io': false },
+        integrations: { 'Hightouch.io': false },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(segmentio).toBeUndefined()
@@ -403,12 +403,12 @@ describe('Initialization', () => {
 
     it('loads Segment.io if integrations.All is false and Segment.io is listed', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
-        integrations: { All: false, 'Segment.io': true },
+        integrations: { All: false, 'Hightouch.io': true },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(segmentio).toBeDefined()
@@ -416,12 +416,12 @@ describe('Initialization', () => {
 
     it('loads Segment.io if integrations.All is undefined', async () => {
       const options: { integrations: { [key: string]: boolean } } = {
-        integrations: { 'Segment.io': true },
+        integrations: { 'Hightouch.io': true },
       }
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(segmentio).toBeDefined()
@@ -434,7 +434,7 @@ describe('Initialization', () => {
       const analyticsResponse = await AnalyticsBrowser.load(settings, options)
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(segmentio).toBeDefined()
@@ -444,7 +444,7 @@ describe('Initialization', () => {
       const options: { integrations?: { [key: string]: boolean } } = {
         integrations: {
           'Test Plugin': true,
-          'Segment.io': false,
+          'Hightouch.io': false,
         },
       }
       const analyticsResponse = await AnalyticsBrowser.load(
@@ -457,7 +457,7 @@ describe('Initialization', () => {
       )
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(plugin).toBeDefined()
@@ -469,7 +469,7 @@ describe('Initialization', () => {
         integrations: {
           All: false,
           'Test Plugin': true,
-          'Segment.io': false,
+          'Hightouch.io': false,
         },
       }
       const analyticsResponse = await AnalyticsBrowser.load(
@@ -482,7 +482,7 @@ describe('Initialization', () => {
       )
 
       const segmentio = analyticsResponse[0].queue.plugins.find(
-        (p) => p.name === 'Segment.io'
+        (p) => p.name === 'Hightouch.io'
       )
 
       expect(plugin).toBeDefined()
@@ -498,7 +498,7 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Hightouch.io')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -521,7 +521,7 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Hightouch.io')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -537,7 +537,7 @@ describe('Dispatch', () => {
       {
         integrations: {
           Amplitude: false,
-          'Segment.io': false,
+          'Hightouch.io': false,
         },
       }
     )
@@ -553,7 +553,7 @@ describe('Dispatch', () => {
       plugins: [amplitude, googleAnalytics],
     })
 
-    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Segment.io')
+    const segmentio = ajs.queue.plugins.find((p) => p.name === 'Hightouch.io')
     expect(segmentio).toBeDefined()
 
     const ampSpy = jest.spyOn(amplitude, 'track')
@@ -954,7 +954,7 @@ describe('retries', () => {
     // @ts-ignore ignore reassining function
     loadLegacySettings = jest.fn().mockReturnValue(
       Promise.resolve({
-        integrations: { 'Segment.io': { retryQueue: false } },
+        integrations: { 'Hightouch.io': { retryQueue: false } },
       })
     )
   })
@@ -1055,7 +1055,7 @@ describe('Segment.io overrides', () => {
       { writeKey },
       {
         integrations: {
-          'Segment.io': {
+          'Hightouch.io': {
             apiHost: 'https://my.endpoint.com',
             anotherSettings: '👻',
           },

@@ -256,15 +256,15 @@ async function registerPlugins(
     toRegister.push(schemaFilter)
   }
 
-  const shouldIgnoreSegmentio =
-    (opts.integrations?.All === false && !opts.integrations['Segment.io']) ||
-    (opts.integrations && opts.integrations['Segment.io'] === false)
+  const shouldIgnoreHightouchio =
+    (opts.integrations?.All === false && !opts.integrations['Hightouch.io']) ||
+    (opts.integrations && opts.integrations['Hightouch.io'] === false)
 
-  if (!shouldIgnoreSegmentio) {
+  if (!shouldIgnoreHightouchio) {
     toRegister.push(
       await segmentio(
         analytics,
-        mergedSettings['Segment.io'] as SegmentioSettings,
+        mergedSettings['Hightouch.io'] as SegmentioSettings,
         legacySettings.integrations
       )
     )
@@ -295,7 +295,7 @@ async function registerPlugins(
   return ctx
 }
 
-const defaultSegmentSettings: SegmentioSettings = {
+const defaultHightouchSettings: SegmentioSettings = {
   apiKey: 'WRITE_KEY',
   apiHost: 'us-east-1.hightouch-events.com',
   protocol: 'https',
@@ -335,8 +335,8 @@ async function loadAnalytics(
   if (settings.cdnSettings) {
     legacySettings = settings.cdnSettings
   } else {
-    defaultSettings.integrations['Segment.io'] = {
-      ...defaultSegmentSettings,
+    defaultSettings.integrations['Hightouch.io'] = {
+      ...defaultHightouchSettings,
       ...(settings.writeKey ? { apiKey: settings.writeKey } : {}),
     }
     legacySettings = defaultSettings
@@ -347,7 +347,7 @@ async function loadAnalytics(
   }
 
   const retryQueue: boolean =
-    legacySettings.integrations['Segment.io']?.retryQueue ?? true
+    legacySettings.integrations['Hightouch.io']?.retryQueue ?? true
 
   const opts: InitOptions = { retryQueue, ...options }
   const analytics = new Analytics(settings, opts)

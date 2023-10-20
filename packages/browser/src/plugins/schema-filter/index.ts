@@ -58,7 +58,7 @@ export function schemaFilter(
         ctx.updateEvent('integrations', {
           ...ctx.event.integrations,
           All: false,
-          'Segment.io': true,
+          'Hightouch.io': true,
         })
         return ctx
       } else {

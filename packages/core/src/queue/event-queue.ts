@@ -226,7 +226,7 @@ export abstract class CoreEventQueue<
   private availableExtensions(denyList: Integrations) {
     const available = this.plugins.filter((p) => {
       // Only filter out destination plugins or the Segment.io plugin
-      if (p.type !== 'destination' && p.name !== 'Segment.io') {
+      if (p.type !== 'destination' && p.name !== 'Hightouch.io') {
         return true
       }
 
@@ -241,7 +241,7 @@ export abstract class CoreEventQueue<
       return (
         denyList[p.name] ??
         alternativeNameMatch ??
-        (p.name === 'Segment.io' ? true : denyList.All) !== false
+        (p.name === 'Hightouch.io' ? true : denyList.All) !== false
       )
     })
 

@@ -573,7 +573,7 @@ describe('plan', () => {
     expect(ctx.event.integrations).toMatchInlineSnapshot(`
       Object {
         "All": false,
-        "Segment.io": true,
+        "Hightouch.io": true,
       }
     `)
   })
@@ -603,7 +603,7 @@ describe('plan', () => {
     expect(ctx.event.integrations).toMatchInlineSnapshot(`
       Object {
         "All": false,
-        "Segment.io": true,
+        "Hightouch.io": true,
       }
     `)
   })

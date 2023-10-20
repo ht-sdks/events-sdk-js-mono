@@ -38,7 +38,7 @@ const ajs = {} as Analytics
  */
 const segmentio = {
   ...testPlugin,
-  name: 'Segment.io',
+  name: 'Hightouch.io',
   type: 'after' as const,
   track: (ctx: Context): Promise<Context> | Context => {
     return Promise.resolve(ctx)
@@ -60,7 +60,7 @@ describe('alternative names', () => {
       integrations: {
         All: false,
         'fullstory trackEvent': true,
-        'Segment.io': {},
+        'Hightouch.io': {},
       },
     }
 

@@ -400,7 +400,7 @@ describe('Flushing', () => {
 
     const segmentio = {
       ...testPlugin,
-      name: 'Segment.io',
+      name: 'Hightouch.io',
       type: 'after' as const,
       track: (ctx: TestCtx): Promise<TestCtx> | TestCtx => {
         return Promise.resolve(ctx)
@@ -418,7 +418,7 @@ describe('Flushing', () => {
         type: 'track' as const,
         integrations: {
           Mixpanel: false,
-          'Segment.io': false,
+          'Hightouch.io': false,
         },
       }
 
@@ -485,7 +485,7 @@ describe('Flushing', () => {
         integrations: {
           All: false,
           Amplitude: false,
-          'Segment.io': false,
+          'Hightouch.io': false,
         },
       }
 
@@ -519,7 +519,7 @@ describe('Flushing', () => {
         integrations: {
           All: false,
           Amplitude: true,
-          'Segment.io': true,
+          'Hightouch.io': true,
         },
       }
 
@@ -587,7 +587,7 @@ describe('Flushing', () => {
           Amplitude: {
             amplitudeKey: 'foo',
           },
-          'Segment.io': {},
+          'Hightouch.io': {},
         },
       }
 

@@ -124,7 +124,7 @@ export function segmentio(
   }
 
   const segmentio: Plugin = {
-    name: 'Segment.io',
+    name: 'Hightouch.io',
     type: 'after',
     version: '0.1.0',
     isLoaded: (): boolean => true,

@@ -122,7 +122,7 @@ describe('before loading', () => {
     describe('unbundling', () => {
       it('should add a list of bundled integrations', () => {
         normalize(analytics, object, options, {
-          'Segment.io': {},
+          'Hightouch.io': {},
           other: {
             bundlingStatus: 'bundled',
           },
@@ -130,7 +130,7 @@ describe('before loading', () => {
 
         assert(object)
         assert(object._metadata)
-        assert.deepEqual(object._metadata.bundled, ['Segment.io', 'other'])
+        assert.deepEqual(object._metadata.bundled, ['Hightouch.io', 'other'])
       })
 
       it('should add a list of bundled ids', () => {
@@ -144,7 +144,7 @@ describe('before loading', () => {
             },
           },
           {
-            'Segment.io': {},
+            'Hightouch.io': {},
             other: {
               bundlingStatus: 'bundled',
             },

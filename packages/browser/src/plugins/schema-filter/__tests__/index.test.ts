@@ -10,7 +10,7 @@ const settings: LegacySettings = {
     'Braze Web Mode (Actions)': {},
     // note that Fullstory's name here doesn't contain 'Actions'
     Fullstory: {},
-    'Segment.io': {},
+    'Hightouch.io': {},
   },
   remotePlugins: [
     {

@@ -39,7 +39,7 @@ export const AnalyticsProvider: React.FC = ({ children }) => {
       cdnURL,
       cdnSettings: {
         integrations: {
-          'Segment.io': {
+          'Hightouch.io': {
             apiKey: writeKey,
             apiHost: apiHost,
             protocol: apiProtocol,

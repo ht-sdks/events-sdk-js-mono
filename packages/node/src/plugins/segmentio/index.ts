@@ -40,7 +40,7 @@ export function createNodePlugin(publisher: Publisher): SegmentNodePlugin {
   }
 
   return {
-    name: 'Segment.io',
+    name: 'Hightouch.io',
     type: 'after',
     version: '1.0.0',
     isLoaded: () => true,
