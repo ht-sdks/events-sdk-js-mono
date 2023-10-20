@@ -50,7 +50,7 @@ function onAlias(analytics: Analytics, json: JSON): JSON {
   return json
 }
 
-export function segmentio(
+export function hightouchio(
   analytics: Analytics,
   settings?: HightouchioSettings,
   integrations?: LegacySettings['integrations']

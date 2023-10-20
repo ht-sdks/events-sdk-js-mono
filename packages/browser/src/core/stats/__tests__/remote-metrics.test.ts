@@ -83,7 +83,8 @@ describe('remote metrics', () => {
       Object {
         "body": Anything,
         "headers": Object {
-          "Content-Type": "text/plain",
+          "Accept": "application/json",
+          "Content-Type": "application/json",
         },
         "method": "POST",
       }

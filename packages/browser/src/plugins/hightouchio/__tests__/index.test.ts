@@ -1,6 +1,6 @@
 import assert from 'assert'
 import unfetch from 'unfetch'
-import { segmentio, HightouchioSettings } from '..'
+import { hightouchio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 import { Plugin } from '../../../core/plugin'
 import { envEnrichment } from '../../env-enrichment'
@@ -22,7 +22,7 @@ describe('Hightouch.io', () => {
 
     options = { apiKey: 'foo' }
     analytics = new Analytics({ writeKey: options.apiKey })
-    segment = await segmentio(analytics, options, {})
+    segment = await hightouchio(analytics, options, {})
 
     await analytics.register(segment, envEnrichment)
 
@@ -54,7 +54,7 @@ describe('Hightouch.io', () => {
         protocol: 'http',
       }
       const analytics = new Analytics({ writeKey: options.apiKey })
-      const segment = await segmentio(analytics, options, {})
+      const segment = await hightouchio(analytics, options, {})
       await analytics.register(segment, envEnrichment)
 
       // @ts-ignore test a valid ajsc page call
@@ -72,7 +72,7 @@ describe('Hightouch.io', () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
       await analytics.register(
-        await segmentio(analytics, {
+        await hightouchio(analytics, {
           apiKey: '',
           deliveryStrategy: {
             config: {
@@ -90,7 +90,7 @@ describe('Hightouch.io', () => {
     it('should default to no keepalive', async () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
-      const segment = await segmentio(analytics, {
+      const segment = await hightouchio(analytics, {
         apiKey: '',
       })
       await analytics.register(await segment)

@@ -1,4 +1,4 @@
-import { segmentio, HightouchioSettings } from '..'
+import { hightouchio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 // @ts-ignore isOffline mocked dependency is accused as unused
 import { isOffline } from '../../../core/connection'
@@ -57,7 +57,7 @@ describe('Segment.io retries', () => {
           })
         }
 
-        segment = await segmentio(analytics, options, {})
+        segment = await hightouchio(analytics, options, {})
 
         await analytics.register(segment, envEnrichment)
       })

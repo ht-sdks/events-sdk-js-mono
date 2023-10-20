@@ -3,7 +3,7 @@ import { Analytics } from '../../../core/analytics'
 import { Context } from '../../../core/context'
 import { schemaFilter } from '..'
 import { LegacySettings } from '../../../browser'
-import { segmentio, HightouchioSettings } from '../../segmentio'
+import { hightouchio, HightouchioSettings } from '../../hightouchio'
 
 const settings: LegacySettings = {
   integrations: {
@@ -104,7 +104,7 @@ describe('schema filter', () => {
 
     options = { apiKey: 'foo' }
     ajs = new Analytics({ writeKey: options.apiKey })
-    segment = await segmentio(ajs, options, {})
+    segment = await hightouchio(ajs, options, {})
     filterXt = schemaFilter({}, settings)
 
     jest.spyOn(segment, 'track')

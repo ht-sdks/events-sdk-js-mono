@@ -11,7 +11,7 @@ import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
 import { AnalyticsBrowser, loadLegacySettings } from '..'
 // @ts-ignore isOffline mocked dependency is accused as unused
 import { isOffline } from '../../core/connection'
-import * as SegmentPlugin from '../../plugins/segmentio'
+import * as HightouchPlugin from '../../plugins/hightouchio'
 import jar from 'js-cookie'
 import { PriorityQueue } from '../../lib/priority-queue'
 import { getCDN, setGlobalCDNUrl } from '../../lib/parse-cdn'
@@ -1049,7 +1049,7 @@ describe('retries', () => {
 
 describe('Segment.io overrides', () => {
   it('allows for overriding Segment.io settings', async () => {
-    jest.spyOn(SegmentPlugin, 'segmentio')
+    jest.spyOn(HightouchPlugin, 'hightouchio')
 
     await AnalyticsBrowser.load(
       { writeKey },
@@ -1063,7 +1063,7 @@ describe('Segment.io overrides', () => {
       }
     )
 
-    expect(SegmentPlugin.segmentio).toHaveBeenCalledWith(
+    expect(HightouchPlugin.hightouchio).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         apiHost: 'https://my.endpoint.com',

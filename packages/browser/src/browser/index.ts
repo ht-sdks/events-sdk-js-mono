@@ -16,7 +16,7 @@ import {
   RemotePlugin,
 } from '../plugins/remote-loader'
 import type { RoutingRule } from '../plugins/routing-middleware'
-import { segmentio, HightouchioSettings } from '../plugins/segmentio'
+import { hightouchio, HightouchioSettings } from '../plugins/hightouchio'
 import { validation } from '../plugins/validation'
 import {
   AnalyticsBuffered,
@@ -262,7 +262,7 @@ async function registerPlugins(
 
   if (!shouldIgnoreHightouchio) {
     toRegister.push(
-      await segmentio(
+      await hightouchio(
         analytics,
         mergedSettings['Hightouch.io'] as HightouchioSettings,
         legacySettings.integrations

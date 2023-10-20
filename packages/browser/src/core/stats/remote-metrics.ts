@@ -129,7 +129,10 @@ export class RemoteMetrics {
     const payload = { series: this.queue }
     this.queue = []
 
-    const headers = { 'Content-Type': 'text/plain' }
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    }
     const url = `https://${this.host}/m`
 
     return fetch(url, {
