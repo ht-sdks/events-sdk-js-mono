@@ -8,9 +8,9 @@ if (process.env.ASSET_PATH) {
   } else {
     const cdn = getCDN()
     setGlobalCDNUrl(cdn) // preserving original behavior -- TODO: neccessary?
-
+    // must match pathPrefix in release.js
     // @ts-ignore
-    __webpack_public_path__ = cdn + '/analytics-next/bundles/'
+    __webpack_public_path__ = cdn + '/releast-test/bundles/'
   }
 }
 

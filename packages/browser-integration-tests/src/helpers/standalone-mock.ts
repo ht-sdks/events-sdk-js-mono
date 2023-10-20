@@ -31,7 +31,7 @@ export const standaloneMock: BeforeEachFn = async ({ context }) => {
       })
     }
   )
-
+  // TODO does this need to match pathPrefix in release.js?
   await context.route(
     'https://cdn.hightouch-events.com/analytics-next/bundles/*',
     (route, request) => {

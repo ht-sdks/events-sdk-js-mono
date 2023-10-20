@@ -12,8 +12,9 @@ if (process.env.ASSET_PATH) {
 
     // @ts-ignore
     __webpack_public_path__ = cdn
-      ? cdn + '/analytics-next/bundles/'
-      : 'https://cdn.hightouch-events.com/analytics-next/bundles/'
+      ? // must match pathPrefix in release.js
+        cdn + '/release-test/bundles/'
+      : 'https://cdn.hightouch-events.com/releast-test/bundles/'
   }
 }
 
