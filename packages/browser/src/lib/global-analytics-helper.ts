@@ -3,7 +3,7 @@ import { AnalyticsSnippet } from '../browser/standalone-interface'
 /**
  * Stores the global window analytics key
  */
-let _globalAnalyticsKey = 'htevents'
+let _globalAnalyticsKey = 'analytics'
 
 /**
  * Gets the global analytics/buffer
