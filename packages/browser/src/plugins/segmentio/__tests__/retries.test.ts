@@ -1,4 +1,4 @@
-import { segmentio, SegmentioSettings } from '..'
+import { segmentio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 // @ts-ignore isOffline mocked dependency is accused as unused
 import { isOffline } from '../../../core/connection'
@@ -14,7 +14,7 @@ jest.mock('../schedule-flush')
 type QueueType = 'priority' | 'persisted'
 
 describe('Segment.io retries', () => {
-  let options: SegmentioSettings
+  let options: HightouchioSettings
   let analytics: Analytics
   let segment: Plugin
   let queue: (PPQ.PersistedPriorityQueue | PQ.PriorityQueue<Context>) & {

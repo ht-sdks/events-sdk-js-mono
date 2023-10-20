@@ -16,7 +16,7 @@ import {
   RemotePlugin,
 } from '../plugins/remote-loader'
 import type { RoutingRule } from '../plugins/routing-middleware'
-import { segmentio, SegmentioSettings } from '../plugins/segmentio'
+import { segmentio, HightouchioSettings } from '../plugins/segmentio'
 import { validation } from '../plugins/validation'
 import {
   AnalyticsBuffered,
@@ -264,7 +264,7 @@ async function registerPlugins(
     toRegister.push(
       await segmentio(
         analytics,
-        mergedSettings['Hightouch.io'] as SegmentioSettings,
+        mergedSettings['Hightouch.io'] as HightouchioSettings,
         legacySettings.integrations
       )
     )
@@ -295,7 +295,7 @@ async function registerPlugins(
   return ctx
 }
 
-const defaultHightouchSettings: SegmentioSettings = {
+const defaultHightouchSettings: HightouchioSettings = {
   apiKey: 'WRITE_KEY',
   apiHost: 'us-east-1.hightouch-events.com',
   protocol: 'https',

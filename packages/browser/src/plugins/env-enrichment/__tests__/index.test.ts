@@ -2,7 +2,7 @@ import cookie from 'js-cookie'
 import assert from 'assert'
 import { Analytics } from '../../../core/analytics'
 import { envEnrichment } from '..'
-import { SegmentioSettings } from '../../segmentio'
+import { HightouchioSettings } from '../../segmentio'
 import { version } from '../../../generated/version'
 import { CoreExtraContext } from '@segment/analytics-core'
 import { UADataValues } from '../../../lib/client-hints/interfaces'
@@ -26,7 +26,7 @@ const ignoreProbeCookieWrites = (
 ) => fn.mock.calls.filter((c) => c[0] !== 'ajs_cookies_check')
 
 describe('Other visitor metadata', () => {
-  let options: SegmentioSettings
+  let options: HightouchioSettings
   let analytics: Analytics
   ;(window.navigator as any).userAgentData = {
     ...lowEntropyTestData,

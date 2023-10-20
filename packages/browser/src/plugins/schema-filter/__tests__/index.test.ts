@@ -3,7 +3,7 @@ import { Analytics } from '../../../core/analytics'
 import { Context } from '../../../core/context'
 import { schemaFilter } from '..'
 import { LegacySettings } from '../../../browser'
-import { segmentio, SegmentioSettings } from '../../segmentio'
+import { segmentio, HightouchioSettings } from '../../segmentio'
 
 const settings: LegacySettings = {
   integrations: {
@@ -93,7 +93,7 @@ const fullstory: Plugin = {
 }
 
 describe('schema filter', () => {
-  let options: SegmentioSettings
+  let options: HightouchioSettings
   let filterXt: Plugin
   let segment: Plugin
   let ajs: Analytics

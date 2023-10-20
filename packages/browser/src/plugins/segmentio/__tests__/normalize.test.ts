@@ -1,6 +1,6 @@
 import assert from 'assert'
 import cookie from 'js-cookie'
-import { SegmentioSettings } from '..'
+import { HightouchioSettings } from '..'
 import { normalize } from '../normalize'
 import { Analytics } from '../../../core/analytics'
 import { SegmentEvent } from '../../../core/events'
@@ -32,7 +32,7 @@ describe('before loading', () => {
     )
   })
 
-  let options: SegmentioSettings
+  let options: HightouchioSettings
   let analytics: Analytics
 
   beforeEach(() => {

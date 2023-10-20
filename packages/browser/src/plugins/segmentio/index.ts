@@ -11,7 +11,7 @@ import batch, { BatchingDispatchConfig } from './batched-dispatcher'
 import standard, { StandardDispatcherConfig } from './fetch-dispatcher'
 import { normalize } from './normalize'
 import { scheduleFlush } from './schedule-flush'
-import { SEGMENT_API_HOST } from '../../core/constants'
+import { HIGHTOUCH_API_HOST } from '../../core/constants'
 
 type DeliveryStrategy =
   | {
@@ -23,7 +23,7 @@ type DeliveryStrategy =
       config?: BatchingDispatchConfig
     }
 
-export type SegmentioSettings = {
+export type HightouchioSettings = {
   apiKey: string
   apiHost?: string
   protocol?: 'http' | 'https'
@@ -52,7 +52,7 @@ function onAlias(analytics: Analytics, json: JSON): JSON {
 
 export function segmentio(
   analytics: Analytics,
-  settings?: SegmentioSettings,
+  settings?: HightouchioSettings,
   integrations?: LegacySettings['integrations']
 ): Plugin {
   // Attach `pagehide` before buffer is created so that inflight events are added
@@ -74,7 +74,7 @@ export function segmentio(
   const inflightEvents = new Set<Context>()
   const flushing = false
 
-  const apiHost = settings?.apiHost ?? SEGMENT_API_HOST
+  const apiHost = settings?.apiHost ?? HIGHTOUCH_API_HOST
   const protocol = settings?.protocol ?? 'https'
   const remote = `${protocol}://${apiHost}`
 
@@ -88,13 +88,13 @@ export function segmentio(
     if (isOffline()) {
       buffer.push(ctx)
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      scheduleFlush(flushing, buffer, segmentio, scheduleFlush)
+      scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
       return ctx
     }
 
     inflightEvents.add(ctx)
 
-    const path = ctx.event.type.charAt(0)
+    const eventType = ctx.event.type
 
     let json = toFacade(ctx.event).json()
 
@@ -108,14 +108,14 @@ export function segmentio(
 
     return client
       .dispatch(
-        `${remote}/${path}`,
+        `${remote}/v1/${eventType}`,
         normalize(analytics, json, settings, integrations)
       )
       .then(() => ctx)
       .catch(() => {
         buffer.pushWithBackoff(ctx)
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleFlush(flushing, buffer, segmentio, scheduleFlush)
+        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
         return ctx
       })
       .finally(() => {
@@ -123,7 +123,7 @@ export function segmentio(
       })
   }
 
-  const segmentio: Plugin = {
+  const hightouch: Plugin = {
     name: 'Hightouch.io',
     type: 'after',
     version: '0.1.0',
@@ -140,8 +140,8 @@ export function segmentio(
   // Buffer may already have items if they were previously stored in localStorage.
   // Start flushing them immediately.
   if (buffer.todo) {
-    scheduleFlush(flushing, buffer, segmentio, scheduleFlush)
+    scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
   }
 
-  return segmentio
+  return hightouch
 }

@@ -12,7 +12,10 @@ export default function (config?: StandardDispatcherConfig): {
   function dispatch(url: string, body: object): Promise<unknown> {
     return fetch(url, {
       keepalive: config?.keepalive,
-      headers: { 'Content-Type': 'text/plain' },
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
       method: 'post',
       body: JSON.stringify(body),
     })

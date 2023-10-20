@@ -1,6 +1,6 @@
 import assert from 'assert'
 import unfetch from 'unfetch'
-import { segmentio, SegmentioSettings } from '..'
+import { segmentio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 import { Plugin } from '../../../core/plugin'
 import { envEnrichment } from '../../env-enrichment'
@@ -11,7 +11,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('Hightouch.io', () => {
-  let options: SegmentioSettings
+  let options: HightouchioSettings
   let analytics: Analytics
   let segment: Plugin
   let spyMock: jest.SpyInstance
