@@ -34,29 +34,13 @@ export const AnalyticsProvider: React.FC = ({ children }) => {
       `AnalyticsBrowser loading...`,
       JSON.stringify({ writeKey, delivery, apiProtocol, apiHost }, null, 4)
     )
-    return AnalyticsBrowser.load({
-      writeKey,
-      cdnURL,
-      cdnSettings: {
-        integrations: {
-          'Hightouch.io': {
-            apiKey: writeKey,
-            apiHost: apiHost,
-            protocol: apiProtocol,
-            deliveryStrategy:
-              delivery == 'batching'
-                ? {
-                    strategy: 'batching',
-                    config: { timeout: 30, size: 100 },
-                  }
-                : {
-                    strategy: 'standard',
-                    config: { keepalive: false },
-                  },
-          },
-        },
+    return AnalyticsBrowser.load(
+      {
+        writeKey,
+        cdnURL,
       },
-    })
+      { apiHost, protocol: apiProtocol, batching: delivery === 'batching' }
+    )
   }, [writeKey, cdnURL, apiHost, apiProtocol, delivery])
   return (
     <AnalyticsContext.Provider
