@@ -337,6 +337,17 @@ async function loadAnalytics(
     defaultSettings.integrations['Hightouch.io'] = {
       ...defaultHightouchIntegration,
       ...(settings.writeKey ? { apiKey: settings.writeKey } : {}),
+      ...(options.apiHost ? { apiHost: options.apiHost } : {}),
+      ...(options.protocol ? { protocol: options.protocol } : {}),
+      // defaultHightouchIntegration defaults to 'batching'
+      // allow the options override to turn it off
+      ...(options.batching == false
+        ? {
+            deliveryStrategy: {
+              strategy: 'standard',
+            },
+          }
+        : {}),
     }
     legacySettings = defaultSettings
   }
