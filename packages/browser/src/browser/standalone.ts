@@ -13,8 +13,8 @@ if (process.env.ASSET_PATH) {
     // @ts-ignore
     __webpack_public_path__ = cdn
       ? // must match pathPrefix in release.js
-        cdn + `/release-test/${process.env.GITHUB_REF_NAME}/`
-      : `https://cdn.hightouch-events.com/releast-test/${process.env.GITHUB_REF_NAME}/`
+        cdn + `/release-test/${process.env.VERSION_PATH}/`
+      : process.env.ASSET_PATH
   }
 }
 

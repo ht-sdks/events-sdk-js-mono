@@ -7,16 +7,18 @@ const BundleAnalyzerPlugin =
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
+// TODO fix requiring bundles fallback for tests
+const VERSION_PATH = process.env.GITHUB_REF_NAME ?? 'bundles'
 const ASSET_PATH = isProd
   ? // $releast-test path needs to match pathPrefix in release.js
-    // GITHUB_REF_NAME should be populated in github action
-    `https://cdn.hightouch-events.com/release-test/${process.env.GITHUB_REF_NAME}/`
+    `https://cdn.hightouch-events.com/release-test/${VERSION_PATH}/`
   : '/dist/umd/'
 
 const plugins = [
   new CompressionPlugin({}),
   new webpack.EnvironmentPlugin({
     ASSET_PATH,
+    VERSION_PATH,
   }),
   new CircularDependencyPlugin({
     failOnError: true,

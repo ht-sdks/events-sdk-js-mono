@@ -10,8 +10,7 @@ if (process.env.ASSET_PATH) {
     setGlobalCDNUrl(cdn) // preserving original behavior -- TODO: neccessary?
     // must match pathPrefix in release.js
     // @ts-ignore
-    __webpack_public_path__ =
-      cdn + `/releast-test/${process.env.GITHUB_REF_NAME}/`
+    __webpack_public_path__ = cdn + `/releast-test/${process.env.VERSION_PATH}/`
   }
 }
 
