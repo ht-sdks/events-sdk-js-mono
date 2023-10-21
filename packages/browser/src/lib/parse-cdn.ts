@@ -1,5 +1,4 @@
 import { getGlobalAnalytics } from './global-analytics-helper'
-import { embeddedWriteKey } from './embedded-write-key'
 
 const analyticsScriptRegex =
   /(https:\/\/.*)\/analytics\.js\/v1\/(?:.*?)\/(?:platform|analytics.*)?/
@@ -54,34 +53,4 @@ export const getCDN = (): string => {
 export const getNextIntegrationsURL = () => {
   const cdn = getCDN()
   return `${cdn}/next-integrations`
-}
-
-/**
- * Replaces the CDN URL in the script tag with the one from Analytics.js 1.0
- *
- * @returns the path to Analytics JS 1.0
- **/
-export function getLegacyAJSPath(): string {
-  const writeKey = embeddedWriteKey() ?? getGlobalAnalytics()?._writeKey
-
-  const scripts = Array.prototype.slice.call(
-    document.querySelectorAll('script')
-  )
-  let path: string | undefined = undefined
-
-  for (const s of scripts) {
-    const src = s.getAttribute('src') ?? ''
-    const result = analyticsScriptRegex.exec(src)
-
-    if (result && result[1]) {
-      path = src
-      break
-    }
-  }
-
-  if (path) {
-    return path.replace('analytics.min.js', 'analytics.classic.js')
-  }
-
-  return `https://cdn.hightouch-events.com/analytics.js/v1/${writeKey}/analytics.classic.js`
 }

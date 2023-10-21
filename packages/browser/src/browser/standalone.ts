@@ -23,13 +23,11 @@ setVersionType('web')
 import { install } from './standalone-analytics'
 import '../lib/csp-detection'
 import { shouldPolyfill } from '../lib/browser-polyfill'
-import {
-  loadAjsClassicFallback,
-  isAnalyticsCSPError,
-} from '../lib/csp-detection'
+import { isAnalyticsCSPError } from '../lib/csp-detection'
 
 let ajsIdentifiedCSP = false
 
+// @ts-ignore
 const sendErrorMetrics = (tags: string[]) => {
   // Uncomment to re-enable RemoteMetrics -- also see loadAnalytics() RemoteMetrics usage
   // // this should not be instantied at the root, or it will break ie11.
@@ -56,7 +54,7 @@ document.addEventListener('securitypolicyviolation', (e) => {
   }
   ajsIdentifiedCSP = true
   sendErrorMetrics(['type:csp'])
-  loadAjsClassicFallback().catch(console.error)
+  console.warn('Your CSP policy is missing permissions required for HtEvents')
 })
 
 /**

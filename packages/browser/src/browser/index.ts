@@ -299,7 +299,7 @@ const defaultHightouchIntegration: HightouchioSettings = {
   apiHost: 'us-east-1.hightouch-events.com',
   protocol: 'https',
   unbundledIntegrations: [],
-  addBundledMetadata: true,
+  addBundledMetadata: false,
   maybeBundledConfigIds: {},
   deliveryStrategy: {
     strategy: 'batching',
