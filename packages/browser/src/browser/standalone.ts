@@ -23,8 +23,6 @@ setVersionType('web')
 import { install } from './standalone-analytics'
 import '../lib/csp-detection'
 import { shouldPolyfill } from '../lib/browser-polyfill'
-import { RemoteMetrics } from '../core/stats/remote-metrics'
-import { embeddedWriteKey } from '../lib/embedded-write-key'
 import {
   loadAjsClassicFallback,
   isAnalyticsCSPError,
@@ -33,12 +31,13 @@ import {
 let ajsIdentifiedCSP = false
 
 const sendErrorMetrics = (tags: string[]) => {
-  // this should not be instantied at the root, or it will break ie11.
-  const metrics = new RemoteMetrics()
-  metrics.increment('analytics_js.invoke.error', [
-    ...tags,
-    `wk:${embeddedWriteKey()}`,
-  ])
+  // Uncomment to re-enable RemoteMetrics -- also see loadAnalytics() RemoteMetrics usage
+  // // this should not be instantied at the root, or it will break ie11.
+  // const metrics = new RemoteMetrics()
+  // metrics.increment('analytics_js.invoke.error', [
+  //   ...tags,
+  //   `wk:${embeddedWriteKey()}`,
+  // ])
 }
 
 function onError(err?: unknown) {

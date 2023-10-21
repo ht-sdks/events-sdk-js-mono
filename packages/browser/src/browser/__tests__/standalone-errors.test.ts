@@ -110,19 +110,23 @@ describe('standalone bundle', () => {
       () => {}
     )
 
-    expect(metrics).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "metric": "analytics_js.invoke.error",
-          "tags": Array [
-            "type:initialization",
-            "message:Ohhh nooo",
-            "name:Error",
-            "wk:write_key_abc_123",
-          ],
-        },
-      ]
-    `)
+    expect(metrics).toMatchInlineSnapshot(`Array []`)
+
+    // Uncomment when re-enabling RemoteMetrics -- see standalone.ts and loadAnalytics usage of RemoteMetrics
+    // expect(metrics).toMatchInlineSnapshot(`
+    //   Array [
+    //     Object {
+    //       "metric": "analytics_js.invoke.error",
+    //       "tags": Array [
+    //         "type:initialization",
+    //         "message:Ohhh nooo",
+    //         "name:Error",
+    //         "wk:write_key_abc_123",
+    //       ],
+    //     },
+    //   ]
+    // `)
+
     expect(errorMessages).toMatchInlineSnapshot(`
       Array [
         "[analytics.js],Failed to load Analytics.js,Error: Ohhh nooo",

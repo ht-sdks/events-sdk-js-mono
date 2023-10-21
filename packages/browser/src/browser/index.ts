@@ -28,7 +28,6 @@ import {
 } from '../core/buffer'
 import { ClassicIntegrationSource } from '../plugins/ajs-destination/types'
 import { attachInspector } from '../core/inspector'
-import { Stats } from '../core/stats'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
 
 export interface LegacyIntegrationConfiguration {
@@ -295,7 +294,7 @@ async function registerPlugins(
   return ctx
 }
 
-const defaultHightouchSettings: HightouchioSettings = {
+const defaultHightouchIntegration: HightouchioSettings = {
   apiKey: 'WRITE_KEY',
   apiHost: 'us-east-1.hightouch-events.com',
   protocol: 'https',
@@ -336,7 +335,7 @@ async function loadAnalytics(
     legacySettings = settings.cdnSettings
   } else {
     defaultSettings.integrations['Hightouch.io'] = {
-      ...defaultHightouchSettings,
+      ...defaultHightouchIntegration,
       ...(settings.writeKey ? { apiKey: settings.writeKey } : {}),
     }
     legacySettings = defaultSettings
@@ -357,7 +356,9 @@ async function loadAnalytics(
   const plugins = settings.plugins ?? []
 
   const classicIntegrations = settings.classicIntegrations ?? []
-  Stats.initRemoteMetrics(legacySettings.metrics)
+
+  // Uncomment to re-enable RemoteMetrics -- also see standalone.ts RemoteMetrics usage
+  // Stats.initRemoteMetrics(legacySettings.metrics)
 
   // needs to be flushed before plugins are registered
   flushPreBuffer(analytics, preInitBuffer)
