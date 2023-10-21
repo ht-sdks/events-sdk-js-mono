@@ -45,7 +45,7 @@ const config = {
         type: 'umd',
       },
     },
-    standalone: {
+    'events.min': {
       import: path.resolve(__dirname, 'src/browser/standalone.ts'),
       library: {
         name: 'AnalyticsNext',

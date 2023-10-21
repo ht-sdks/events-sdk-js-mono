@@ -87,18 +87,6 @@ async function upload(meta) {
       })
       .promise()
 
-    // // put chunks in a separate path. Regardless of branch, version, etc.
-    // // there are immutable scripts that will be loaded by webpack in runtime
-    // if (filePath.includes('bundle')) {
-    //   await s3
-    //     .putObject({
-    //       ...options,
-    //       Key: path.join(pathPrefix, 'bundles', f),
-    //       CacheControl: 'public,max-age=31536000,immutable',
-    //     })
-    //     .promise()
-    // }
-
     progress++
     logUpdate(`Progress: ${progress}/${total}`)
 
