@@ -169,8 +169,8 @@ class EnvironmentEnrichmentPlugin implements Plugin {
     }
 
     evtCtx.library ??= {
-      name: 'analytics.js',
-      version: `${getVersionType() === 'web' ? 'next' : 'npm:next'}-${version}`,
+      name: 'events-sdk-js',
+      version: `${getVersionType() === 'web' ? 'web' : 'npm'}-${version}`,
     }
 
     if (query && !evtCtx.campaign) {
