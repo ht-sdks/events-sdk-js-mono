@@ -104,7 +104,7 @@ describe('Event Factory', () => {
 
     test('adds a message id', () => {
       const track = factory.track('Order Completed', shoes)
-      expect(track.messageId).toContain('ajs-next')
+      expect(track.messageId).not.toContain('ajs-next')
     })
 
     test('adds a timestamp', () => {
