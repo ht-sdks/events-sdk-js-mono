@@ -4,7 +4,7 @@ This project uses [Turborepo](https://turbo.build/repo/docs), for dependency-awa
 
 ### Setup
 ```sh
- git clone git@github.com:segmentio/analytics-next.git && cd analytics-next
+ git clone git@github.com:ht-sdks/events-sdk-js.git && cd events-sdk-js
  nvm use  # install version of node defined in .nvmrc.
  yarn && yarn build
  yarn lint && yarn test
@@ -20,7 +20,7 @@ You have a couple options:
 
 For example: 
 ```
-yarn run -T turbo run build --filter=@segment/analytics-next
+yarn run -T turbo run build --filter=@ht-sdks/events-sdk-js
 ```
 or
 ```
