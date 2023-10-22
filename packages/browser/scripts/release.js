@@ -23,9 +23,7 @@ if (!secretAccessKey) throw new Error('Missing AWS_SECRET_ACCESS_KEY')
 const sessionToken = process.env.AWS_SESSION_TOKEN
 if (!sessionToken) throw new Error('Missing AWS_SESSION_TOKEN')
 
-// TODO: remove pathPrefix when cutting over from old repo to new repo
-// TODO: grep for comments refering to 'pathPrefix'
-const pathPrefix = 'release-test' // TODO: Replaceme
+const pathPrefix = process.env.PATH_PREFIX ?? 'browser/candidate'
 
 const getBranch = async () =>
   (await ex('git', ['branch', '--show-current'])).stdout
@@ -77,15 +75,17 @@ async function upload(meta) {
 
     const output = await s3.putObject(options).promise()
 
-    // TODO should only do this when deploying production tags (not beta or test ones)
-    // put latest version with only 5 minutes caching
-    await s3
-      .putObject({
-        ...options,
-        CacheControl: 'public,max-age=300,immutable',
-        Key: path.join(pathPrefix, 'latest', f),
-      })
-      .promise()
+    if (pathPrefix === 'browser/release') {
+      // only build "latest" when it's a "release" build
+      // put latest version with only 5 minutes caching
+      await s3
+        .putObject({
+          ...options,
+          CacheControl: 'public,max-age=300,immutable',
+          Key: path.join(pathPrefix, 'latest', f),
+        })
+        .promise()
+    }
 
     progress++
     logUpdate(`Progress: ${progress}/${total}`)

@@ -1,8 +1,11 @@
-name: Deploy to CDN
+name: Deploy to CDN - Candidate
+
 on:
   push:
+    # Pattern matched against refs/tags
     tags:
-      - 'v*'
+      - '*'
+
 env:
   HUSKY: 0
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
@@ -37,4 +40,4 @@ jobs:
           yarn install --immutable
       - name: Release to CDN
         run: |
-          yarn run -T browser release:cdn
+          yarn run -T browser candidate:cdn

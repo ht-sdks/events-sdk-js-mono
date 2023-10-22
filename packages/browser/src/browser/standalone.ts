@@ -12,8 +12,7 @@ if (process.env.ASSET_PATH) {
 
     // @ts-ignore
     __webpack_public_path__ = cdn
-      ? // must match pathPrefix in release.js
-        cdn + `/release-test/${process.env.VERSION_PATH}/`
+      ? cdn + `/${process.env.PATH_PREFIX}/${process.env.PATH_VERSION}/`
       : process.env.ASSET_PATH
   }
 }
