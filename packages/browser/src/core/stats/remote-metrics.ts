@@ -49,7 +49,7 @@ const createRemoteMetric = (
 }
 
 function logError(err: unknown): void {
-  console.error('Error sending segment performance metrics', err)
+  console.error('Error sending hightouch performance metrics', err)
 }
 
 export class RemoteMetrics {

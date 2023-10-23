@@ -12,7 +12,7 @@
 
 ```html
 <head>
-  <!-- This should be included before the Segment snippet -->
+  <!-- This should be included before the hightouch snippet -->
   <script
     src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"
     type="text/javascript"
@@ -49,7 +49,7 @@ pnpm add @segment/analytics-consent-wrapper-onetrust
 
 ```ts
 import { withOneTrust } from '@segment/analytics-consent-wrapper-onetrust'
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
 
 export const analytics = new AnalyticsBrowser()
 

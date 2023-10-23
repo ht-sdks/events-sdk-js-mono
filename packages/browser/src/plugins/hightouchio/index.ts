@@ -68,7 +68,7 @@ export function hightouchio(
     ? new PriorityQueue<Context>(analytics.queue.queue.maxAttempts, [])
     : new PersistedPriorityQueue(
         analytics.queue.queue.maxAttempts,
-        `${writeKey}:dest-Segment.io`
+        `${writeKey}:dest-Hightouch.io`
       )
 
   const inflightEvents = new Set<Context>()

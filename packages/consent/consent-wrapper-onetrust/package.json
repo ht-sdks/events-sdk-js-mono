@@ -44,10 +44,10 @@
     "@segment/analytics-consent-tools": "0.2.1"
   },
   "peerDependencies": {
-    "@segment/analytics-next": ">=1.53.1"
+    "@ht-sdks/events-sdk-js": ">=1.53.1"
   },
   "peerDependenciesMeta": {
-    "@segment/analytics-next": {
+    "@ht-sdks/events-sdk-js": {
       "optional": true
     }
   },

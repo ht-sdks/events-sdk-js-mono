@@ -17,10 +17,10 @@
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
+    "@ht-sdks/events-sdk-js": "workspace:^",
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^",
     "@playwright/test": "^1.28.1",
-    "@segment/analytics-next": "workspace:^",
     "http-server": "14.1.1",
     "tslib": "^2.4.1"
   }

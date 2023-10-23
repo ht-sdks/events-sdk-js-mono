@@ -28,7 +28,7 @@ gen_enforced_dependency(WorkspaceCwd, DependencyIdent, DependencyRange2, Depende
     'react', 'react-dom',
     '@types/react',
     % Allow the usage of workspace^ -- there is a better way to do this =)
-    '@segment/analytics-next',
+    '@ht-sdks/events-sdk-js',
     '@segment/analytics-node',
     '@segment/analytics-core',
     '@segment/analytics-consent-wrapper-onetrust',

@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@segment/analytics-next": "workspace:^",
+    "@ht-sdks/events-sdk-js": "workspace:^",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

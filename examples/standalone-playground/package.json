@@ -11,8 +11,8 @@
     "concurrently": "yarn run -T concurrently"
   },
   "dependencies": {
-    "@segment/analytics-consent-wrapper-onetrust": "workspace:^",
-    "@segment/analytics-next": "workspace:^"
+    "@ht-sdks/events-sdk-js": "workspace:^",
+    "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
   },
   "devDependencies": {
     "http-server": "14.1.1"

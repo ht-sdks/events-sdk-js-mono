@@ -1,4 +1,4 @@
-import type { AnalyticsSnippet } from '@segment/analytics-next'
+import type { AnalyticsSnippet } from '@ht-sdks/events-sdk-js'
 
 declare global {
   interface Window {

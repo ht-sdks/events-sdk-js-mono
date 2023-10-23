@@ -25,7 +25,7 @@
     "release": "yarn clean && yarn build --force && changeset publish && git push origin HEAD:master --follow-tags --no-verify",
     "version-run-all": "yarn workspaces foreach -vpt --no-private run version",
     "core": "yarn workspace @segment/analytics-core",
-    "browser": "yarn workspace @segment/analytics-next",
+    "browser": "yarn workspace @ht-sdks/events-sdk-js",
     "node": "yarn workspace @segment/analytics-node",
     "clean": "bash scripts/clean.sh",
     "turbo": "turbo"
@@ -64,7 +64,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "resolutions": {
-    "@segment/analytics-next": "workspace:*",
+    "@ht-sdks/events-sdk-js": "workspace:*",
     "@segment/analytics-node": "workspace:*",
     "@segment/analytics-core": "workspace:*"
   }

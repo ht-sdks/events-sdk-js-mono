@@ -148,7 +148,7 @@ describe('remote metrics', () => {
     await remote.flush()
 
     expect(errorSpy).toHaveBeenCalledWith(
-      'Error sending segment performance metrics',
+      'Error sending hightouch performance metrics',
       error
     )
   })

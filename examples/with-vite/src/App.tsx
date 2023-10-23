@@ -1,5 +1,5 @@
 import React from 'react'
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
 import logo from './logo.svg'
 import './App.css'
 

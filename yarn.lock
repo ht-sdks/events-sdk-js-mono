@@ -2624,8 +2624,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@example/standalone-playground@workspace:examples/standalone-playground"
   dependencies:
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
-    "@segment/analytics-next": "workspace:^"
     http-server: 14.1.1
   languageName: unknown
   linkType: soft
@@ -2635,8 +2635,8 @@ __metadata:
   resolution: "@example/with-next-js@workspace:examples/with-next-js"
   dependencies:
     "@builder.io/partytown": ^0.7.4
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@next/bundle-analyzer": ^12.1.5
-    "@segment/analytics-next": "workspace:^"
     "@types/faker": ^5.1.2
     "@types/react": ^17.0.37
     eslint-config-next: ^12.1.6
@@ -2657,7 +2657,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@example/with-vite@workspace:examples/with-vite"
   dependencies:
-    "@segment/analytics-next": "workspace:^"
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@types/react": ^18.0.0
     "@types/react-dom": ^18.0.0
     "@vitejs/plugin-react": ^1.3.0
@@ -2698,6 +2698,63 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ht-sdks/events-sdk-js@workspace:*, @ht-sdks/events-sdk-js@workspace:packages/browser":
+  version: 0.0.0-use.local
+  resolution: "@ht-sdks/events-sdk-js@workspace:packages/browser"
+  dependencies:
+    "@internal/config": 0.0.0
+    "@lukeed/uuid": ^2.0.0
+    "@segment/analytics-browser-actions-braze": ^1.3.0
+    "@segment/analytics-core": 1.3.2
+    "@segment/analytics.js-integration": ^3.3.3
+    "@segment/analytics.js-integration-amplitude": ^3.3.3
+    "@segment/analytics.js-video-plugins": ^0.2.1
+    "@segment/facade": ^3.4.9
+    "@segment/tsub": ^2.0.0
+    "@size-limit/preset-big-lib": ^7.0.8
+    "@types/flat": ^5.0.1
+    "@types/fs-extra": ^9.0.2
+    "@types/jest-dev-server": ^5.0.0
+    "@types/jquery": ^3.5.4
+    "@types/js-cookie": 3.0.1
+    "@types/jsdom": ^16.2.14
+    "@types/mime": ^2.0.3
+    "@types/node": ^16
+    "@types/serve-handler": ^6.1.0
+    "@types/spark-md5": ^3.0.2
+    aws-sdk: ^2.814.0
+    circular-dependency-plugin: ^5.2.2
+    compression-webpack-plugin: ^8.0.1
+    dset: ^3.1.2
+    execa: ^4.1.0
+    flat: ^5.0.2
+    fs-extra: ^9.0.1
+    jest-dev-server: ^6.0.3
+    jest-environment-jsdom: ^28.1.1
+    jquery: ^3.5.1
+    js-cookie: 3.0.1
+    jsdom: ^19.0.0
+    lighthouse: ^9.6.3
+    log-update: ^4.0.0
+    micro-memoize: ^4.0.9
+    mime: ^2.4.6
+    node-fetch: ^2.6.7
+    node-gyp: ^9.0.0
+    playwright: ^1.28.1
+    serve-handler: ^6.1.3
+    size-limit: ^7.0.8
+    spark-md5: ^3.0.1
+    terser-webpack-plugin: ^5.1.4
+    ts-loader: ^9.1.1
+    ts-node: ^10.8.0
+    tslib: ^2.4.1
+    unfetch: ^4.1.0
+    webpack: ^5.76.0
+    webpack-bundle-analyzer: ^4.4.2
+    webpack-cli: ^4.8.0
+  languageName: unknown
+  linkType: soft
+
 "@humanwhocodes/config-array@npm:^0.9.2":
   version: 0.9.5
   resolution: "@humanwhocodes/config-array@npm:0.9.5"
@@ -2720,10 +2777,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/browser-integration-tests@workspace:packages/browser-integration-tests"
   dependencies:
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@internal/config": "workspace:^"
     "@internal/test-helpers": "workspace:^"
     "@playwright/test": ^1.28.1
-    "@segment/analytics-next": "workspace:^"
     http-server: 14.1.1
     tslib: ^2.4.1
   languageName: unknown
@@ -2760,10 +2817,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/consent-tools-integration-tests@workspace:packages/consent/consent-tools-integration-tests"
   dependencies:
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@internal/test-helpers": "workspace:^"
     "@segment/analytics-consent-tools": "workspace:^"
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
-    "@segment/analytics-next": "workspace:^"
     "@wdio/cli": ^8.10.6
     "@wdio/devtools-service": ^8.10.6
     "@wdio/local-runner": ^8.10.6
@@ -2809,7 +2866,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/test-helpers@workspace:packages/test-helpers"
   dependencies:
-    "@segment/analytics-next": "workspace:^"
+    "@ht-sdks/events-sdk-js": "workspace:^"
     tslib: ^2.4.1
   languageName: unknown
   linkType: soft
@@ -3702,7 +3759,7 @@ __metadata:
     "@segment/actions-core": ^3.76.0
     "@segment/browser-destination-runtime": ^1.6.0
   peerDependencies:
-    "@segment/analytics-next": "*"
+    "@ht-sdks/events-sdk-js": "*"
   checksum: 7352cfd3c74275e0ec349dd252025c7233f781f79948b0b4c40cd7f36cff58b490b67098687de0da9ca0d4385d7540aba99519d12e79d7315352338f97984448
   languageName: node
   linkType: hard
@@ -3711,13 +3768,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@segment/analytics-consent-tools@workspace:packages/consent/consent-tools"
   dependencies:
+    "@ht-sdks/events-sdk-js": "workspace:^"
     "@internal/config": "workspace:^"
     "@internal/test-helpers": "workspace:^"
-    "@segment/analytics-next": "workspace:^"
   peerDependencies:
-    "@segment/analytics-next": ">=1.53.1"
+    "@ht-sdks/events-sdk-js": ">=1.53.1"
   peerDependenciesMeta:
-    "@segment/analytics-next":
+    "@ht-sdks/events-sdk-js":
       optional: true
   languageName: unknown
   linkType: soft
@@ -3730,9 +3787,9 @@ __metadata:
     "@internal/test-helpers": "workspace:^"
     "@segment/analytics-consent-tools": 0.2.1
   peerDependencies:
-    "@segment/analytics-next": ">=1.53.1"
+    "@ht-sdks/events-sdk-js": ">=1.53.1"
   peerDependenciesMeta:
-    "@segment/analytics-next":
+    "@ht-sdks/events-sdk-js":
       optional: true
   languageName: unknown
   linkType: soft
@@ -3744,63 +3801,6 @@ __metadata:
     "@lukeed/uuid": ^2.0.0
     dset: ^3.1.2
     tslib: ^2.4.1
-  languageName: unknown
-  linkType: soft
-
-"@segment/analytics-next@workspace:*, @segment/analytics-next@workspace:packages/browser":
-  version: 0.0.0-use.local
-  resolution: "@segment/analytics-next@workspace:packages/browser"
-  dependencies:
-    "@internal/config": 0.0.0
-    "@lukeed/uuid": ^2.0.0
-    "@segment/analytics-browser-actions-braze": ^1.3.0
-    "@segment/analytics-core": 1.3.2
-    "@segment/analytics.js-integration": ^3.3.3
-    "@segment/analytics.js-integration-amplitude": ^3.3.3
-    "@segment/analytics.js-video-plugins": ^0.2.1
-    "@segment/facade": ^3.4.9
-    "@segment/tsub": ^2.0.0
-    "@size-limit/preset-big-lib": ^7.0.8
-    "@types/flat": ^5.0.1
-    "@types/fs-extra": ^9.0.2
-    "@types/jest-dev-server": ^5.0.0
-    "@types/jquery": ^3.5.4
-    "@types/js-cookie": 3.0.1
-    "@types/jsdom": ^16.2.14
-    "@types/mime": ^2.0.3
-    "@types/node": ^16
-    "@types/serve-handler": ^6.1.0
-    "@types/spark-md5": ^3.0.2
-    aws-sdk: ^2.814.0
-    circular-dependency-plugin: ^5.2.2
-    compression-webpack-plugin: ^8.0.1
-    dset: ^3.1.2
-    execa: ^4.1.0
-    flat: ^5.0.2
-    fs-extra: ^9.0.1
-    jest-dev-server: ^6.0.3
-    jest-environment-jsdom: ^28.1.1
-    jquery: ^3.5.1
-    js-cookie: 3.0.1
-    jsdom: ^19.0.0
-    lighthouse: ^9.6.3
-    log-update: ^4.0.0
-    micro-memoize: ^4.0.9
-    mime: ^2.4.6
-    node-fetch: ^2.6.7
-    node-gyp: ^9.0.0
-    playwright: ^1.28.1
-    serve-handler: ^6.1.3
-    size-limit: ^7.0.8
-    spark-md5: ^3.0.1
-    terser-webpack-plugin: ^5.1.4
-    ts-loader: ^9.1.1
-    ts-node: ^10.8.0
-    tslib: ^2.4.1
-    unfetch: ^4.1.0
-    webpack: ^5.76.0
-    webpack-bundle-analyzer: ^4.4.2
-    webpack-cli: ^4.8.0
   languageName: unknown
   linkType: soft
 
@@ -3877,7 +3877,7 @@ __metadata:
   dependencies:
     "@segment/actions-core": ^3.76.0
   peerDependencies:
-    "@segment/analytics-next": "*"
+    "@ht-sdks/events-sdk-js": "*"
   checksum: 9ac97093ea07fc75a19c4be92a808e41413757193f19bb3f0b35716e165baaa9738f68c99dce953dc58143bb67c70ac935f5233aa9dc26cb1ee7792bddddc094
   languageName: node
   linkType: hard
