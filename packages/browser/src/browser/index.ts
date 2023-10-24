@@ -303,7 +303,7 @@ const defaultHightouchIntegration: HightouchioSettings = {
   maybeBundledConfigIds: {},
   deliveryStrategy: {
     strategy: 'batching',
-    config: { timeout: 30, size: 100 },
+    config: { timeout: 1000, size: 10 }, // 1 second or 10 items
   },
 }
 
