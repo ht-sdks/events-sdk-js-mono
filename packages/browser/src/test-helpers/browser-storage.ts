@@ -1,11 +1,14 @@
 import cookie from 'js-cookie'
 
 const ajsCookieNames = [
-  'ajs_user_id',
+  'htev_user_id',
   'htev_anonymous_id',
-  'ajs_group_id',
+  'htev_group_id',
 ] as const
-const ajsLocalStorageKeys = ['ajs_user_traits', 'ajs_group_properties'] as const
+const ajsLocalStorageKeys = [
+  'htev_user_traits',
+  'htev_group_properties',
+] as const
 
 export const getAjsBrowserStorage = () => {
   return getBrowserStorage({

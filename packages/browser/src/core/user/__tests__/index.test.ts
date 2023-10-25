@@ -769,8 +769,8 @@ describe('user', () => {
       user.id('id')
 
       expect(user.id()).toBe('id')
-      expect(jar.get('ajs_user_id')).toBeFalsy()
-      expect(store.get('ajs_user_id')).toBeFalsy()
+      expect(jar.get('htev_user_id')).toBeFalsy()
+      expect(store.get('htev_user_id')).toBeFalsy()
       expect(setCookieSpy.mock.calls.length).toBe(0)
     })
 
@@ -785,8 +785,8 @@ describe('user', () => {
       user.id('id')
 
       expect(user.id()).toBe(null)
-      expect(jar.get('ajs_user_id')).toBeFalsy()
-      expect(store.get('ajs_user_id')).toBeFalsy()
+      expect(jar.get('htev_user_id')).toBeFalsy()
+      expect(store.get('htev_user_id')).toBeFalsy()
       expect(setCookieSpy.mock.calls.length).toBe(0)
     })
   })
@@ -807,11 +807,11 @@ describe('group', () => {
 
     group.id('gid')
 
-    jar.remove('ajs_group_id')
+    jar.remove('htev_group_id')
 
-    assert.equal(jar.get('ajs_group_id'), null)
+    assert.equal(jar.get('htev_group_id'), null)
     assert.equal(group.id(), 'gid')
-    assert.equal(store.get('ajs_group_id'), 'gid')
+    assert.equal(store.get('htev_group_id'), 'gid')
   })
 
   it('id() should not persist when persist disabled', () => {
@@ -821,8 +821,8 @@ describe('group', () => {
     group.id('gid')
 
     expect(group.id()).toBe('gid')
-    expect(jar.get('ajs_group_id')).toBeFalsy()
-    expect(store.get('ajs_group_id')).toBeFalsy()
+    expect(jar.get('htev_group_id')).toBeFalsy()
+    expect(store.get('htev_group_id')).toBeFalsy()
     expect(ignoreProbeCookieWrites(setCookieSpy).length).toBe(0)
   })
 
@@ -890,10 +890,10 @@ describe('group', () => {
       expect(group.options).toEqual({
         persist: true,
         cookie: {
-          key: 'ajs_group_id',
+          key: 'htev_group_id',
         },
         localStorage: {
-          key: 'ajs_group_properties',
+          key: 'htev_group_properties',
         },
       })
     })
@@ -912,7 +912,7 @@ describe('Custom cookie params', () => {
     )
     customUser.identify('some_id', { trait: true })
 
-    expect(document.cookie).toMatchInlineSnapshot(`"; ajs_user_id=some_id"`)
+    expect(document.cookie).toMatchInlineSnapshot(`"; htev_user_id=some_id"`)
     expect(customUser.id()).toBe('some_id')
     expect(customUser.traits()).toEqual({ trait: true })
   })

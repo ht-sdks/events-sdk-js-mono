@@ -246,13 +246,13 @@ describe('Analytics', () => {
 
       let storedData = getAjsBrowserStorage()
       expect(storedData).toEqual({
-        ajs_user_id: 'known-user',
+        htev_user_id: 'known-user',
         htev_anonymous_id: 'unknown-user',
-        ajs_group_id: 'known-group',
-        ajs_user_traits: {
+        htev_group_id: 'known-group',
+        htev_user_traits: {
           job: 'engineer',
         },
-        ajs_group_properties: {
+        htev_group_properties: {
           team: 'analytics',
         },
       })
@@ -326,7 +326,9 @@ describe('Analytics', () => {
       expect(analytics.user().id()).toEqual('known-user')
       expect(setCookieSpy).toHaveBeenCalled()
       // Local storage shouldn't change
-      expect(localStorage.getItem('htev_anonymous_id')).toBe('localStorageValue')
+      expect(localStorage.getItem('htev_anonymous_id')).toBe(
+        'localStorageValue'
+      )
     })
   })
 })
