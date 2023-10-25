@@ -1,5 +1,5 @@
-// import { AES } from 'crypto-es/lib/aes'
-// import { Utf8 } from 'crypto-es/lib/core'
+import AES from 'crypto-js/aes'
+import Utf8 from 'crypto-js/enc-utf8'
 
 // https://github.com/rudderlabs/rudder-sdk-js/blob/5494b0acbc6da3df088884b2d10a2d22c0811ffb/LICENSE
 // MIT License
@@ -56,8 +56,8 @@ function parse(value: any) {
   }
 }
 
-// const rudderEncryptKey = 'Rudder'
-// const rudderPrefixV1 = 'RudderEncrypt:'
+const rudderEncryptKey = 'Rudder'
+const rudderPrefixV1 = 'RudderEncrypt:'
 const rudderPrefixV3 = 'RS_ENC_v3_'
 
 /**
@@ -70,12 +70,14 @@ export function decryptRudderValue(value: string): string | null {
     }
 
     // Try if its v1 encrypted
-    // if (value.substring(0, rudderPrefixV1.length) === rudderPrefixV1) {
-    //   return parse(AES.decrypt(
-    //     value.substring(rudderPrefixV1.length),
-    //     rudderEncryptKey
-    //   ).toString(Utf8))
-    // }
+    if (value.substring(0, rudderPrefixV1.length) === rudderPrefixV1) {
+      return parse(
+        AES.decrypt(
+          value.substring(rudderPrefixV1.length),
+          rudderEncryptKey
+        ).toString(Utf8)
+      )
+    }
 
     // Try if its v3 encrypted
     if (value.substring(0, rudderPrefixV3.length) === rudderPrefixV3) {

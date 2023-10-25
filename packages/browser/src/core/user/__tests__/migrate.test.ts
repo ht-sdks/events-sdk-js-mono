@@ -1,11 +1,6 @@
-import assert from 'assert'
 import jar from 'js-cookie'
-import { Group, User } from '..'
-import { LocalStorage, StoreType } from '../../storage'
-import {
-  disableCookies,
-  disableLocalStorage,
-} from '../../storage/__tests__/test-helpers'
+import { User } from '..'
+import { LocalStorage } from '../../storage'
 
 function clear(): void {
   document.cookie.split(';').forEach(function (c) {
@@ -55,7 +50,7 @@ describe('user anonymousId migration', () => {
       expect(user.anonymousId()).toEqual('test-data')
     })
 
-    it.skip('should get the v1 "encrypted" rudder anonymousId', () => {
+    it('should get the v1 "encrypted" rudder anonymousId', () => {
       jar.set(
         rudderAnonymousIdKey,
         'RudderEncrypt:U2FsdGVkX1+5q5jikppUASe8AdIH6O2iORyF41sYXgxzIGiX9whSeVxxww0OK5h/'
