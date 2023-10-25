@@ -661,7 +661,7 @@ describe('Alias', () => {
   })
 
   it('falls back to userID in cookies if no id passed', async () => {
-    jar.set('htev_user_id', 'dan')
+    jar.set('htjs_user_id', 'dan')
     const [analytics] = await AnalyticsBrowser.load({
       writeKey,
       plugins: [amplitude],

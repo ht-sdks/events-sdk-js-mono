@@ -146,8 +146,8 @@ describe('Smoke Tests', () => {
       }
     }, {} as Record<string, string>)
 
-    expect(nextCookies['htev_user_id']).toContain('Test')
-    expect(classicCookies['htev_user_id']).toContain('Test')
+    expect(nextCookies['htjs_user_id']).toContain('Test')
+    expect(classicCookies['htjs_user_id']).toContain('Test')
 
     compareSchema(results)
   })

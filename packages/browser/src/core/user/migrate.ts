@@ -56,12 +56,42 @@ function parse(value: any) {
   }
 }
 
+const rudderHtEncryptKey = 'HTEV'
+export const rudderHtPrefix = 'HtEvEncrypt:'
+
+/**
+ * DEPRECATED
+ * decrypt value originally made by Ht fork of rudder v1 encryption
+ */
+export function decryptRudderHtValue(value: string): string | null {
+  try {
+    if (!value || typeof value !== 'string' || value.trim() === '') {
+      return null
+    }
+
+    // Try if its hightouch-fork-of-rudder v1 encrypted
+    // We should be able to delete this shortly
+    // We do not intend to encrypt future anonymousIds
+    if (value.substring(0, rudderHtPrefix.length) === rudderHtPrefix) {
+      return parse(
+        AES.decrypt(
+          value.substring(rudderHtPrefix.length),
+          rudderHtEncryptKey
+        ).toString(Utf8)
+      )
+    }
+  } catch (error) {
+    console.error(error)
+  }
+  return value
+}
+
 const rudderEncryptKey = 'Rudder'
 const rudderPrefixV1 = 'RudderEncrypt:'
 const rudderPrefixV3 = 'RS_ENC_v3_'
 
 /**
- * decrypt value originally made by rudder
+ * decrypt value originally made by rudder v1 or v3 encryption
  */
 export function decryptRudderValue(value: string): string | null {
   try {
@@ -69,7 +99,7 @@ export function decryptRudderValue(value: string): string | null {
       return null
     }
 
-    // Try if its v1 encrypted
+    // Try if its rudder v1 encrypted
     if (value.substring(0, rudderPrefixV1.length) === rudderPrefixV1) {
       return parse(
         AES.decrypt(
@@ -79,7 +109,7 @@ export function decryptRudderValue(value: string): string | null {
       )
     }
 
-    // Try if its v3 encrypted
+    // Try if its rudder v3 encrypted
     if (value.substring(0, rudderPrefixV3.length) === rudderPrefixV3) {
       const parsed = parse(fromBase64(value.substring(rudderPrefixV3.length)))
       if (!parsed || typeof parsed !== 'string' || parsed.trim() === '') {

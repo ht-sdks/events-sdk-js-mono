@@ -12,7 +12,7 @@ import {
   initializeStorages,
   isArrayOfStoreType,
 } from '../storage'
-import { decryptRudderValue } from './migrate'
+import { decryptRudderValue, decryptRudderHtValue } from './migrate'
 
 export type ID = string | null | undefined
 
@@ -43,15 +43,16 @@ export interface UserOptions {
 const defaults = {
   persist: true,
   cookie: {
-    key: 'htev_user_id',
+    key: 'htjs_user_id',
     oldKey: 'ajs_user',
   },
   localStorage: {
-    key: 'htev_user_traits',
+    key: 'htjs_user_traits',
   },
 }
 
-const anonymousIdKey = 'htev_anonymous_id'
+const anonymousIdKey = 'htjs_anonymous_id'
+const rudderHtAnonymousIdKey = 'htev_anonymous_id'
 const segmentAnonymousIdKey = 'ajs_anonymous_id'
 const rudderAnonymousIdKey = 'rl_anonymous_id'
 
@@ -151,8 +152,15 @@ export class User {
     }
 
     if (id === undefined) {
-      // support anonymousId migration
       let val = this.identityStore.getAndSync(this.anonKey)
+
+      // support anonymousId migration from other analytics providers
+      if (!val) {
+        val = decryptRudderHtValue(
+          this.identityStore.getAndSync(rudderHtAnonymousIdKey) ?? ''
+        )
+        if (val) this.identityStore.set(this.anonKey, val)
+      }
       if (!val) {
         val = this.identityStore.getAndSync(segmentAnonymousIdKey)
         if (val) this.identityStore.set(this.anonKey, val)
@@ -294,10 +302,10 @@ export class User {
 const groupDefaults: UserOptions = {
   persist: true,
   cookie: {
-    key: 'htev_group_id',
+    key: 'htjs_group_id',
   },
   localStorage: {
-    key: 'htev_group_properties',
+    key: 'htjs_group_properties',
   },
 }
 

@@ -52,15 +52,15 @@ describe('user', () => {
 
     it('should not pick the old "_sio" if anonymous id is present', () => {
       jar.set('_sio', 'old-anonymous-id----user-id')
-      jar.set('htev_anonymous_id', 'new-anonymous-id')
+      jar.set('htjs_anonymous_id', 'new-anonymous-id')
       assert(new User().anonymousId() === 'new-anonymous-id')
     })
 
     it('should create anonymous id if missing (persist: default (true))', () => {
       const user = new User()
       assert(user.anonymousId()?.length === 36)
-      expect(jar.get('htev_anonymous_id')?.length).toBe(36)
-      expect(localStorage.getItem('htev_anonymous_id')?.length).toBe(38)
+      expect(jar.get('htjs_anonymous_id')?.length).toBe(36)
+      expect(localStorage.getItem('htjs_anonymous_id')?.length).toBe(38)
     })
 
     it('should create anonymous id if missing (persist: false)', () => {
@@ -68,13 +68,13 @@ describe('user', () => {
 
       const user = new User({ persist: false })
       assert(user.anonymousId()?.length === 36)
-      expect(jar.get('htev_anonymous_id')).toBeUndefined()
-      expect(localStorage.getItem('htev_anonymous_id')).toBeNull()
+      expect(jar.get('htjs_anonymous_id')).toBeUndefined()
+      expect(localStorage.getItem('htjs_anonymous_id')).toBeNull()
       expect(ignoreProbeCookieWrites(setCookieSpy).length).toBe(0)
     })
 
     it('should not overwrite anonymous id', () => {
-      jar.set('htev_anonymous_id', 'anonymous')
+      jar.set('htjs_anonymous_id', 'anonymous')
       expect(new User().anonymousId()).toEqual('anonymous')
     })
   })
@@ -316,13 +316,13 @@ describe('user', () => {
       })
 
       it('should get an id from the store', () => {
-        store.set('htev_anonymous_id', 'anon-id')
+        store.set('htjs_anonymous_id', 'anon-id')
         expect(user.anonymousId()).toEqual('anon-id')
       })
 
       it('should set an id to the store', () => {
         user.anonymousId('anon-id')
-        assert(store.get('htev_anonymous_id') === 'anon-id')
+        assert(store.get('htjs_anonymous_id') === 'anon-id')
       })
 
       it('should return anonymousId using the store', () => {
@@ -331,7 +331,7 @@ describe('user', () => {
       })
 
       it('should get an id without quotes from the store', () => {
-        window.localStorage.setItem('htev_anonymous_id', 'abc-def')
+        window.localStorage.setItem('htjs_anonymous_id', 'abc-def')
         assert(user.anonymousId() === 'abc-def')
       })
     })
@@ -352,19 +352,19 @@ describe('user', () => {
 
     describe('when cookies are enabled', () => {
       it('should get an id from the cookie', () => {
-        jar.set('htev_anonymous_id', 'anon-id')
+        jar.set('htjs_anonymous_id', 'anon-id')
         assert(user.anonymousId() === 'anon-id')
       })
 
       it('should set an id to the cookie', () => {
         user.anonymousId('anon-id')
-        assert(jar.get('htev_anonymous_id') === 'anon-id')
+        assert(jar.get('htjs_anonymous_id') === 'anon-id')
       })
 
       it('should set anonymousId in both cookie and localStorage', () => {
         user.anonymousId('anon0')
-        assert.equal(jar.get('htev_anonymous_id'), 'anon0')
-        assert.equal(store.get('htev_anonymous_id'), 'anon0')
+        assert.equal(jar.get('htjs_anonymous_id'), 'anon0')
+        assert.equal(store.get('htjs_anonymous_id'), 'anon0')
       })
 
       it('should not set anonymousId in localStorage when localStorage fallback is disabled', () => {
@@ -373,41 +373,41 @@ describe('user', () => {
         })
 
         user.anonymousId('anon0')
-        assert.equal(jar.get('htev_anonymous_id'), 'anon0')
-        assert.equal(store.get('htev_anonymous_id'), null)
+        assert.equal(jar.get('htjs_anonymous_id'), 'anon0')
+        assert.equal(store.get('htjs_anonymous_id'), null)
       })
 
       it('should copy value from cookie to localStorage', () => {
         user = new User()
-        jar.set('htev_anonymous_id', 'anon1')
+        jar.set('htjs_anonymous_id', 'anon1')
 
         assert.equal(user.anonymousId(), 'anon1')
-        assert.equal(store.get('htev_anonymous_id'), 'anon1')
+        assert.equal(store.get('htjs_anonymous_id'), 'anon1')
       })
 
       it('should not copy value from cookie to localStorage when localStorage fallback is disabled', () => {
         user = new User({
           localStorageFallbackDisabled: true,
         })
-        jar.set('htev_anonymous_id', 'anon1')
+        jar.set('htjs_anonymous_id', 'anon1')
         assert.equal(user.anonymousId(), 'anon1')
-        assert.equal(store.get('htev_anonymous_id'), null)
+        assert.equal(store.get('htjs_anonymous_id'), null)
       })
 
       it('should fall back to localStorage when cookie is not set', () => {
         user = new User()
         user.anonymousId('anon12')
-        assert.equal(jar.get('htev_anonymous_id'), 'anon12')
+        assert.equal(jar.get('htjs_anonymous_id'), 'anon12')
 
         // delete the cookie
-        jar.remove('htev_anonymous_id')
-        assert.equal(jar.get('htev_anonymous_id'), null)
+        jar.remove('htjs_anonymous_id')
+        assert.equal(jar.get('htjs_anonymous_id'), null)
 
         // verify anonymousId() returns the correct id even when there's no cookie
         assert.equal(user.anonymousId(), 'anon12')
 
         // verify cookie value is restored from localStorage
-        assert.equal(jar.get('htev_anonymous_id'), 'anon12')
+        assert.equal(jar.get('htjs_anonymous_id'), 'anon12')
       })
 
       it('should write to both cookie and localStorage when generating a new anonymousId', () => {
@@ -416,8 +416,8 @@ describe('user', () => {
         const anonId = user.anonymousId()
 
         assert.notEqual(anonId, null)
-        assert.equal(jar.get('htev_anonymous_id'), anonId)
-        assert.equal(store.get('htev_anonymous_id'), anonId)
+        assert.equal(jar.get('htjs_anonymous_id'), anonId)
+        assert.equal(store.get('htjs_anonymous_id'), anonId)
       })
 
       it('should not write to both cookie and localStorage when generating a new anonymousId and localStorage fallback is disabled', () => {
@@ -429,8 +429,8 @@ describe('user', () => {
         const anonId = user.anonymousId()
 
         assert.notEqual(anonId, null)
-        assert.equal(jar.get('htev_anonymous_id'), anonId)
-        assert.equal(store.get('htev_anonymous_id'), null)
+        assert.equal(jar.get('htjs_anonymous_id'), anonId)
+        assert.equal(store.get('htjs_anonymous_id'), null)
       })
     })
 
@@ -584,7 +584,7 @@ describe('user', () => {
       user.traits({ trait: true })
       user.logout()
 
-      expect(jar.get('htev_anonymous_id')).toBeUndefined()
+      expect(jar.get('htjs_anonymous_id')).toBeUndefined()
       expect(user.id()).toBeNull()
       expect(user.traits()).toEqual({})
     })
@@ -717,7 +717,7 @@ describe('user', () => {
       user.load().anonymousId('anon-id')
 
       expect(setCookieSpy).toHaveBeenLastCalledWith(
-        'htev_anonymous_id',
+        'htjs_anonymous_id',
         'anon-id',
         {
           domain: 'foo.com',
@@ -734,8 +734,8 @@ describe('user', () => {
     it('allows custom storage priority', () => {
       const expected = 'CookieValue'
       // Set a cookie first
-      jar.set('htev_anonymous_id', expected)
-      store.set('htev_anonymous_id', 'localStorageValue')
+      jar.set('htjs_anonymous_id', expected)
+      store.set('htjs_anonymous_id', 'localStorageValue')
       const user = new User({
         storage: {
           stores: [StoreType.Cookie, StoreType.LocalStorage, StoreType.Memory],
@@ -747,9 +747,9 @@ describe('user', () => {
     it('custom storage priority respects availability', () => {
       const expected = 'localStorageValue'
       // Set a cookie first
-      jar.set('htev_anonymous_id', 'CookieValue')
+      jar.set('htjs_anonymous_id', 'CookieValue')
       disableCookies()
-      store.set('htev_anonymous_id', expected)
+      store.set('htjs_anonymous_id', expected)
       const user = new User({
         storage: {
           stores: [StoreType.Cookie, StoreType.LocalStorage, StoreType.Memory],
@@ -769,8 +769,8 @@ describe('user', () => {
       user.id('id')
 
       expect(user.id()).toBe('id')
-      expect(jar.get('htev_user_id')).toBeFalsy()
-      expect(store.get('htev_user_id')).toBeFalsy()
+      expect(jar.get('htjs_user_id')).toBeFalsy()
+      expect(store.get('htjs_user_id')).toBeFalsy()
       expect(setCookieSpy.mock.calls.length).toBe(0)
     })
 
@@ -785,8 +785,8 @@ describe('user', () => {
       user.id('id')
 
       expect(user.id()).toBe(null)
-      expect(jar.get('htev_user_id')).toBeFalsy()
-      expect(store.get('htev_user_id')).toBeFalsy()
+      expect(jar.get('htjs_user_id')).toBeFalsy()
+      expect(store.get('htjs_user_id')).toBeFalsy()
       expect(setCookieSpy.mock.calls.length).toBe(0)
     })
   })
@@ -807,11 +807,11 @@ describe('group', () => {
 
     group.id('gid')
 
-    jar.remove('htev_group_id')
+    jar.remove('htjs_group_id')
 
-    assert.equal(jar.get('htev_group_id'), null)
+    assert.equal(jar.get('htjs_group_id'), null)
     assert.equal(group.id(), 'gid')
-    assert.equal(store.get('htev_group_id'), 'gid')
+    assert.equal(store.get('htjs_group_id'), 'gid')
   })
 
   it('id() should not persist when persist disabled', () => {
@@ -821,8 +821,8 @@ describe('group', () => {
     group.id('gid')
 
     expect(group.id()).toBe('gid')
-    expect(jar.get('htev_group_id')).toBeFalsy()
-    expect(store.get('htev_group_id')).toBeFalsy()
+    expect(jar.get('htjs_group_id')).toBeFalsy()
+    expect(store.get('htjs_group_id')).toBeFalsy()
     expect(ignoreProbeCookieWrites(setCookieSpy).length).toBe(0)
   })
 
@@ -890,10 +890,10 @@ describe('group', () => {
       expect(group.options).toEqual({
         persist: true,
         cookie: {
-          key: 'htev_group_id',
+          key: 'htjs_group_id',
         },
         localStorage: {
-          key: 'htev_group_properties',
+          key: 'htjs_group_properties',
         },
       })
     })
@@ -912,7 +912,7 @@ describe('Custom cookie params', () => {
     )
     customUser.identify('some_id', { trait: true })
 
-    expect(document.cookie).toMatchInlineSnapshot(`"; htev_user_id=some_id"`)
+    expect(document.cookie).toMatchInlineSnapshot(`"; htjs_user_id=some_id"`)
     expect(customUser.id()).toBe('some_id')
     expect(customUser.traits()).toEqual({ trait: true })
   })

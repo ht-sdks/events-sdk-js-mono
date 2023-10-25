@@ -20,7 +20,8 @@ beforeEach(function () {
   jest.spyOn(console, 'warn').mockImplementation(() => {}) // silence console spam.
 })
 
-const anonymousIdKey = 'htev_anonymous_id'
+const anonymousIdKey = 'htjs_anonymous_id'
+const rudderHtAnonymousIdKey = 'htev_anonymous_id'
 const segmentAnonymousIdKey = 'ajs_anonymous_id'
 const rudderAnonymousIdKey = 'rl_anonymous_id'
 
@@ -30,6 +31,25 @@ describe('user anonymousId migration', () => {
       store.set(anonymousIdKey, '1234')
       const user = new User()
       expect(user.anonymousId()).toEqual('1234')
+    })
+
+    it('should decrypt the "legacy" hightouch anonymousId', () => {
+      store.set(
+        rudderHtAnonymousIdKey,
+        'HtEvEncrypt:U2FsdGVkX1+BxLsjF52p24D/rVEQfG9ACRjvLRoSgbnfLYlWBmBCWABZPMsDHWySVO4c26kYs2hxrT13q8amlw=='
+      )
+      const user = new User()
+      expect(user.anonymousId()).toEqual('c027ce91-f759-4f91-96d4-985eaa146346')
+
+      store.remove(rudderHtAnonymousIdKey)
+      const user2 = new User()
+      expect(user2.anonymousId()).toEqual(
+        'c027ce91-f759-4f91-96d4-985eaa146346'
+      )
+      expect(store.get(anonymousIdKey)).toEqual(
+        'c027ce91-f759-4f91-96d4-985eaa146346'
+      )
+      expect(store.get(rudderHtAnonymousIdKey)).toEqual(null)
     })
 
     it('should get the segment anonymousId', () => {
