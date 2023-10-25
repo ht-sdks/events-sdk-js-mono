@@ -76,13 +76,14 @@ async function upload(meta) {
     const output = await s3.putObject(options).promise()
 
     if (pathPrefix === 'browser/release') {
-      // only build "latest" when it's a "release" build
+      // only build "v1-latest" when it's a "release" build
       // put latest version with only 5 minutes caching
+      const majorVersion = meta.branch.split('.').reverse().pop()
       await s3
         .putObject({
           ...options,
           CacheControl: 'public,max-age=300,immutable',
-          Key: path.join(pathPrefix, 'latest', f),
+          Key: path.join(pathPrefix, `${majorVersion}-latest`, f),
         })
         .promise()
     }
