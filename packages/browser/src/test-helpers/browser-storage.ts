@@ -2,7 +2,7 @@ import cookie from 'js-cookie'
 
 const ajsCookieNames = [
   'ajs_user_id',
-  'ajs_anonymous_id',
+  'htev_anonymous_id',
   'ajs_group_id',
 ] as const
 const ajsLocalStorageKeys = ['ajs_user_traits', 'ajs_group_properties'] as const
@@ -14,7 +14,7 @@ export const getAjsBrowserStorage = () => {
   })
 }
 
-export const getAnonId = () => getAjsBrowserStorage().ajs_anonymous_id
+export const getAnonId = () => getAjsBrowserStorage().htev_anonymous_id
 
 export const clearAjsBrowserStorage = () => {
   return clearBrowserStorage({

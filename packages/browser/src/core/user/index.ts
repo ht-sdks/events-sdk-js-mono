@@ -12,6 +12,7 @@ import {
   initializeStorages,
   isArrayOfStoreType,
 } from '../storage'
+import { decryptRudderValue } from './migrate'
 
 export type ID = string | null | undefined
 
@@ -42,13 +43,17 @@ export interface UserOptions {
 const defaults = {
   persist: true,
   cookie: {
-    key: 'ajs_user_id',
+    key: 'htev_user_id',
     oldKey: 'ajs_user',
   },
   localStorage: {
-    key: 'ajs_user_traits',
+    key: 'htev_user_traits',
   },
 }
+
+const anonymousIdKey = 'htev_anonymous_id'
+const segmentAnonymousIdKey = 'ajs_anonymous_id'
+const rudderAnonymousIdKey = 'rl_anonymous_id'
 
 export class User {
   static defaults = defaults
@@ -82,7 +87,7 @@ export class User {
 
     this.idKey = options.cookie?.key ?? defaults.cookie.key
     this.traitsKey = options.localStorage?.key ?? defaults.localStorage.key
-    this.anonKey = 'ajs_anonymous_id'
+    this.anonKey = anonymousIdKey
 
     this.identityStore = this.createStorage(this.options, cookieOptions)
 
@@ -146,8 +151,21 @@ export class User {
     }
 
     if (id === undefined) {
-      const val =
-        this.identityStore.getAndSync(this.anonKey) ?? this.legacySIO()?.[0]
+      // support anonymousId migration
+      let val = this.identityStore.getAndSync(this.anonKey)
+      if (!val) {
+        val = this.identityStore.getAndSync(segmentAnonymousIdKey)
+        if (val) this.identityStore.set(this.anonKey, val)
+      }
+      if (!val) {
+        val = decryptRudderValue(
+          this.identityStore.getAndSync(rudderAnonymousIdKey) ?? ''
+        )
+        if (val) this.identityStore.set(this.anonKey, val)
+      }
+      if (!val) {
+        val = this.legacySIO()?.[0] ?? null
+      }
 
       if (val) {
         return val
@@ -276,10 +294,10 @@ export class User {
 const groupDefaults: UserOptions = {
   persist: true,
   cookie: {
-    key: 'ajs_group_id',
+    key: 'htev_group_id',
   },
   localStorage: {
-    key: 'ajs_group_properties',
+    key: 'htev_group_properties',
   },
 }
 

@@ -247,7 +247,7 @@ describe('Analytics', () => {
       let storedData = getAjsBrowserStorage()
       expect(storedData).toEqual({
         ajs_user_id: 'known-user',
-        ajs_anonymous_id: 'unknown-user',
+        htev_anonymous_id: 'unknown-user',
         ajs_group_id: 'known-group',
         ajs_user_traits: {
           job: 'engineer',
@@ -282,8 +282,8 @@ describe('Analytics', () => {
     it('handles custom priority storage', async () => {
       const setCookieSpy = jest.spyOn(jar, 'set')
       const expected = 'CookieValue'
-      jar.set('ajs_anonymous_id', expected)
-      localStorage.setItem('ajs_anonymous_id', 'localStorageValue')
+      jar.set('htev_anonymous_id', expected)
+      localStorage.setItem('htev_anonymous_id', 'localStorageValue')
 
       const analytics = new Analytics(
         { writeKey: '' },
@@ -308,8 +308,8 @@ describe('Analytics', () => {
     it('handles disabling storage', async () => {
       const setCookieSpy = jest.spyOn(jar, 'set')
       const expected = 'CookieValue'
-      jar.set('ajs_anonymous_id', expected)
-      localStorage.setItem('ajs_anonymous_id', 'localStorageValue')
+      jar.set('htev_anonymous_id', expected)
+      localStorage.setItem('htev_anonymous_id', 'localStorageValue')
 
       const analytics = new Analytics(
         { writeKey: '' },
@@ -326,7 +326,7 @@ describe('Analytics', () => {
       expect(analytics.user().id()).toEqual('known-user')
       expect(setCookieSpy).toHaveBeenCalled()
       // Local storage shouldn't change
-      expect(localStorage.getItem('ajs_anonymous_id')).toBe('localStorageValue')
+      expect(localStorage.getItem('htev_anonymous_id')).toBe('localStorageValue')
     })
   })
 })
