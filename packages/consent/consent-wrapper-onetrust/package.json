@@ -56,7 +56,7 @@
   "repository": {
     "directory": "packages/consent/consent-wrapper-onetrust",
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next"
+    "url": "https://github.com/ht-sdks/events-sdk-js-next"
   },
   "devDependencies": {
     "@internal/config-webpack": "workspace:^",

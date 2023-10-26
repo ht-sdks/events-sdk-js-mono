@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ht-sdks/events-sdk-js",
+    "url": "https://github.com/ht-sdks/events-sdk-js-next",
     "directory": "packages/core"
   },
   "license": "MIT",
