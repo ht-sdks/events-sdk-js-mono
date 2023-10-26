@@ -13,6 +13,14 @@ import {
   isArrayOfStoreType,
 } from '../storage'
 import { decryptRudderValue, decryptRudderHtValue } from './migrate'
+import {
+  SessionContext,
+  SessionInfo,
+  generateAutoTrackingSession,
+  generateManualTrackingSession,
+  hasSessionExpired,
+  updateSessionExpiration,
+} from '../session'
 
 export type ID = string | null | undefined
 
@@ -33,6 +41,11 @@ export interface UserOptions {
     key: string
   }
 
+  sessions?: {
+    autoTrack?: boolean
+    timeout?: number // milliseconds
+  }
+
   /**
    * Store priority
    * @example stores: [StoreType.Cookie, StoreType.Memory]
@@ -49,8 +62,12 @@ const defaults = {
   localStorage: {
     key: 'htjs_user_traits',
   },
+  sessions: {
+    autoTrack: true,
+  },
 }
 
+const sessionKey = 'htjs_sesh'
 const anonymousIdKey = 'htjs_anonymous_id'
 const rudderHtAnonymousIdKey = 'htev_anonymous_id'
 const segmentAnonymousIdKey = 'ajs_anonymous_id'
@@ -62,6 +79,7 @@ export class User {
   private idKey: string
   private traitsKey: string
   private anonKey: string
+  private seshKey: string
   private cookieOptions?: CookieOptions
 
   private legacyUserStore: UniversalStorage<{
@@ -80,6 +98,8 @@ export class User {
     [k: string]: string
   }>
 
+  private sessionStore: UniversalStorage<{ [k: string]: SessionInfo }>
+
   options: UserOptions = {}
 
   constructor(options: UserOptions = defaults, cookieOptions?: CookieOptions) {
@@ -89,8 +109,11 @@ export class User {
     this.idKey = options.cookie?.key ?? defaults.cookie.key
     this.traitsKey = options.localStorage?.key ?? defaults.localStorage.key
     this.anonKey = anonymousIdKey
+    this.seshKey = sessionKey
 
     this.identityStore = this.createStorage(this.options, cookieOptions)
+
+    this.sessionStore = this.createStorage(this.options, cookieOptions)
 
     // using only cookies for legacy user store
     this.legacyUserStore = this.createStorage(
@@ -227,6 +250,59 @@ export class User {
     this.traits(traits)
   }
 
+  startManualSession(sessionId?: number) {
+    if (this.options.disable) {
+      return
+    }
+    const session = generateManualTrackingSession(sessionId)
+    this.sessionStore.set(this.seshKey, session)
+  }
+
+  endManualSession() {
+    this.sessionStore.clear(this.seshKey)
+  }
+
+  private getAndUpdateSessionInfo(): SessionInfo | null {
+    if (this.options.disable) {
+      return null
+    }
+
+    let session = this.sessionStore.getAndSync(this.seshKey)
+
+    if (session == null) {
+      if (this.options?.sessions?.autoTrack) {
+        session = generateAutoTrackingSession(this.options?.sessions?.timeout)
+        this.sessionStore.set(this.seshKey, session)
+        return session
+      }
+      return null
+    }
+
+    if (session?.autoTrack && hasSessionExpired(session.expiresAt!)) {
+      session = generateAutoTrackingSession(this.options?.sessions?.timeout)
+      this.sessionStore.set(this.seshKey, session)
+      return session
+    }
+
+    session = updateSessionExpiration(session)
+    this.sessionStore.set(this.seshKey, session)
+    return session
+  }
+
+  getAndUpdateSession(): SessionContext | null {
+    const sessionInfo = this.getAndUpdateSessionInfo()
+    const session: SessionContext = {}
+    if (sessionInfo?.id) session.sessionId = sessionInfo.id
+    if (sessionInfo?.sessionStart)
+      session.sessionStart = sessionInfo.sessionStart
+    return session
+  }
+
+  sessionId(): number | null {
+    const session = this.sessionStore.getAndSync(this.seshKey)
+    return session?.id ?? null
+  }
+
   logout(): void {
     this.anonymousId(null)
     this.id(null)
@@ -237,6 +313,7 @@ export class User {
     this.logout()
     this.identityStore.clear(this.idKey)
     this.identityStore.clear(this.anonKey)
+    this.sessionStore.clear(this.seshKey)
     this.traitsStore.clear(this.traitsKey)
   }
 

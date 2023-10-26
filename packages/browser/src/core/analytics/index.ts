@@ -458,6 +458,18 @@ export class Analytics
     return this
   }
 
+  startSession(sessionId?: number): void {
+    this._user.startManualSession(sessionId)
+  }
+
+  endSession(): void {
+    this._user.endManualSession()
+  }
+
+  getSessionId(): number | null {
+    return this._user.sessionId() ?? null
+  }
+
   reset(): void {
     this._user.reset()
     this._group.reset()

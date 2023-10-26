@@ -265,6 +265,14 @@ export class EventFactory {
     }
     addPageContext(newEvent, pageCtx)
 
+    const session = this.user.getAndUpdateSession()
+    if (session != null) {
+      newEvent.context = {
+        ...newEvent.context,
+        ...session,
+      }
+    }
+
     return newEvent
   }
 }
