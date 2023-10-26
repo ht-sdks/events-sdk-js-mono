@@ -1,4 +1,4 @@
-# @segment/analytics-node
+# @ht-sdks/events-sdk-js-node
 
 ## 1.1.2
 

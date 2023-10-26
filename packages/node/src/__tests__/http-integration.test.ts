@@ -142,7 +142,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -178,7 +178,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -212,7 +212,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -247,7 +247,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -279,7 +279,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -314,7 +314,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },

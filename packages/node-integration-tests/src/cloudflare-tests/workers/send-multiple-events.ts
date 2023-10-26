@@ -1,5 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
-import { Analytics } from '@segment/analytics-node'
+import { Analytics } from '@ht-sdks/events-sdk-js-node'
 
 export default {
   async fetch(request: Request, _env: {}, _ctx: ExecutionContext) {
