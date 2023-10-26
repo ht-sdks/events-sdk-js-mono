@@ -26,7 +26,7 @@
     "jest": "yarn run -T jest"
   },
   "peerDependencies": {
-    "@ht-sdks/events-sdk-js": ">=1.53.1"
+    "@ht-sdks/events-sdk-js": "^1.0.0"
   },
   "peerDependenciesMeta": {
     "@ht-sdks/events-sdk-js": {

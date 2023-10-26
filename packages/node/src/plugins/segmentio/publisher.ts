@@ -1,4 +1,4 @@
-import { backoff } from '@segment/analytics-core'
+import { backoff } from '@ht-sdks/events-sdk-js-core'
 import type { Context } from '../../app/context'
 import { tryCreateFormattedUrl } from '../../lib/create-url'
 import { extractPromiseParts } from '../../lib/extract-promise-parts'

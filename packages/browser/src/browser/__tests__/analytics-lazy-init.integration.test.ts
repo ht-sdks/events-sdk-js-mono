@@ -1,4 +1,4 @@
-import { sleep } from '@segment/analytics-core'
+import { sleep } from '@ht-sdks/events-sdk-js-core'
 import { getBufferedPageCtxFixture } from '../../test-helpers/fixtures'
 import unfetch from 'unfetch'
 import { AnalyticsBrowser } from '..'

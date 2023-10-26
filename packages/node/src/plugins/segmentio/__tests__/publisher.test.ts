@@ -1,4 +1,4 @@
-import { Emitter } from '@segment/analytics-core'
+import { Emitter } from '@ht-sdks/events-sdk-js-core'
 import { range } from 'lodash'
 import { createConfiguredNodePlugin } from '..'
 import { Context } from '../../../app/context'

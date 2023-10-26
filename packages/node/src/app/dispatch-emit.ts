@@ -1,4 +1,4 @@
-import { dispatch } from '@segment/analytics-core'
+import { dispatch } from '@ht-sdks/events-sdk-js-core'
 import type { NodeEmitter } from './emitter'
 import { Context } from './context'
 import { NodeEventQueue } from './event-queue'

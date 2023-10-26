@@ -13,7 +13,7 @@ import {
 import type { FormArgs, LinkArgs } from '../auto-track'
 import { isOffline } from '../connection'
 import { Context } from '../context'
-import { dispatch, Emitter } from '@segment/analytics-core'
+import { dispatch, Emitter } from '@ht-sdks/events-sdk-js-core'
 import {
   Callback,
   EventFactory,

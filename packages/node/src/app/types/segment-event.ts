@@ -1,4 +1,4 @@
-import type { CoreSegmentEvent } from '@segment/analytics-core'
+import type { CoreSegmentEvent } from '@ht-sdks/events-sdk-js-core'
 
 type SegmentEventType = 'track' | 'page' | 'identify' | 'alias' | 'screen'
 

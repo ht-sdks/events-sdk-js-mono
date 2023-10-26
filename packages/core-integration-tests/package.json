@@ -13,7 +13,7 @@
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
-    "@internal/config": "workspace:^",
-    "@segment/analytics-core": "workspace:^"
+    "@ht-sdks/events-sdk-js-core": "workspace:^",
+    "@internal/config": "workspace:^"
   }
 }

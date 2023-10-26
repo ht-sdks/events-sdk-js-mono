@@ -2,7 +2,7 @@ import { pickPrefix } from './pickPrefix'
 import { gracefulDecodeURIComponent } from './gracefulDecodeURIComponent'
 import { Analytics } from '../analytics'
 import { Context } from '../context'
-import { isPlainObject } from '@segment/analytics-core'
+import { isPlainObject } from '@ht-sdks/events-sdk-js-core'
 
 export interface QueryStringParams {
   [key: string]: string | null

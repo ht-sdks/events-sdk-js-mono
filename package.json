@@ -24,9 +24,9 @@
     "update-versions-and-changelogs": "changeset version && yarn version-run-all && bash scripts/update-lockfile.sh",
     "release": "yarn clean && yarn build --force && changeset publish && git push origin HEAD:master --follow-tags --no-verify",
     "version-run-all": "yarn workspaces foreach -vpt --no-private run version",
-    "core": "yarn workspace @segment/analytics-core",
+    "core": "yarn workspace @ht-sdks/events-sdk-js-core",
     "browser": "yarn workspace @ht-sdks/events-sdk-js",
-    "node": "yarn workspace @segment/analytics-node",
+    "node": "yarn workspace @ht-sdks/events-sdk-js-node",
     "clean": "bash scripts/clean.sh",
     "turbo": "turbo"
   },
@@ -65,7 +65,7 @@
   },
   "resolutions": {
     "@ht-sdks/events-sdk-js": "workspace:*",
-    "@segment/analytics-node": "workspace:*",
-    "@segment/analytics-core": "workspace:*"
+    "@ht-sdks/events-sdk-js-node": "workspace:*",
+    "@ht-sdks/events-sdk-js-core": "workspace:*"
   }
 }

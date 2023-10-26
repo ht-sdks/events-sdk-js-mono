@@ -1,4 +1,4 @@
-import { isPlainObject } from '@segment/analytics-core'
+import { isPlainObject } from '@ht-sdks/events-sdk-js-core'
 
 /**
  * Final Page Context object expected in the Segment Event context

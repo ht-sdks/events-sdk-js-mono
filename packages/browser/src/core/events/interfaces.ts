@@ -13,7 +13,7 @@ import {
   GroupTraits,
   UserTraits,
   Traits,
-} from '@segment/analytics-core'
+} from '@ht-sdks/events-sdk-js-core'
 
 export interface Options extends CoreOptions {}
 

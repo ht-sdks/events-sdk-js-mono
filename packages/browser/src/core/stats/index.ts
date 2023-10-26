@@ -1,4 +1,4 @@
-import { CoreStats } from '@segment/analytics-core'
+import { CoreStats } from '@ht-sdks/events-sdk-js-core'
 import { MetricsOptions, RemoteMetrics } from './remote-metrics'
 
 let remoteMetrics: RemoteMetrics | undefined

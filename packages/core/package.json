@@ -1,9 +1,9 @@
 {
-  "name": "@segment/analytics-core",
-  "version": "1.3.2",
+  "name": "@ht-sdks/events-sdk-js-core",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next",
+    "url": "https://github.com/ht-sdks/events-sdk-js",
     "directory": "packages/core"
   },
   "license": "MIT",
@@ -18,7 +18,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-core",
+    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-core",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "yarn concurrently 'yarn:build:*'",

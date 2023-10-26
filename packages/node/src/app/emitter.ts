@@ -1,4 +1,4 @@
-import { CoreEmitterContract, Emitter } from '@segment/analytics-core'
+import { CoreEmitterContract, Emitter } from '@ht-sdks/events-sdk-js-core'
 import { Context } from './context'
 import type { AnalyticsSettings } from './settings'
 import { SegmentEvent } from './types'
