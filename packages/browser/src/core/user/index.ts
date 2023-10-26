@@ -254,6 +254,7 @@ export class User {
     if (this.options.disable) {
       return
     }
+    this.sessionStore.clear(this.seshKey)
     const session = generateManualTrackingSession(sessionId)
     this.sessionStore.set(this.seshKey, session)
   }

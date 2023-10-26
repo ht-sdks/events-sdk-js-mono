@@ -46,7 +46,7 @@ export const hasSessionExpired = (expiresAt: number): boolean => {
 
 const generateSessionId = (): number => Date.now()
 
-const isManualSessionIdValid = (sessionId?: number): boolean => {
+export const isManualSessionIdValid = (sessionId?: number): boolean => {
   if (
     !sessionId ||
     sessionId.toString().startsWith('-') ||
