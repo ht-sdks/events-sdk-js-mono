@@ -1,4 +1,4 @@
-import CryptoES from 'crypto-es'
+import CryptoJS from 'crypto-js'
 
 // https://github.com/rudderlabs/rudder-sdk-js/blob/5494b0acbc6da3df088884b2d10a2d22c0811ffb/LICENSE
 // MIT License
@@ -73,10 +73,10 @@ export function decryptRudderHtValue(value: string): string | null {
     // We do not intend to encrypt future anonymousIds
     if (value.substring(0, rudderHtPrefix.length) === rudderHtPrefix) {
       return parse(
-        CryptoES.AES.decrypt(
+        CryptoJS.AES.decrypt(
           value.substring(rudderHtPrefix.length),
           rudderHtEncryptKey
-        ).toString(CryptoES.enc.Utf8)
+        ).toString(CryptoJS.enc.Utf8)
       )
     }
   } catch (error) {
@@ -101,10 +101,10 @@ export function decryptRudderValue(value: string): string | null {
     // Try if its rudder v1 encrypted
     if (value.substring(0, rudderPrefixV1.length) === rudderPrefixV1) {
       return parse(
-        CryptoES.AES.decrypt(
+        CryptoJS.AES.decrypt(
           value.substring(rudderPrefixV1.length),
           rudderEncryptKey
-        ).toString(CryptoES.enc.Utf8)
+        ).toString(CryptoJS.enc.Utf8)
       )
     }
 
