@@ -2,13 +2,10 @@
 
 ## Codebases
 
-analytics-next is comprised of two different codebases:
+Javascript event tracking can be thought of as two different codebases:
 
-- [analytics-next](https://github.com/segmentio/analytics-next): All core functionality of AJSN
-- [integrations](https://github.com/segmentio/analytics.js-integrations): All existing legacy client side destinations
-
-This diagram outlines the relationship between these two codebases (cloudfront being where the integrations are hosted):
-![Architecture](.github/architecture.png?raw=true)
+- [events-sdk-js-next](https://github.com/ht-sdks/events-sdk-js-next): All core functionality
+- [original segment integrations](https://github.com/segmentio/analytics.js-integrations): Legacy client side destinations
 
 ## Core
 
@@ -17,17 +14,17 @@ Some of the bigger core modules are briefly outlined here -
 - arguments-resolver: Responsible for reshuffling arguments in event calls
 - context: Responsible for building context objects for different events
 - emitter: Responsible for emitting events and adding listeners for them
-- events: Responsible for building the different Segment events (track, page, etc), and normalizing those events
+- events: Responsible for building the different events (track, page, etc), and normalizing those events
 - logger: Responsible for building and flushing the logs that will be carried around in an events context object
 - queue: The heart of AJSN, the queue is responsible for managing events which will be delivered to plugins and destinations, and handles things such as retries, timeouts, and delivery reliability
 - user: Responsible for all of the logic built around an analytics user
 
 The general end to end flow of analytics-next core is as follows:
 
-1. Legacy settings and destinations are loaded from the segment CDN
+1. Legacy settings and destinations are loaded from the CDN
 2. The Analytics object is instantiated with the loaded settings, and sets up things such as new/existing users and an event queue.
-3. Events are built and queued when a user makes a Segment call (ie. analytics.track())
-4. The event is dispatched, goes through all enabled plugins, and is finally sent through the segment.io plugin to get the data into Segment
+3. Events are built and queued when a user makes a call (ie. analytics.track())
+4. The event is dispatched, goes through all enabled plugins, and is finally sent through the hightouch.io plugin to get the data into hightouch
 
 ## Everything is a Plugin
 
@@ -41,11 +38,11 @@ Plugins can be of two different priorities:
 and can be of five different types:
 
 - Before: Pleguns that need to be run before any other plugins are run. An example of this would be validating events before passing them along to other plugins.
-- After: Plugins that need to run after all other plugins have run. An example of this is the segment.io integration, which will wait for destinations to succeed or fail so that it can send its observability metrics.
+- After: Plugins that need to run after all other plugins have run. An example of this is the hightouch.io integration, which will wait for destinations to succeed or fail so that it can send its observability metrics.
 - Destination: Destinations to send the event to (ie. legacy destinations). Does not modify the event and failure does not halt execution.
 - Enrichment: Modifies an event, failure here could halt the event pipeline.
 - Utility: Plugins that change AJSN functionality and don't fall into the other categories.
 
 ## Observability
 
-Every event and plugin has a context object, which contains both metrics and logs that were collected throughout their lifetime. Logs can be used for debugging, and the metrics will be included when the event is sent to Segment.
+Every event and plugin has a context object, which contains both metrics and logs that were collected throughout their lifetime. Logs can be used for debugging, and the metrics will be included when the event is sent to Hightouch.

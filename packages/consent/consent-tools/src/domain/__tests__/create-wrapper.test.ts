@@ -163,7 +163,7 @@ describe(createWrapper, () => {
         }
       )
 
-      it('should allow segment to be loaded normally (with all consent wrapper behavior disabled) via ctx.abort', async () => {
+      it('should allow hightouch to be loaded normally (with all consent wrapper behavior disabled) via ctx.abort', async () => {
         wrapTestAnalytics({
           shouldLoad: (ctx) => {
             ctx.abort({
@@ -176,7 +176,7 @@ describe(createWrapper, () => {
         expect(analyticsLoadSpy).toBeCalled()
       })
 
-      it('should allow segment loading to be completely aborted via ctx.abort', async () => {
+      it('should allow hightouch loading to be completely aborted via ctx.abort', async () => {
         wrapTestAnalytics({
           shouldLoad: (ctx) => {
             ctx.abort({

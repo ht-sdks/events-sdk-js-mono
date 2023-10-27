@@ -12,8 +12,8 @@ export class AbortLoadError extends AnalyticsConsentError {
 
 export interface AbortLoadOptions {
   /**
-   * Whether or not to load segment.
-   * If true -- load segment normally (and disable consent requirement.) Wrapper is essentially a no-op
+   * Whether or not to load hightouch.
+   * If true -- load hightouch normally (and disable consent requirement.) Wrapper is essentially a no-op
    */
   loadSegmentNormally: boolean
 }

@@ -4,7 +4,7 @@ import {
   CreateWrapperSettings,
   RegisterOnConsentChangedFunction,
   resolveWhen,
-} from '@segment/analytics-consent-tools'
+} from '@ht-sdks/events-sdk-js-consent-tools'
 
 import {
   getNormalizedCategoriesFromGroupData,

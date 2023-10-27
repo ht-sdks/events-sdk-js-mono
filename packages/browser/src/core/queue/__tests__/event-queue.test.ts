@@ -36,7 +36,7 @@ const ajs = {} as Analytics
  * This test file only contains event-queue tests that _are_ specific to this package.
  * You should prefer to write tests in packages/core
  */
-const segmentio = {
+const hightouchio = {
   ...testPlugin,
   name: 'Hightouch.io',
   type: 'after' as const,
@@ -53,7 +53,7 @@ describe('alternative names', () => {
     fullstory.type = 'destination'
 
     jest.spyOn(fullstory, 'track')
-    jest.spyOn(segmentio, 'track')
+    jest.spyOn(hightouchio, 'track')
 
     const evt = {
       type: 'track' as const,
@@ -67,7 +67,7 @@ describe('alternative names', () => {
     const ctx = new Context(evt)
 
     await eq.register(Context.system(), fullstory, ajs)
-    await eq.register(Context.system(), segmentio, ajs)
+    await eq.register(Context.system(), hightouchio, ajs)
 
     void eq.dispatch(ctx)
 
@@ -77,6 +77,6 @@ describe('alternative names', () => {
     expect(flushed).toEqual([ctx])
 
     expect(fullstory.track).toHaveBeenCalled()
-    expect(segmentio.track).toHaveBeenCalled()
+    expect(hightouchio.track).toHaveBeenCalled()
   })
 })

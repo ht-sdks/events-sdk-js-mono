@@ -32,7 +32,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const segmentDotCom = `foo`
+  const hightouchDotCom = `foo`
 
   let jsd: JSDOM
 
@@ -51,7 +51,7 @@ describe('standalone bundle', () => {
     <!DOCTYPE html>
       <head>
         <script>
-          ${snippet(segmentDotCom, true)}
+          ${snippet(hightouchDotCom, true)}
         </script>
       </head>
       <body>

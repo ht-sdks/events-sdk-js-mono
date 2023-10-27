@@ -2,12 +2,6 @@
 
 https://www.npmjs.com/package/@ht-sdks/events-sdk-js-node
 
-### OFFICIAL DOCUMENTATION (FULL)
-- https://segment.com/docs/connections/sources/catalog/libraries/server/node
-
-### LEGACY NODE SDK MIGRATION GUIDE:
-- https://segment.com/docs/connections/sources/catalog/libraries/server/node/migration
-
 
 ## Runtime Support
 - Node.js >= 14
@@ -57,14 +51,9 @@ app.post('/cart', (req, res) => {
 
 
 ## Settings & Configuration
-See the documentation: https://segment.com/docs/connections/sources/catalog/libraries/server/node/#configuration
+See the documentation: https://hightouch.com/docs/connections/sources/catalog/libraries/server/node/#configuration
 
 You can also see the complete list of settings in the [AnalyticsSettings interface](src/app/settings.ts).
-
-
-## Plugin Architecture
-- See segment's [documentation for plugin architecture](https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/#plugin-architecture).
-
 
 
 ## Usage in non-node runtimes

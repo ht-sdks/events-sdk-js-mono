@@ -1,5 +1,5 @@
 {
-  "name": "analytics-monorepo",
+  "name": "monorepo",
   "private": true,
   "version": "0.0.0",
   "workspaces": [
@@ -12,22 +12,12 @@
   },
   "scripts": {
     "test": "jest",
-    "test:scripts": "jest --config scripts/jest.config.js",
-    "test:check-dts": "yarn build && yarn ts-node meta-tests/check-dts.ts",
-    "test:node-int": "turbo run --filter=node-integration-tests test",
     "lint": "yarn constraints && turbo run lint --continue",
     "build": "turbo run build --filter='./packages/**'",
     "watch": "turbo run watch --filter='./packages/**'",
-    "dev": "yarn workspace @example/with-next-js run dev",
-    "postinstall": "husky install",
-    "changeset": "changeset",
-    "update-versions-and-changelogs": "changeset version && yarn version-run-all && bash scripts/update-lockfile.sh",
-    "release": "yarn clean && yarn build --force && changeset publish && git push origin HEAD:master --follow-tags --no-verify",
-    "version-run-all": "yarn workspaces foreach -vpt --no-private run version",
     "core": "yarn workspace @ht-sdks/events-sdk-js-core",
     "browser": "yarn workspace @ht-sdks/events-sdk-js-browser",
     "node": "yarn workspace @ht-sdks/events-sdk-js-node",
-    "clean": "bash scripts/clean.sh",
     "turbo": "turbo"
   },
   "packageManager": "yarn@3.4.1",

@@ -41,7 +41,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const segmentDotCom = `foo`
+  const hightouchDotCom = `foo`
 
   beforeEach(async () => {
     ;(window as any).analytics = undefined
@@ -50,7 +50,7 @@ describe('standalone bundle', () => {
       <head>
         <script>
           ${snippet(
-            segmentDotCom,
+            hightouchDotCom,
             true,
             `
             window.analytics.track('fruit basket', { fruits: ['🍌', '🍇'] })
@@ -120,7 +120,7 @@ describe('standalone bundle', () => {
 
     await install()
 
-    expect(spy).toHaveBeenCalledWith(segmentDotCom, {})
+    expect(spy).toHaveBeenCalledWith(hightouchDotCom, {})
   })
 
   it('derives the CDN from scripts on the page', async () => {
@@ -129,7 +129,7 @@ describe('standalone bundle', () => {
       // @ts-ignore ignore Response required fields
       .mockImplementation((): Promise<Response> => fetchSettings)
 
-    await loadLegacySettings(segmentDotCom)
+    await loadLegacySettings(hightouchDotCom)
 
     expect(unfetch).toHaveBeenCalledWith(
       'https://cdn.foo.com/v1/projects/foo/settings'
@@ -144,7 +144,7 @@ describe('standalone bundle', () => {
     const mockCdn = 'http://my-overridden-cdn.com'
 
     getGlobalAnalytics()!._cdn = mockCdn
-    await loadLegacySettings(segmentDotCom)
+    await loadLegacySettings(hightouchDotCom)
 
     expect(unfetch).toHaveBeenCalledWith(expect.stringContaining(mockCdn))
   })

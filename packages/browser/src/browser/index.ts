@@ -129,7 +129,7 @@ export function loadLegacySettings(
 function hasLegacyDestinations(settings: LegacySettings): boolean {
   return (
     getProcessEnv().NODE_ENV !== 'test' &&
-    // just one integration means segmentio
+    // just one integration means hightouchio
     Object.keys(settings.integrations).length > 1
   )
 }
@@ -413,7 +413,7 @@ async function loadAnalytics(
  *  export const analytics = new AnalyticsBrowser()
  *  analytics.load({ writeKey: 'foo' })
  * ```
- * @link https://github.com/segmentio/analytics-next/#readme
+ * @link https://github.com/ht-sdks/events-sdk-js-next/tree/master/packages/browser#readme
  */
 export class AnalyticsBrowser extends AnalyticsBuffered {
   private _resolveLoadStart: (
@@ -438,7 +438,7 @@ export class AnalyticsBrowser extends AnalyticsBuffered {
   /**
    * Fully initialize an analytics instance, including:
    *
-   * * Fetching settings from the segment CDN (by default).
+   * * Fetching settings from the CDN (by default).
    * * Fetching all remote destinations configured by the user (if applicable).
    * * Flushing buffered analytics events.
    * * Loading all middleware.

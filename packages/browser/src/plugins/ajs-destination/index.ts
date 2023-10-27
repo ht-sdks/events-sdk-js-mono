@@ -205,7 +205,7 @@ export class LegacyDestination implements DestinationPlugin {
     const ev = ctx.event.event
 
     if (plan && ev && this.name !== 'Hightouch.io') {
-      // events are always sent to segment (legacy behavior)
+      // events are always sent to hightouch (legacy behavior)
       const planEvent = plan[ev]
       if (!isPlanEventEnabled(plan, planEvent)) {
         ctx.updateEvent('integrations', {

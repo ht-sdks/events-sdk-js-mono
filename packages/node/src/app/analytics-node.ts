@@ -115,7 +115,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Combines two unassociated user identities.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#alias
    */
   alias(
     { userId, previousId, context, timestamp, integrations }: AliasParams,
@@ -131,7 +130,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Associates an identified user with a collective.
-   *  @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#group
    */
   group(
     {
@@ -158,7 +156,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Includes a unique userId and (maybe anonymousId) and any optional traits you know about them.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#identify
    */
   identify(
     {
@@ -183,7 +180,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * The page method lets you record page views on your website, along with optional extra information about the page being viewed.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#page
    */
   page(
     {
@@ -238,7 +234,6 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   /**
    * Records actions your users perform.
-   * @link https://segment.com/docs/connections/sources/catalog/libraries/server/node/#track
    */
   track(
     {

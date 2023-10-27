@@ -1,14 +1,14 @@
-# @segment/analytics-consent-tools
+# @ht-sdks/events-sdk-js-consent-tools
 
 ## Quick Start
 
 ```ts
 // wrapper.js
-import { createWrapper, resolveWhen } from '@segment/analytics-consent-tools'
+import { createWrapper, resolveWhen } from '@ht-sdks/events-sdk-js-consent-tools'
 
 export const withCMP = createWrapper({
 
-  // Wrapper waits to load segment / get categories until this function returns / resolves
+  // Wrapper waits to load hightouch / get categories until this function returns / resolves
   shouldLoad: async (ctx) => {
     const CMP = await getCMP()
     await resolveWhen(

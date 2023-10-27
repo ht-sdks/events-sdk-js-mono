@@ -2625,7 +2625,7 @@ __metadata:
   resolution: "@example/standalone-playground@workspace:examples/standalone-playground"
   dependencies:
     "@ht-sdks/events-sdk-js-browser": "workspace:^"
-    "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
+    "@ht-sdks/events-sdk-js-consent-wrapper-onetrust": "workspace:^"
     http-server: 14.1.1
   languageName: unknown
   linkType: soft
@@ -2844,8 +2844,8 @@ __metadata:
   dependencies:
     "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@internal/test-helpers": "workspace:^"
-    "@segment/analytics-consent-tools": "workspace:^"
-    "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
+    "@ht-sdks/events-sdk-js-consent-tools": "workspace:^"
+    "@ht-sdks/events-sdk-js-consent-wrapper-onetrust": "workspace:^"
     "@wdio/cli": ^8.10.6
     "@wdio/devtools-service": ^8.10.6
     "@wdio/local-runner": ^8.10.6
@@ -3789,9 +3789,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@segment/analytics-consent-tools@0.2.1, @segment/analytics-consent-tools@workspace:^, @segment/analytics-consent-tools@workspace:packages/consent/consent-tools":
+"@ht-sdks/events-sdk-js-consent-tools@0.2.1, @ht-sdks/events-sdk-js-consent-tools@workspace:^, @ht-sdks/events-sdk-js-consent-tools@workspace:packages/consent/consent-tools":
   version: 0.0.0-use.local
-  resolution: "@segment/analytics-consent-tools@workspace:packages/consent/consent-tools"
+  resolution: "@ht-sdks/events-sdk-js-consent-tools@workspace:packages/consent/consent-tools"
   dependencies:
     "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@internal/config": "workspace:^"
@@ -3804,13 +3804,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@segment/analytics-consent-wrapper-onetrust@workspace:^, @segment/analytics-consent-wrapper-onetrust@workspace:packages/consent/consent-wrapper-onetrust":
+"@ht-sdks/events-sdk-js-consent-wrapper-onetrust@workspace:^, @ht-sdks/events-sdk-js-consent-wrapper-onetrust@workspace:packages/consent/consent-wrapper-onetrust":
   version: 0.0.0-use.local
-  resolution: "@segment/analytics-consent-wrapper-onetrust@workspace:packages/consent/consent-wrapper-onetrust"
+  resolution: "@ht-sdks/events-sdk-js-consent-wrapper-onetrust@workspace:packages/consent/consent-wrapper-onetrust"
   dependencies:
     "@internal/config-webpack": "workspace:^"
     "@internal/test-helpers": "workspace:^"
-    "@segment/analytics-consent-tools": 0.2.1
+    "@ht-sdks/events-sdk-js-consent-tools": 0.2.1
   peerDependencies:
     "@ht-sdks/events-sdk-js-browser": ^1.0.0
   peerDependenciesMeta:

@@ -43,7 +43,7 @@ beforeEach(() => {
 })
 
 it('supports multiple events in a batch', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin({
+  const { plugin: hightouchPlugin } = createTestNodePlugin({
     maxRetries: 3,
     maxEventsInBatch: 3,
   })
@@ -59,7 +59,7 @@ it('supports multiple events in a batch', async () => {
 
   for (const context of contexts) {
     // We want batching to happen, so don't await.
-    void segmentPlugin[context.event.type](context)
+    void hightouchPlugin[context.event.type](context)
   }
 
   // Expect a single fetch call for all 3 events.
@@ -69,14 +69,14 @@ it('supports multiple events in a batch', async () => {
 })
 
 it('supports waiting a max amount of time before sending', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin({
+  const { plugin: hightouchPlugin } = createTestNodePlugin({
     maxRetries: 3,
     maxEventsInBatch: 3,
   })
 
   const context = new Context(eventFactory.alias('to', 'from'))
 
-  const pendingContext = segmentPlugin.alias(context)
+  const pendingContext = hightouchPlugin.alias(context)
 
   jest.advanceTimersByTime(500)
 
@@ -95,7 +95,7 @@ it('supports waiting a max amount of time before sending', async () => {
 })
 
 it('sends as soon as batch fills up or max time is reached', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin({
+  const { plugin: hightouchPlugin } = createTestNodePlugin({
     maxRetries: 3,
     maxEventsInBatch: 2,
   })
@@ -108,7 +108,7 @@ it('sends as soon as batch fills up or max time is reached', async () => {
     contexts.push(new Context(eventFactory.alias('to', 'from')))
   }
 
-  const pendingContexts = contexts.map((ctx) => segmentPlugin.alias(ctx))
+  const pendingContexts = contexts.map((ctx) => hightouchPlugin.alias(ctx))
 
   // Should have seen 1 call due to 1 batch being filled.
   expect(fetcher).toHaveBeenCalledTimes(1)
@@ -129,7 +129,7 @@ it('sends as soon as batch fills up or max time is reached', async () => {
 })
 
 it('sends if batch will exceed max size in bytes when adding event', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin({
+  const { plugin: hightouchPlugin } = createTestNodePlugin({
     maxRetries: 3,
     maxEventsInBatch: 20,
     flushInterval: 100,
@@ -152,7 +152,7 @@ it('sends if batch will exceed max size in bytes when adding event', async () =>
     )
   }
 
-  const pendingContexts = contexts.map((ctx) => segmentPlugin.track(ctx))
+  const pendingContexts = contexts.map((ctx) => hightouchPlugin.track(ctx))
   expect(fetcher).toHaveBeenCalledTimes(1)
   jest.advanceTimersByTime(100)
   expect(fetcher).toHaveBeenCalledTimes(2)
@@ -174,7 +174,7 @@ describe('flushAfterClose', () => {
       )
     )
 
-  it('sends immediately once all pending events reach the segment plugin, regardless of settings like batch size', async () => {
+  it('sends immediately once all pending events reach the hightouch plugin, regardless of settings like batch size', async () => {
     const _createTrackCtx = () =>
       new Context(
         eventFactory.track(
@@ -184,78 +184,78 @@ describe('flushAfterClose', () => {
         )
       )
 
-    const { plugin: segmentPlugin, publisher } = createTestNodePlugin({
+    const { plugin: hightouchPlugin, publisher } = createTestNodePlugin({
       maxEventsInBatch: 20,
     })
 
     publisher.flushAfterClose(3)
 
-    void segmentPlugin.track(_createTrackCtx())
-    void segmentPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
     expect(fetcher).toHaveBeenCalledTimes(0)
-    void segmentPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
     expect(fetcher).toBeCalledTimes(1)
   })
 
   it('continues to flush on each event if batch size is 1', async () => {
-    const { plugin: segmentPlugin, publisher } = createTestNodePlugin({
+    const { plugin: hightouchPlugin, publisher } = createTestNodePlugin({
       maxEventsInBatch: 1,
     })
 
     publisher.flushAfterClose(3)
 
-    void segmentPlugin.track(_createTrackCtx())
-    void segmentPlugin.track(_createTrackCtx())
-    void segmentPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
+    void hightouchPlugin.track(_createTrackCtx())
     expect(fetcher).toBeCalledTimes(3)
   })
 
   it('sends immediately once there are no pending items, even if pending events exceeds batch size', async () => {
-    const { plugin: segmentPlugin, publisher } = createTestNodePlugin({
+    const { plugin: hightouchPlugin, publisher } = createTestNodePlugin({
       maxEventsInBatch: 3,
     })
 
     publisher.flushAfterClose(5)
-    range(3).forEach(() => segmentPlugin.track(_createTrackCtx()))
+    range(3).forEach(() => hightouchPlugin.track(_createTrackCtx()))
     expect(fetcher).toHaveBeenCalledTimes(1)
-    range(2).forEach(() => segmentPlugin.track(_createTrackCtx()))
+    range(2).forEach(() => hightouchPlugin.track(_createTrackCtx()))
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
   it('works if there are previous items in the batch', async () => {
-    const { plugin: segmentPlugin, publisher } = createTestNodePlugin({
+    const { plugin: hightouchPlugin, publisher } = createTestNodePlugin({
       maxEventsInBatch: 7,
     })
 
-    range(3).forEach(() => segmentPlugin.track(_createTrackCtx())) // should not flush
+    range(3).forEach(() => hightouchPlugin.track(_createTrackCtx())) // should not flush
     expect(fetcher).toHaveBeenCalledTimes(0)
     publisher.flushAfterClose(5)
     expect(fetcher).toHaveBeenCalledTimes(0)
-    range(2).forEach(() => segmentPlugin.track(_createTrackCtx()))
+    range(2).forEach(() => hightouchPlugin.track(_createTrackCtx()))
     expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
   it('works if there are previous items in the batch AND pending items > batch size', async () => {
-    const { plugin: segmentPlugin, publisher } = createTestNodePlugin({
+    const { plugin: hightouchPlugin, publisher } = createTestNodePlugin({
       maxEventsInBatch: 7,
     })
 
-    range(3).forEach(() => segmentPlugin.track(_createTrackCtx())) // should not flush
+    range(3).forEach(() => hightouchPlugin.track(_createTrackCtx())) // should not flush
     expect(fetcher).toHaveBeenCalledTimes(0)
     publisher.flushAfterClose(10)
     expect(fetcher).toHaveBeenCalledTimes(0)
-    range(4).forEach(() => segmentPlugin.track(_createTrackCtx())) // batch is full, send.
+    range(4).forEach(() => hightouchPlugin.track(_createTrackCtx())) // batch is full, send.
     expect(fetcher).toHaveBeenCalledTimes(1)
-    range(2).forEach(() => segmentPlugin.track(_createTrackCtx()))
+    range(2).forEach(() => hightouchPlugin.track(_createTrackCtx()))
     expect(fetcher).toBeCalledTimes(1)
-    void segmentPlugin.track(_createTrackCtx()) // pending items limit has been reached, send.
+    void hightouchPlugin.track(_createTrackCtx()) // pending items limit has been reached, send.
     expect(fetcher).toBeCalledTimes(2)
   })
 })
 
 describe('error handling', () => {
   it('excludes events that are too large', async () => {
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxEventsInBatch: 1,
     })
 
@@ -272,7 +272,7 @@ describe('error handling', () => {
     )
 
     expect(context.failedDelivery()).toBeFalsy()
-    const updatedContext = await segmentPlugin.track(context)
+    const updatedContext = await hightouchPlugin.track(context)
     expect(updatedContext).toBe(context)
     expect(updatedContext.failedDelivery()).toBeTruthy()
     expect(updatedContext.failedDelivery()).toMatchInlineSnapshot(`
@@ -288,13 +288,13 @@ describe('error handling', () => {
       createError({ status: 400, statusText: 'Bad Request' })
     )
 
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxEventsInBatch: 1,
     })
 
     const context = new Context(eventFactory.alias('to', 'from'))
 
-    const updatedContext = await segmentPlugin.alias(context)
+    const updatedContext = await hightouchPlugin.alias(context)
 
     expect(fetcher).toHaveBeenCalledTimes(1)
     validateFetcherInputs(context)
@@ -318,14 +318,14 @@ describe('error handling', () => {
 
     fetcher.mockReturnValue(createError(response))
 
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 2,
       maxEventsInBatch: 1,
     })
 
     const context = new Context(eventFactory.alias('to', 'from'))
 
-    const pendingContext = segmentPlugin.alias(context)
+    const pendingContext = hightouchPlugin.alias(context)
     const updatedContext = await pendingContext
 
     expect(fetcher).toHaveBeenCalledTimes(3)
@@ -345,14 +345,14 @@ describe('error handling', () => {
 
     fetcher.mockRejectedValue(new Error('Connection Error'))
 
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 2,
       maxEventsInBatch: 1,
     })
 
     const context = new Context(eventFactory.alias('my', 'from'))
 
-    const pendingContext = segmentPlugin.alias(context)
+    const pendingContext = hightouchPlugin.alias(context)
     const updatedContext = await pendingContext
 
     expect(fetcher).toHaveBeenCalledTimes(3)
@@ -372,7 +372,7 @@ describe('error handling', () => {
     jest.useRealTimers()
 
     fetcher.mockRejectedValue(new Error('Connection Error'))
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 0,
       maxEventsInBatch: 1,
     })
@@ -380,7 +380,7 @@ describe('error handling', () => {
     const fn = jest.fn()
     emitter.on('http_request', fn)
 
-    await segmentPlugin.track(
+    await hightouchPlugin.track(
       new Context(
         eventFactory.track(
           'test event',
@@ -395,7 +395,7 @@ describe('error handling', () => {
 
 describe('http_request emitter event', () => {
   it('should emit an http_request object', async () => {
-    const { plugin: segmentPlugin } = createTestNodePlugin({
+    const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxEventsInBatch: 1,
     })
 
@@ -405,7 +405,7 @@ describe('http_request emitter event', () => {
     const context = new Context(
       eventFactory.track('foo', undefined, { userId: 'foo-user-id' })
     )
-    await segmentPlugin.track(context)
+    await hightouchPlugin.track(context)
     assertHttpRequestEmittedEvent(fn.mock.lastCall[0])
   })
 })

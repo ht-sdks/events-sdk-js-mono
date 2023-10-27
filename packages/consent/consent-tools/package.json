@@ -1,5 +1,5 @@
 {
-  "name": "@segment/analytics-consent-tools",
+  "name": "@ht-sdks/events-sdk-js-consent-tools",
   "version": "0.2.1",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -12,7 +12,7 @@
     "!*.tsbuildinfo"
   ],
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@segment/analytics-consent-tools",
+    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-consent-tools",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",

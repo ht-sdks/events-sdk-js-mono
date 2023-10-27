@@ -13,7 +13,7 @@ jest.mock('unfetch', () => {
 describe('Hightouch.io', () => {
   let options: HightouchioSettings
   let analytics: Analytics
-  let segment: Plugin
+  let hightouch: Plugin
   let spyMock: jest.SpyInstance
 
   beforeEach(async () => {
@@ -22,9 +22,9 @@ describe('Hightouch.io', () => {
 
     options = { apiKey: 'foo' }
     analytics = new Analytics({ writeKey: options.apiKey })
-    segment = await hightouchio(analytics, options, {})
+    hightouch = await hightouchio(analytics, options, {})
 
-    await analytics.register(segment, envEnrichment)
+    await analytics.register(hightouch, envEnrichment)
 
     window.localStorage.clear()
 
@@ -54,8 +54,8 @@ describe('Hightouch.io', () => {
         protocol: 'http',
       }
       const analytics = new Analytics({ writeKey: options.apiKey })
-      const segment = await hightouchio(analytics, options, {})
-      await analytics.register(segment, envEnrichment)
+      const hightouch = await hightouchio(analytics, options, {})
+      await analytics.register(hightouch, envEnrichment)
 
       // @ts-ignore test a valid ajsc page call
       await analytics.page(null, { foo: 'bar' })
@@ -90,10 +90,10 @@ describe('Hightouch.io', () => {
     it('should default to no keepalive', async () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
-      const segment = await hightouchio(analytics, {
+      const hightouch = await hightouchio(analytics, {
         apiKey: '',
       })
-      await analytics.register(await segment)
+      await analytics.register(await hightouch)
       await analytics.track('foo')
 
       const [_, params] = spyMock.mock.lastCall

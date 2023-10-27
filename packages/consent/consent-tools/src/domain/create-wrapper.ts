@@ -48,7 +48,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
       settings,
       options
     ): Promise<void> => {
-      // do not load anything -- segment included
+      // do not load anything -- hightouch included
       if (await shouldDisableSegment?.()) {
         return
       }
@@ -86,7 +86,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
         cdnSettingsP: Promise<CDNSettings>
       ): Promise<Categories> => {
         const cdnSettings = await cdnSettingsP
-        // we don't want to send _every_ category to segment, only the ones that the user has explicitly configured in their integrations
+        // we don't want to send _every_ category to hightouch, only the ones that the user has explicitly configured in their integrations
         let allCategories: string[]
         // We need to get all the unique categories so we can prune the consent object down to only the categories that are configured
         // There can be categories that are not included in any integration in the integrations object (e.g. 2 cloud mode categories), which is why we need a special allCategories array

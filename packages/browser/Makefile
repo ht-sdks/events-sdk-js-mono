@@ -59,27 +59,6 @@ lint: node_modules ## Lints the source code
 	$(yarn_run) lint
 .PHONY: lint
 
-ci:
-	bash ./scripts/ci.sh
-.PHONY: ci
-
-handshake:
-	@echo "📡  Establishing Remote connection"
-	@robo --config ~/dev/src/github.com/segmentio/robofiles/development/robo.yml prod.ssh echo "✅ Connected"
-.PHONY: handshake
-
-rebuild-sources-prod: handshake ## Rebuilds all sources that are using ajs-next
-	@aws-okta exec prod-privileged -- ./scripts/ajs-sources.js
-.PHONY: rebuild-sources-prod
-
-rebuild-sources-stage: # Rebuilds all sources that are using ajs-next in stage
-	@robo --config ~/dev/src/github.com/segmentio/robofiles/development/robo.yml rebuild-all-stage
-.PHONY: rebuild-sources-stage
-
 analyze:
 	NODE_ENV=production $(BIN)/webpack --profile --json > stats.json && $(BIN)/webpack-bundle-analyzer --port 4200 stats.json
 .PHONY: analyze
-
-dev: ## Starts a dev server that is ready for development
-	yarn workspace @example/with-next-js run dev
-.PHONY: dev

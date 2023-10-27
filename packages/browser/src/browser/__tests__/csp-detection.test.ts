@@ -69,7 +69,7 @@ describe('CSP Detection', () => {
     jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'https://hightouch.com',
       virtualConsole,
     })
 

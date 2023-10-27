@@ -1,4 +1,4 @@
-import * as ConsentTools from '@segment/analytics-consent-tools'
+import * as ConsentTools from '@ht-sdks/events-sdk-js-consent-tools'
 import * as OneTrustAPI from '../../lib/onetrust-api'
 import { sleep } from '@internal/test-helpers'
 import { withOneTrust } from '../wrapper'

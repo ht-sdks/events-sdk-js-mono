@@ -77,7 +77,7 @@ const createCanonicalURL = (canonicalUrl: string, searchParams: string) => {
 
 /**
  * Strips hash from URL.
- * http://www.segment.local#test -> http://www.segment.local
+ * http://www.hightouch.local#test -> http://www.hightouch.local
  */
 const removeHash = (href: string) => {
   const hashIdx = href.indexOf('#')

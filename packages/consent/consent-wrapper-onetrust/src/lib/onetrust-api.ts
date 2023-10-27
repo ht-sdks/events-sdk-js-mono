@@ -1,4 +1,4 @@
-import { Categories } from '@segment/analytics-consent-tools'
+import { Categories } from '@ht-sdks/events-sdk-js-consent-tools'
 import { OneTrustApiValidationError } from './validation'
 /**
  * @example ["C0001", "C0002"]

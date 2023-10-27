@@ -186,7 +186,7 @@ describe('Ability for users to exit without losing events', () => {
       expect(called).toBeFalsy()
     })
 
-    test('should flush immediately if close is called and there are events in the segment.io plugin, but no more are expected', async () => {
+    test('should flush immediately if close is called and there are events in the hightouch.io plugin, but no more are expected', async () => {
       const analytics = new Analytics({
         writeKey: 'foo',
         flushInterval: 10000,
@@ -197,7 +197,7 @@ describe('Ability for users to exit without losing events', () => {
       _helpers.makeTrackCall(analytics)
       await sleep(100)
 
-      // ensure all track events have reached the segment plugin
+      // ensure all track events have reached the hightouch plugin
       expect(analytics['_publisher']['_batch']!.length).toBe(2)
 
       const startTime = perf.now()
@@ -209,7 +209,7 @@ describe('Ability for users to exit without losing events', () => {
       expect(calls[0].data.batch.length).toBe(2)
     })
 
-    test('should wait to flush if close is called and an event has not made it to the segment.io plugin yet', async () => {
+    test('should wait to flush if close is called and an event has not made it to the hightouch.io plugin yet', async () => {
       const TRACK_DELAY = 100
       const _testPlugin: Plugin = {
         ...testPlugin,
@@ -228,7 +228,7 @@ describe('Ability for users to exit without losing events', () => {
       _helpers.makeTrackCall(analytics)
       _helpers.makeTrackCall(analytics)
 
-      // ensure that track events have not reached the segment plugin before closeAndFlush is called.
+      // ensure that track events have not reached the hightouch plugin before closeAndFlush is called.
       expect(analytics['_publisher']['_batch']).toBeFalsy()
 
       const startTime = perf.now()

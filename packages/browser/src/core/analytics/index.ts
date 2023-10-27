@@ -262,7 +262,7 @@ export class Analytics
     const pageCtx = popPageContext(args)
     const [name, data, opts, cb] = resolveArguments(...args)
 
-    const segmentEvent = this.eventFactory.track(
+    const hightouchEvent = this.eventFactory.track(
       name,
       data as EventProperties,
       opts,
@@ -270,7 +270,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, cb).then((ctx) => {
+    return this._dispatch(hightouchEvent, cb).then((ctx) => {
       this.emit('track', name, ctx.event.properties, ctx.event.options)
       return ctx
     })
@@ -281,7 +281,7 @@ export class Analytics
     const [category, page, properties, options, callback] =
       resolvePageArguments(...args)
 
-    const segmentEvent = this.eventFactory.page(
+    const hightouchEvent = this.eventFactory.page(
       category,
       page,
       properties,
@@ -290,7 +290,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(hightouchEvent, callback).then((ctx) => {
       this.emit('page', category, page, ctx.event.properties, ctx.event.options)
       return ctx
     })
@@ -303,7 +303,7 @@ export class Analytics
     )
 
     this._user.identify(id, _traits)
-    const segmentEvent = this.eventFactory.identify(
+    const hightouchEvent = this.eventFactory.identify(
       this._user.id(),
       this._user.traits(),
       options,
@@ -311,7 +311,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(hightouchEvent, callback).then((ctx) => {
       this.emit(
         'identify',
         ctx.event.userId,
@@ -338,7 +338,7 @@ export class Analytics
     const groupId = this._group.id()
     const groupTraits = this._group.traits()
 
-    const segmentEvent = this.eventFactory.group(
+    const hightouchEvent = this.eventFactory.group(
       groupId,
       groupTraits,
       options,
@@ -346,7 +346,7 @@ export class Analytics
       pageCtx
     )
 
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(hightouchEvent, callback).then((ctx) => {
       this.emit('group', ctx.event.groupId, ctx.event.traits, ctx.event.options)
       return ctx
     })
@@ -355,14 +355,14 @@ export class Analytics
   async alias(...args: AliasParams): Promise<DispatchedEvent> {
     const pageCtx = popPageContext(args)
     const [to, from, options, callback] = resolveAliasArguments(...args)
-    const segmentEvent = this.eventFactory.alias(
+    const hightouchEvent = this.eventFactory.alias(
       to,
       from,
       options,
       this.integrations,
       pageCtx
     )
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(hightouchEvent, callback).then((ctx) => {
       this.emit('alias', to, from, ctx.event.options)
       return ctx
     })
@@ -373,7 +373,7 @@ export class Analytics
     const [category, page, properties, options, callback] =
       resolvePageArguments(...args)
 
-    const segmentEvent = this.eventFactory.screen(
+    const hightouchEvent = this.eventFactory.screen(
       category,
       page,
       properties,
@@ -381,7 +381,7 @@ export class Analytics
       this.integrations,
       pageCtx
     )
-    return this._dispatch(segmentEvent, callback).then((ctx) => {
+    return this._dispatch(hightouchEvent, callback).then((ctx) => {
       this.emit(
         'screen',
         category,

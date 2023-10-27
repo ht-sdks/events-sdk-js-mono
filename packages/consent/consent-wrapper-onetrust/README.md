@@ -1,4 +1,4 @@
-# @segment/analytics-consent-wrapper-onetrust
+# @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 
 ### Try our Playground! [Next.js CodeSandbox](https://codesandbox.io/p/sandbox/focused-bhaskara-jysqr5) 🚀
 
@@ -6,7 +6,7 @@
 
 # Quick Start
 
-## Configure OneTrust + Segment
+## Configure OneTrust + hightouch
 
 ### Ensure that the OneTrust Banner SDK is loaded first
 
@@ -24,7 +24,7 @@
 
 ### Ensure that consent is enabled and that you have created your Integration -> Consent Category Mappings
 
-- Ensure that your integrations in the Segment UI have consent enabled, and that they map to your Consent Category IDs (also called Cookie Group IDs or Cookie Consent IDs).
+- Ensure that your integrations in the hightouch UI have consent enabled, and that they map to your Consent Category IDs (also called Cookie Group IDs or Cookie Consent IDs).
   The IDs look like "C0001", "C0002"and are configurable in OneTrust
   ![onetrust category ids](img/onetrust-cat-id.jpg)
 
@@ -36,19 +36,19 @@
 
 ```sh
 # npm
-npm install @segment/analytics-consent-wrapper-onetrust
+npm install @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 
 # yarn
-yarn add @segment/analytics-consent-wrapper-onetrust
+yarn add @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 
 # pnpm
-pnpm add @segment/analytics-consent-wrapper-onetrust
+pnpm add @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 ```
 
 2. Initialize alongside analytics
 
 ```ts
-import { withOneTrust } from '@segment/analytics-consent-wrapper-onetrust'
+import { withOneTrust } from '@ht-sdks/events-sdk-js-consent-wrapper-onetrust'
 import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 export const analytics = new AnalyticsBrowser()
@@ -72,10 +72,10 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
   ></script>
 
   <!-- Add OneTrust Consent Wrapper -->
-  <script src="https://cdn.jsdelivr.net/npm/@segment/analytics-consent-wrapper-onetrust@latest/dist/umd/analytics-onetrust.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ht-sdks/events-sdk-js-consent-wrapper-onetrust@latest/dist/umd/analytics-onetrust.umd.js"></script>
 
   <!--
-    Add / Modify Segment Analytics Snippet
+    Add / Modify hightouch Analytics Snippet
     * Find and replace: analytics.load('<MY_WRITE_KEY'>) -> withOneTrust(analytics).load('<MY_WRITE_KEY'>)
   -->
   <script>
@@ -87,7 +87,7 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
 </head>
 ```
 
-#### ⚠️ Reminder: _you must modify_ `analytics.load('....')` from the original Segment snippet. See markup comment in example above.
+#### ⚠️ Reminder: _you must modify_ `analytics.load('....')` from the original hightouch snippet. See markup comment in example above.
 
 ## Other examples:
 
@@ -110,7 +110,7 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
 
 - `cjs/esm` - Support modern JS syntax (ES2020). These are our npm library users, so we expect them to transpile this module themselves using something like babel/webpack if they need extra legacy browser support.
 
-- `umd` - Support back to IE11, but **do not** polyfill . See our docs on [supported browsers](https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/supported-browsers).
+- `umd` - Support back to IE11, but **do not** polyfill . See our docs on [supported browsers](https://hightouch.com/docs/connections/sources/catalog/libraries/website/javascript/supported-browsers).
 
 In order to get full ie11 support, you are expected to bring your own polyfills. e.g. adding the following to your script tag:
 

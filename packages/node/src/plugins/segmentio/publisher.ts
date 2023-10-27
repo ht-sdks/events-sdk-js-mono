@@ -224,7 +224,6 @@ export class Publisher {
           batch.resolveEvents()
           return
         } else if (response.status === 400) {
-          // https://segment.com/docs/connections/sources/catalog/libraries/server/http-api/#max-request-size
           // Request either malformed or size exceeded - don't retry.
           resolveFailedBatch(
             batch,

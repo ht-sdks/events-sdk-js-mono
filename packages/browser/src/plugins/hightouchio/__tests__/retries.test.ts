@@ -13,10 +13,10 @@ jest.mock('../schedule-flush')
 
 type QueueType = 'priority' | 'persisted'
 
-describe('Segment.io retries', () => {
+describe('Hightouch.io retries', () => {
   let options: HightouchioSettings
   let analytics: Analytics
-  let segment: Plugin
+  let hightouch: Plugin
   let queue: (PPQ.PersistedPriorityQueue | PQ.PriorityQueue<Context>) & {
     __type?: QueueType
   }
@@ -48,7 +48,7 @@ describe('Segment.io retries', () => {
         } else {
           queue = new PPQ.PersistedPriorityQueue(
             3,
-            `${options.apiKey}:test-Segment.io`
+            `${options.apiKey}:test-hightouch.io`
           )
           queue['__type'] = 'persisted'
           Object.defineProperty(PPQ, 'PersistedPriorityQueue', {
@@ -57,9 +57,9 @@ describe('Segment.io retries', () => {
           })
         }
 
-        segment = await hightouchio(analytics, options, {})
+        hightouch = await hightouchio(analytics, options, {})
 
-        await analytics.register(segment, envEnrichment)
+        await analytics.register(hightouch, envEnrichment)
       })
 
       test(`add events to the queue`, async () => {

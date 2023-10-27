@@ -6,7 +6,7 @@ describe(tryCreateFormattedUrl, () => {
       'http://foo.com/bar'
     )
   })
-  it('should work if the path has many segments', () => {
+  it('should work if the path has many', () => {
     expect(tryCreateFormattedUrl('http://foo.com', '/bar/baz')).toBe(
       'http://foo.com/bar/baz'
     )

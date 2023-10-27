@@ -1,6 +1,6 @@
 import { OneTrustGlobal } from '../lib/onetrust-api'
 import { throwNotImplemented } from './utils'
-import type { AnyAnalytics } from '@segment/analytics-consent-tools'
+import type { AnyAnalytics } from '@ht-sdks/events-sdk-js-consent-tools'
 /**
  * This can be used to mock the OneTrust global object in individual tests
  * @example

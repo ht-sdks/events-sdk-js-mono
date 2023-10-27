@@ -39,7 +39,6 @@ export interface CoreOptions {
 
 /**
  * Context is a dictionary of extra information that provides useful context about a datapoint, for example the user’s ip address or locale. You should only use Context fields for their intended meaning.
- * @link https://segment.com/docs/connections/spec/common/#context
  */
 export interface CoreExtraContext {
   /**
@@ -108,7 +107,7 @@ export interface CoreExtraContext {
      */
     title?: string
     /**
-     * @example https://segment.com/academy/
+     * @example https://hightouch.com/academy/
      */
     url?: string
   }
@@ -271,7 +270,6 @@ type PhoneNumber = string | number // TODO: the docs say this can only be a stri
 /**
  * Traits are pieces of information you know about a group.
  * This interface represents reserved traits that Segment has standardized.
- * @link https://segment.com/docs/connections/spec/group/#traits
  */
 type BaseGroupTraits = DeepNullable<{
   /**
@@ -336,7 +334,6 @@ type BaseGroupTraits = DeepNullable<{
 /**
  * Traits are pieces of information you know about a user.
  * This interface represents reserved traits that Segment has standardized.
- * @link https://segment.com/docs/connections/spec/identify/#traits
  */
 type BaseUserTraits = DeepNullable<{
   /**
@@ -452,7 +449,6 @@ type BaseUserTraits = DeepNullable<{
 /**
  * Traits are pieces of information you know about a group.
  * This interface represents reserved traits that Segment has standardized.
- * @link https://segment.com/docs/connections/spec/group/#traits
  */
 export type GroupTraits = BaseGroupTraits & {
   [customTrait: string]: any
@@ -460,8 +456,7 @@ export type GroupTraits = BaseGroupTraits & {
 
 /**
  * Traits are pieces of information you know about a user.
- * This interface represents reserved traits that Segment has standardized.
- * @link https://segment.com/docs/connections/spec/identify/#traits
+ * This interface represents reserved traits that Hightouch has standardized.
  */
 export type UserTraits = BaseUserTraits & {
   [customTrait: string]: any

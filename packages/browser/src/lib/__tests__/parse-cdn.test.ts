@@ -16,7 +16,7 @@ function withTag(tag: string) {
   const jsd = new JSDOM(html, {
     runScripts: 'dangerously',
     resources: 'usable',
-    url: 'https://segment.com',
+    url: 'https://hightouch.com',
     virtualConsole,
   })
 
@@ -40,7 +40,7 @@ beforeEach(async () => {
   jest.resetAllMocks()
 })
 
-it('detects the existing segment cdn', () => {
+it('detects the existing hightouch cdn', () => {
   withTag(`
     <script src="https://cdn.hightouch-events.com/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
