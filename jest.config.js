@@ -16,5 +16,4 @@ module.exports = () =>
       '<rootDir>/packages/consent/consent-tools',
       '<rootDir>/packages/consent/consent-wrapper-onetrust',
     ],
-    transformIgnorePatterns: ['node_modules/(?!crypto-es)'],
   })
