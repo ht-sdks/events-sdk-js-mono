@@ -51,7 +51,7 @@
   "repository": {
     "directory": "packages/consent/consent-wrapper-onetrust",
     "type": "git",
-    "url": "https://github.com/ht-sdks/events-sdk-js-next"
+    "url": "https://github.com/ht-sdks/events-sdk-js-mono"
   },
   "devDependencies": {
     "@internal/config-webpack": "workspace:^",

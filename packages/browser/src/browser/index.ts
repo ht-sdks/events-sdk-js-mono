@@ -413,7 +413,7 @@ async function loadAnalytics(
  *  export const analytics = new AnalyticsBrowser()
  *  analytics.load({ writeKey: 'foo' })
  * ```
- * @link https://github.com/ht-sdks/events-sdk-js-next/tree/master/packages/browser#readme
+ * @link https://github.com/ht-sdks/events-sdk-js-mono/tree/master/packages/browser#readme
  */
 export class AnalyticsBrowser extends AnalyticsBuffered {
   private _resolveLoadStart: (

@@ -43,6 +43,6 @@
   "repository": {
     "directory": "packages/consent/consent-tools",
     "type": "git",
-    "url": "https://github.com/ht-sdks/events-sdk-js-next"
+    "url": "https://github.com/ht-sdks/events-sdk-js-mono"
   }
 }

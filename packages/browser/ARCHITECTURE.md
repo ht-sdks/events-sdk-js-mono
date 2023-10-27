@@ -4,7 +4,7 @@
 
 Javascript event tracking can be thought of as two different codebases:
 
-- [events-sdk-js-next](https://github.com/ht-sdks/events-sdk-js-next): All core functionality
+- [events-sdk-js-mono](https://github.com/ht-sdks/events-sdk-js-mono): All core functionality
 - [original segment integrations](https://github.com/segmentio/analytics.js-integrations): Legacy client side destinations
 
 ## Core
