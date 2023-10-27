@@ -26,15 +26,15 @@
     "jest": "yarn run -T jest"
   },
   "peerDependencies": {
-    "@ht-sdks/events-sdk-js": ">=1.53.1"
+    "@ht-sdks/events-sdk-js-browser": "^1.0.0"
   },
   "peerDependenciesMeta": {
-    "@ht-sdks/events-sdk-js": {
+    "@ht-sdks/events-sdk-js-browser": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@ht-sdks/events-sdk-js": "workspace:^",
+    "@ht-sdks/events-sdk-js-browser": "workspace:^",
     "@internal/config": "workspace:^",
     "@internal/test-helpers": "workspace:^"
   },
@@ -43,6 +43,6 @@
   "repository": {
     "directory": "packages/consent/consent-tools",
     "type": "git",
-    "url": "https://github.com/segmentio/analytics-next"
+    "url": "https://github.com/ht-sdks/events-sdk-js-next"
   }
 }

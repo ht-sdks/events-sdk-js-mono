@@ -1,5 +1,5 @@
-import { default as AnalyticsDefaultImport } from '@segment/analytics-node'
-import { Analytics as AnalyticsNamedImport } from '@segment/analytics-node'
+import { default as AnalyticsDefaultImport } from '@ht-sdks/events-sdk-js-node'
+import { Analytics as AnalyticsNamedImport } from '@ht-sdks/events-sdk-js-node'
 
 {
   // test named imports vs default imports

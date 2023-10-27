@@ -2,8 +2,8 @@
 
 ## Packages
 
-- [@ht-sdks/events-sdk-js](packages/browser#readme): Analytics.js SDK for **web browsers**
-- [@ht-sdks/events-sdk-node](packages/node#readme): Analytics.js SDK for **Node.js**
+- [@ht-sdks/events-sdk-js-browser](packages/browser#readme): Analytics.js SDK for **web browsers**
+- [@ht-sdks/events-sdk-js-node](packages/node#readme): Analytics.js SDK for **Node.js**
 
 ## Contributing
 

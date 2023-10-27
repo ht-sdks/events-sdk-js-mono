@@ -1,4 +1,4 @@
-import { EventFactory } from '@segment/analytics-core'
+import { EventFactory } from '@ht-sdks/events-sdk-js-core'
 import { createMessageId } from '../lib/get-message-id'
 import { SegmentEvent } from './types'
 

@@ -1,4 +1,4 @@
-import { ValidationError } from '@segment/analytics-core'
+import { ValidationError } from '@ht-sdks/events-sdk-js-core'
 import { HTTPClient, HTTPFetchFn } from '../lib/http-client'
 
 export interface AnalyticsSettings {

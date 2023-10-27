@@ -7,7 +7,7 @@ import {
   assertEventExists,
   assertEventType,
   assertTrackEventName,
-} from '@segment/analytics-core'
+} from '@ht-sdks/events-sdk-js-core'
 
 function validate(ctx: Context): Context {
   const event = ctx.event

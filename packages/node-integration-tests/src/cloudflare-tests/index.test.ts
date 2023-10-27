@@ -10,7 +10,7 @@ const snapshotMatchers = {
       messageId: expect.any(String),
       context: {
         library: {
-          name: '@segment/analytics-node',
+          name: '@ht-sdks/events-sdk-js-node',
           version: expect.any(String),
         },
       },
@@ -77,7 +77,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -131,7 +131,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -148,7 +148,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -166,7 +166,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -185,7 +185,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -203,7 +203,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -221,7 +221,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -278,7 +278,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -298,7 +298,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -323,7 +323,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -343,7 +343,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -368,7 +368,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -388,7 +388,7 @@ describe('Analytics in Cloudflare workers', () => {
               },
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },

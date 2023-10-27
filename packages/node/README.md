@@ -1,6 +1,6 @@
-# @segment/analytics-node
+# @ht-sdks/events-sdk-js-node
 
-https://www.npmjs.com/package/@segment/analytics-node
+https://www.npmjs.com/package/@ht-sdks/events-sdk-js-node
 
 ### OFFICIAL DOCUMENTATION (FULL)
 - https://segment.com/docs/connections/sources/catalog/libraries/server/node
@@ -20,19 +20,19 @@ https://www.npmjs.com/package/@segment/analytics-node
 ### Install library
 ```bash
 # npm
-npm install @segment/analytics-node
+npm install @ht-sdks/events-sdk-js-node
 # yarn
-yarn add @segment/analytics-node
+yarn add @ht-sdks/events-sdk-js-node
 # pnpm
-pnpm install @segment/analytics-node
+pnpm install @ht-sdks/events-sdk-js-node
 ```
 
 ### Usage
 Assuming some express-like web framework.
 ```ts
-import { Analytics } from '@segment/analytics-node'
+import { Analytics } from '@ht-sdks/events-sdk-js-node'
 // or, if you use require:
-const { Analytics } = require('@segment/analytics-node')
+const { Analytics } = require('@ht-sdks/events-sdk-js-node')
 
 // instantiation
 const analytics = new Analytics({ writeKey: '<MY_WRITE_KEY>' })
@@ -73,7 +73,7 @@ You can also see the complete list of settings in the [AnalyticsSettings interfa
 
 Here is an example of using analytics.js within a handler:
 ```ts
-const { Analytics } = require('@segment/analytics-node');
+const { Analytics } = require('@ht-sdks/events-sdk-js-node');
 
 // since analytics has the potential to be stateful if there are any plugins added,
 // to be on the safe side, we should instantiate a new instance of analytics on every request (the cost of instantiation is low).
@@ -100,7 +100,7 @@ module.exports.handler = async (event) => {
 
 ### Usage in Vercel Edge Functions
 ```ts
-import { Analytics } from '@segment/analytics-node';
+import { Analytics } from '@ht-sdks/events-sdk-js-node';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const analytics = new Analytics({
@@ -123,7 +123,7 @@ export default async (req: NextRequest) => {
 
 ### Usage in Cloudflare Workers
 ```ts
-import { Analytics, Context } from '@segment/analytics-node';
+import { Analytics, Context } from '@ht-sdks/events-sdk-js-node';
 
 export default {
   async fetch(

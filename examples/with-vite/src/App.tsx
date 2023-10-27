@@ -1,5 +1,5 @@
 import React from 'react'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 import logo from './logo.svg'
 import './App.css'
 

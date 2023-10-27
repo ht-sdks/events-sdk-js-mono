@@ -21,6 +21,6 @@
   },
   "packageManager": "yarn@3.4.1",
   "devDependencies": {
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
   }
 }

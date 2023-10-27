@@ -1,4 +1,4 @@
-    # @segment/analytics-core
+    # @ht-sdks/events-sdk-js-core
 
     ## 1.99.0
 

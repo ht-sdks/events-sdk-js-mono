@@ -5,7 +5,7 @@ import { createTestAnalytics } from './test-helpers/create-test-analytics'
 import { isValidDate } from './test-helpers/is-valid-date'
 import { pick } from 'lodash'
 import nock from 'nock'
-import { CoreContext } from '@segment/analytics-core'
+import { CoreContext } from '@ht-sdks/events-sdk-js-core'
 
 const isoDateRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
@@ -142,7 +142,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -178,7 +178,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -212,7 +212,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -247,7 +247,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -279,7 +279,7 @@ describe('Method Smoke Tests', () => {
               "_metadata": Any<Object>,
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },
@@ -314,7 +314,7 @@ describe('Method Smoke Tests', () => {
               "anonymousId": "foo",
               "context": Object {
                 "library": Object {
-                  "name": "@segment/analytics-node",
+                  "name": "@ht-sdks/events-sdk-js-node",
                   "version": Any<String>,
                 },
               },

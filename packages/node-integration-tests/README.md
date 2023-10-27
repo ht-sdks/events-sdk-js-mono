@@ -1,4 +1,4 @@
-# Integration Tests for @segment/analytics-node
+# Integration Tests for @ht-sdks/events-sdk-js-node
 
 ## Tests
 

@@ -1,7 +1,7 @@
 import type {
   AnalyticsSnippet,
   AnalyticsBrowser,
-} from '@ht-sdks/events-sdk-js'
+} from '@ht-sdks/events-sdk-js-browser'
 import { createWrapper, AnyAnalytics } from '../../index'
 
 type Extends<T, U> = T extends U ? true : false

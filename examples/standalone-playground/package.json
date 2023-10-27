@@ -11,7 +11,7 @@
     "concurrently": "yarn run -T concurrently"
   },
   "dependencies": {
-    "@ht-sdks/events-sdk-js": "workspace:^",
+    "@ht-sdks/events-sdk-js-browser": "workspace:^",
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
   },
   "devDependencies": {

@@ -50,7 +50,7 @@ const getCMP = async () => {
 
 ```js
 import { withCMP } from './wrapper'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 export const analytics = new AnalyticsBrowser()
 
@@ -87,7 +87,7 @@ See the complete list of settings in the **[Settings interface](src/types/settin
 
 ## Special Requirements
 
-- For npm users, this library expects a version of `@ht-sdks/events-sdk-js` >= **1.53.1**. Note: If your library depends on this library, you should have the appropriate peer dependency declaration. See our `package.json` for an example.
+- For npm users, this library expects a version of `@ht-sdks/events-sdk-js-browser` >= **1.53.1**. Note: If your library depends on this library, you should have the appropriate peer dependency declaration. See our `package.json` for an example.
 
 ## Development
 

@@ -1,4 +1,4 @@
-import { CoreAnalytics, bindAll, pTimeout } from '@segment/analytics-core'
+import { CoreAnalytics, bindAll, pTimeout } from '@ht-sdks/events-sdk-js-core'
 import { AnalyticsSettings, validateSettings } from './settings'
 import { version } from '../generated/version'
 import { createConfiguredNodePlugin } from '../plugins/segmentio'

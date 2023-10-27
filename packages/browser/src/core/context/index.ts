@@ -4,7 +4,7 @@ import {
   ContextFailedDelivery,
   SerializedContext,
   CancelationOptions,
-} from '@segment/analytics-core'
+} from '@ht-sdks/events-sdk-js-core'
 import { SegmentEvent } from '../events/interfaces'
 import { Stats } from '../stats'
 

@@ -4,7 +4,7 @@ import { Analytics } from '../../../core/analytics'
 import { envEnrichment } from '..'
 import { HightouchioSettings } from '../../hightouchio'
 import { version } from '../../../generated/version'
-import { CoreExtraContext } from '@segment/analytics-core'
+import { CoreExtraContext } from '@ht-sdks/events-sdk-js-core'
 import { UADataValues } from '../../../lib/client-hints/interfaces'
 import {
   highEntropyTestData,

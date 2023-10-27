@@ -8,7 +8,11 @@ import faker from 'faker'
 import { shuffle } from 'lodash'
 import Table from 'rc-table'
 import { AnalyticsProvider, useAnalytics } from '../context/analytics'
-import { Analytics, Context, AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import {
+  Analytics,
+  Context,
+  AnalyticsBrowser,
+} from '@ht-sdks/events-sdk-js-browser'
 
 const jsontheme = {
   scheme: 'tomorrow',

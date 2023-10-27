@@ -20,7 +20,7 @@ You have a couple options:
 
 For example: 
 ```
-yarn run -T turbo run build --filter=@ht-sdks/events-sdk-js
+yarn run -T turbo run build --filter=@ht-sdks/events-sdk-js-browser
 ```
 or
 ```

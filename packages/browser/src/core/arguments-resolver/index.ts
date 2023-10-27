@@ -3,7 +3,7 @@ import {
   isPlainObject,
   isString,
   isNumber,
-} from '@segment/analytics-core'
+} from '@ht-sdks/events-sdk-js-core'
 import { Context } from '../context'
 import {
   Callback,

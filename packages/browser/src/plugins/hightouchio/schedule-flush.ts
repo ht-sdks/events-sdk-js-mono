@@ -1,7 +1,7 @@
 import { isOffline } from '../../core/connection'
 import { Context } from '../../core/context'
 import { Plugin } from '../../core/plugin'
-import { attempt } from '@segment/analytics-core'
+import { attempt } from '@ht-sdks/events-sdk-js-core'
 import { pWhile } from '../../lib/p-while'
 import { PriorityQueue } from '../../lib/priority-queue'
 

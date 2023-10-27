@@ -1,4 +1,4 @@
-import { Traits, CoreExtraContext } from '@segment/analytics-core'
+import { Traits, CoreExtraContext } from '@ht-sdks/events-sdk-js-core'
 
 class TestClass {
   name = 'hello'

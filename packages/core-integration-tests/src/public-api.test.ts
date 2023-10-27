@@ -1,4 +1,4 @@
-import { CoreContext } from '@segment/analytics-core'
+import { CoreContext } from '@ht-sdks/events-sdk-js-core'
 
 class TestCtx extends CoreContext {}
 

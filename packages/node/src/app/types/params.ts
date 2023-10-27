@@ -5,7 +5,7 @@ import type {
   EventProperties,
   Integrations,
   Timestamp,
-} from '@segment/analytics-core'
+} from '@ht-sdks/events-sdk-js-core'
 
 export type { GroupTraits, UserTraits }
 
