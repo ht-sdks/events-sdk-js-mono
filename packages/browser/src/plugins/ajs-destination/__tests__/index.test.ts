@@ -41,7 +41,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Hightouchio: {
       type: 'browser',
     },
     Iterable: {
@@ -73,7 +73,8 @@ jest.mock('unfetch', () => {
   return jest.fn()
 })
 
-describe('loading ajsDestinations', () => {
+// We do not support remote integrations
+describe.skip('loading ajsDestinations', () => {
   const writeKey = 'foo'
   beforeEach(async () => {
     jest.resetAllMocks()
@@ -172,7 +173,8 @@ describe('loading ajsDestinations', () => {
     })
   })
 
-  it('loads type:browser legacy ajs destinations from cdn', () => {
+  // we do not support the legacy destination
+  it.skip('loads type:browser legacy ajs destinations from cdn', () => {
     const destinations = ajsDestinations(writeKey, cdnResponse, {}, {})
     // ignores segment.io
     expect(destinations.length).toBe(5)
@@ -275,7 +277,8 @@ describe('loading ajsDestinations', () => {
   })
 })
 
-describe('settings', () => {
+// We do not currently support remote integrations
+describe.skip('settings', () => {
   it('does not delete type=any', () => {
     const dest = new LegacyDestination(
       'Yandex',
@@ -304,7 +307,8 @@ describe('settings', () => {
   })
 })
 
-describe('options', () => {
+// We do not support remote integrations
+describe.skip('options', () => {
   it('#disableClientPersistence affects underlying queue', () => {
     const defaultDestWithPersistance = new LegacyDestination(
       'LocalStorageUser',
@@ -340,7 +344,8 @@ describe('options', () => {
   })
 })
 
-describe('remote loading', () => {
+// We do not support remote integrations
+describe.skip('remote loading', () => {
   const loadAmplitude = async (
     obfuscate = false
   ): Promise<LegacyDestination> => {
@@ -492,7 +497,8 @@ describe('remote loading', () => {
   })
 })
 
-describe('plan', () => {
+// We do not support remote integrations
+describe.skip('plan', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
 
@@ -753,7 +759,8 @@ describe('plan', () => {
   })
 })
 
-describe('option overrides', () => {
+// We do not support remote integrations
+describe.skip('option overrides', () => {
   beforeEach(async () => {
     jest.resetAllMocks()
 

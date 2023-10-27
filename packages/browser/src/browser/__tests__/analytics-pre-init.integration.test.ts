@@ -40,7 +40,7 @@ describe('Pre-initialization', () => {
   beforeEach(() => {
     setGlobalCDNUrl(undefined as any)
     mockFetchSettingsSuccessResponse()
-    ;(window as any).analytics = undefined
+    ;(window as any).htevents = undefined
   })
 
   describe('Smoke', () => {
@@ -128,7 +128,8 @@ describe('Pre-initialization', () => {
       expect(identifySpy).toBeCalledTimes(1)
     })
 
-    test('should not throw on initialization failures', async () => {
+    // by default, we do not fetch settings from cdn
+    test.skip('should not throw on initialization failures', async () => {
       mockFetchSettingsErrorResponse()
       const ajs = AnalyticsBrowser.load({ writeKey })
       await sleep(100)
@@ -136,7 +137,8 @@ describe('Pre-initialization', () => {
       void ajs.track('foo')
     })
 
-    test('should log errors if network error', async () => {
+    // by default, we do not fetch settings from cdn
+    test.skip('should log errors if network error', async () => {
       const err = {
         status: 403,
         statusText: 'Forbidden',
@@ -242,7 +244,7 @@ describe('Pre-initialization', () => {
       const track2 = ['track', 'bar']
       const identify = ['identify']
 
-      ;(window as any).analytics = [onTrack, track, track2, identify]
+      ;(window as any).htevents = [onTrack, track, track2, identify]
 
       await AnalyticsBrowser.standalone(writeKey)
 
@@ -270,7 +272,7 @@ describe('Pre-initialization', () => {
       const track2 = ['track', 'bar']
       const identify = ['identify']
 
-      ;(window as any).analytics = [identify, onTrack, track, track2]
+      ;(window as any).htevents = [identify, onTrack, track, track2]
 
       await AnalyticsBrowser.standalone(writeKey)
 

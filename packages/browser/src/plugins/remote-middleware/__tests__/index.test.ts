@@ -2,7 +2,8 @@ import { remoteMiddlewares } from '..'
 import { Context } from '../../../core/context'
 import jsdom from 'jsdom'
 
-describe('Remote Middleware', () => {
+// We dont currently support remote middleware
+describe.skip('Remote Middleware', () => {
   beforeEach(async () => {
     jest.restoreAllMocks()
     jest.resetAllMocks()

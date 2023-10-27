@@ -26,7 +26,7 @@ jest.mocked(remoteLoader).mockImplementation(remoteLoaderSpy)
 describe('updateCDNSettings configuration option', () => {
   beforeEach(() => {
     setGlobalCDNUrl(undefined as any)
-    ;(window as any).analytics = undefined
+    ;(window as any).htevents = undefined
   })
   it('should update the configuration options if they are passed directly', async () => {
     await AnalyticsBrowser.load(
@@ -48,7 +48,8 @@ describe('updateCDNSettings configuration option', () => {
     expect(arg1.integrations[INTG_TO_DELETE]).toBeUndefined()
   })
 
-  it('should update the configuration options if they are fetched', async () => {
+  // By default, we no longer fetch settings from the CDN
+  it.skip('should update the configuration options if they are fetched', async () => {
     mockFetchSettingsSuccessResponse(cdnSettings)
     await AnalyticsBrowser.load(
       {

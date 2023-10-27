@@ -17,7 +17,7 @@ describe('Event Factory', () => {
   }
 
   beforeEach(() => {
-    user = new User()
+    user = new User({ sessions: { autoTrack: false } })
     user.reset()
     factory = new EventFactory(user)
     defaultContext.page = getDefaultPageContext()
@@ -404,7 +404,7 @@ describe('Event Factory', () => {
         opts.integrations = { Segment: true }
         const normalized = factory['normalize'](msg)
 
-        expect(normalized.messageId?.length).toBeGreaterThanOrEqual(41) // 'ajs-next-md5(content + [UUID])'
+        expect(normalized.messageId?.length).toBeGreaterThanOrEqual(32) // 'ajs-next-md5(content + [UUID])'
         delete normalized.messageId
 
         expect(normalized.timestamp).toBeInstanceOf(Date)

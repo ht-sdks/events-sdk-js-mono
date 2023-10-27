@@ -69,8 +69,8 @@ describe('Remote Loader', () => {
   })
 
   it('should attempt to load a script from a custom CDN', async () => {
-    window.analytics = {}
-    window.analytics._cdn = 'foo.com'
+    window.htevents = {}
+    window.htevents._cdn = 'foo.com'
     await remoteLoader(
       {
         integrations: {},
@@ -94,8 +94,8 @@ describe('Remote Loader', () => {
   it('should work if the cdn is staging', async () => {
     const stagingURL = 'https://cdn.hightouch-events.build/actions/foo.js'
 
-    window.analytics = {}
-    window.analytics._cdn = 'foo.com'
+    window.htevents = {}
+    window.htevents._cdn = 'foo.com'
     await remoteLoader(
       {
         integrations: {},

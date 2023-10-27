@@ -30,7 +30,8 @@ jest.spyOn(console, 'warn').mockImplementation((...errMsgs) => {
   )
 })
 
-describe('Integrations', () => {
+// We do not currently support remote integrations
+describe.skip('Integrations', () => {
   beforeEach(async () => {
     mockFetchCdnSettings()
 

@@ -2,12 +2,12 @@
 
 export const snippet = (writeKey: string, load: boolean = true, extra = '') => `
 !(function () {
-  var analytics = (window.analytics = window.analytics || [])
-  if (!analytics.initialize)
-    if (analytics.invoked) window.console && console.error && console.error('Segment snippet included twice.')
+  var htevents = (window.htevents = window.htevents || [])
+  if (!htevents.initialize)
+    if (htevents.invoked) window.console && console.error && console.error('Segment snippet included twice.')
     else {
-      analytics.invoked = !0
-      analytics.methods = [
+      htevents.invoked = !0
+      htevents.methods = [
         'screen',
         'register',
         'deregister',
@@ -32,32 +32,32 @@ export const snippet = (writeKey: string, load: boolean = true, extra = '') => `
         'setAnonymousId',
         'addDestinationMiddleware',
       ]
-      analytics.factory = function (e) {
+      htevents.factory = function (e) {
         return function () {
           var t = Array.prototype.slice.call(arguments)
           t.unshift(e)
-          analytics.push(t)
-          return analytics
+          htevents.push(t)
+          return htevents
         }
       }
-      for (var e = 0; e < analytics.methods.length; e++) {
-        var key = analytics.methods[e]
-        analytics[key] = analytics.factory(key)
+      for (var e = 0; e < htevents.methods.length; e++) {
+        var key = htevents.methods[e]
+        htevents[key] = htevents.factory(key)
       }
-      analytics.load = function (key, e) {
+      htevents.load = function (key, e) {
         var t = document.createElement('script')
         t.type = 'text/javascript'
         t.async = !0
         t.src = 'https://cdn.foo.com/analytics.js/v1/' + key + '/analytics.min.js'
         var n = document.getElementsByTagName('script')[0]
         n.parentNode.insertBefore(t, n)
-        analytics._loadOptions = e
+        htevents._loadOptions = e
       }
       var smw1 = function ({}) {}
-      analytics.addSourceMiddleware(smw1);
-      analytics.SNIPPET_VERSION = '4.13.1'
-      ${load && `analytics.load('${writeKey}')`}
-      analytics.page()
+      htevents.addSourceMiddleware(smw1);
+      htevents.SNIPPET_VERSION = '4.13.1'
+      ${load && `htevents.load('${writeKey}')`}
+      htevents.page()
       ${extra}
     }
 })()

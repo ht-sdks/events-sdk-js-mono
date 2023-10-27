@@ -87,7 +87,8 @@ describe('CSP Detection', () => {
     )
   })
 
-  it('reverts to ajs classic in case of CSP errors', async () => {
+  // No longer reverts to ajs classic
+  it.skip('reverts to ajs classic in case of CSP errors', async () => {
     jest.spyOn(console, 'error').mockImplementationOnce(() => {})
 
     const handlers: Record<string, EventListener[]> = {}

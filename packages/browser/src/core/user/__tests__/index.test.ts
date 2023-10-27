@@ -895,6 +895,9 @@ describe('group', () => {
         localStorage: {
           key: 'htjs_group_properties',
         },
+        sessions: {
+          autoTrack: true,
+        },
       })
     })
   })

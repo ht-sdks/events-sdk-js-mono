@@ -62,7 +62,7 @@ describe('Hightouch.io', () => {
 
       const [url] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"http://us-east-1.hightouch-events.com/v1/p"`
+        `"http://us-east-1.hightouch-events.com/v1/page"`
       )
     })
   })
@@ -107,7 +107,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/p"`
+        `"https://us-east-1.hightouch-events.com/v1/page"`
       )
 
       const body = JSON.parse(params.body)
@@ -125,7 +125,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/p"`
+        `"https://us-east-1.hightouch-events.com/v1/page"`
       )
 
       const body = JSON.parse(params.body)
@@ -140,7 +140,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/i"`
+        `"https://us-east-1.hightouch-events.com/v1/identify"`
       )
 
       const body = JSON.parse(params.body)
@@ -155,7 +155,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/i"`
+        `"https://us-east-1.hightouch-events.com/v1/identify"`
       )
 
       const body = JSON.parse(params.body)
@@ -172,7 +172,7 @@ describe('Hightouch.io', () => {
       await analytics.track('event', { prop: true }, { opt: true })
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/t"`
+        `"https://us-east-1.hightouch-events.com/v1/track"`
       )
 
       const body = JSON.parse(params.body)
@@ -191,7 +191,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/g"`
+        `"https://us-east-1.hightouch-events.com/v1/group"`
       )
 
       const body = JSON.parse(params.body)
@@ -207,7 +207,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/g"`
+        `"https://us-east-1.hightouch-events.com/v1/group"`
       )
 
       const body = JSON.parse(params.body)
@@ -225,7 +225,7 @@ describe('Hightouch.io', () => {
       await analytics.alias('to', 'from')
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/a"`
+        `"https://us-east-1.hightouch-events.com/v1/alias"`
       )
 
       const body = JSON.parse(params.body)
@@ -240,7 +240,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/a"`
+        `"https://us-east-1.hightouch-events.com/v1/alias"`
       )
 
       const body = JSON.parse(params.body)
@@ -253,7 +253,7 @@ describe('Hightouch.io', () => {
       await analytics.alias('to')
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/a"`
+        `"https://us-east-1.hightouch-events.com/v1/alias"`
       )
 
       const body = JSON.parse(params.body)
@@ -266,7 +266,7 @@ describe('Hightouch.io', () => {
       await analytics.alias('user-id', 'previous-id')
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/a"`
+        `"https://us-east-1.hightouch-events.com/v1/alias"`
       )
 
       const body = JSON.parse(params.body)
@@ -288,7 +288,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/s"`
+        `"https://us-east-1.hightouch-events.com/v1/screen"`
       )
 
       const body = JSON.parse(params.body)
@@ -306,7 +306,7 @@ describe('Hightouch.io', () => {
 
       const [url, params] = spyMock.mock.calls[0]
       expect(url).toMatchInlineSnapshot(
-        `"https://us-east-1.hightouch-events.com/v1/s"`
+        `"https://us-east-1.hightouch-events.com/v1/screen"`
       )
 
       const body = JSON.parse(params.body)

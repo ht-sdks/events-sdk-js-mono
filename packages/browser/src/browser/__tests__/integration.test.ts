@@ -208,8 +208,9 @@ describe('Initialization', () => {
         ],
       })
 
-      expect(fetchCalls[0].url).toContain(overriddenCDNUrl)
-      expect.assertions(3)
+      // cdn settings dont get called anymore
+      // expect(fetchCalls[0].url).toContain(overriddenCDNUrl)
+      // expect.assertions(3)
     })
   })
 
@@ -225,9 +226,9 @@ describe('Initialization', () => {
     afterEach(() => {
       delete (window as any)[overrideKey]
     })
-    it('should default to window.analytics', async () => {
+    it('should default to window.htevents', async () => {
       const defaultObj = { original: 'default' }
-      ;(window as any)['analytics'] = defaultObj
+      ;(window as any)['htevents'] = defaultObj
 
       await AnalyticsBrowser.load({
         writeKey,
@@ -353,13 +354,13 @@ describe('Initialization', () => {
       expect(ajs.group().options.persist).toBe(false)
     })
 
-    it('fetch remote source settings by default', async () => {
+    it('doesnt fetch remote source settings by default', async () => {
       await AnalyticsBrowser.load({
         writeKey,
       })
 
-      expect(fetchCalls.length).toBeGreaterThan(0)
-      expect(fetchCalls[0].url).toMatch(/\/settings$/)
+      expect(fetchCalls.length).toBe(0)
+      // expect(fetchCalls[0].url).toMatch(/\/settings$/)
     })
 
     it('does not fetch source settings if cdnSettings is set', async () => {
@@ -735,7 +736,8 @@ describe('addSourceMiddleware', () => {
   })
 })
 
-describe('addDestinationMiddleware', () => {
+// We do not support remote integrations
+describe.skip('addDestinationMiddleware', () => {
   beforeEach(async () => {
     jest.restoreAllMocks()
     jest.resetAllMocks()
@@ -868,7 +870,8 @@ describe('timeout', () => {
   })
 })
 
-describe('deregister', () => {
+// We do not support remote integrations
+describe.skip('deregister', () => {
   beforeEach(async () => {
     jest.restoreAllMocks()
     jest.resetAllMocks()
@@ -1074,7 +1077,8 @@ describe('Hightouch.io overrides', () => {
   })
 })
 
-describe('Options', () => {
+// We do not support remote integrations
+describe.skip('Options', () => {
   beforeEach(async () => {
     jest.restoreAllMocks()
     jest.resetAllMocks()

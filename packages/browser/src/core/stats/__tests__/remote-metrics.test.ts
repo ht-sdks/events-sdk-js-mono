@@ -63,7 +63,7 @@ describe('remote metrics', () => {
     expect(spy).toHaveBeenCalled()
   })
 
-  test('sends requests on flush', async () => {
+  test('sends metrics requests on flush', async () => {
     const spy = jest.mocked(unfetch).mockImplementation()
 
     const remote = new RemoteMetrics({

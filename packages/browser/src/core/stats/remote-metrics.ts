@@ -133,7 +133,7 @@ export class RemoteMetrics {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     }
-    const url = `https://${this.host}/m`
+    const url = `https://${this.host}/v1/m`
 
     return fetch(url, {
       headers,
