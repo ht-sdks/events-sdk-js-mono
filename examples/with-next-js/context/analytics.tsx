@@ -1,5 +1,5 @@
 import React from 'react'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 import {
   useApiHost,
   useApiProtocol,

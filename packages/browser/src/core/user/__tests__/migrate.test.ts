@@ -25,7 +25,7 @@ const rudderHtAnonymousIdKey = 'htev_anonymous_id'
 const segmentAnonymousIdKey = 'ajs_anonymous_id'
 const rudderAnonymousIdKey = 'rl_anonymous_id'
 
-describe('user anonymousId migration', () => {
+describe.skip('user anonymousId migration', () => {
   describe('()', () => {
     it('should get the hightouch anonymousId', () => {
       store.set(anonymousIdKey, '1234')

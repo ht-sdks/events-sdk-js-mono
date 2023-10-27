@@ -1,4 +1,4 @@
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 import { createWrapper } from '@segment/analytics-consent-tools'
 
 const fakeCategories = { FooCategory1: true, FooCategory2: true }

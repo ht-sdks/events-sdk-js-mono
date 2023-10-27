@@ -1,5 +1,5 @@
 import { createConsentStampingMiddleware } from '../consent-stamping'
-import { Context, MiddlewareFunction } from '@ht-sdks/events-sdk-js'
+import { Context, MiddlewareFunction } from '@ht-sdks/events-sdk-js-browser'
 
 describe(createConsentStampingMiddleware, () => {
   let middlewareFn: MiddlewareFunction

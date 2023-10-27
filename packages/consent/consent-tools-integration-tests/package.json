@@ -16,7 +16,7 @@
     "hoistingLimits": "workspaces"
   },
   "devDependencies": {
-    "@ht-sdks/events-sdk-js": "workspace:^",
+    "@ht-sdks/events-sdk-js-browser": "workspace:^",
     "@internal/test-helpers": "workspace:^",
     "@segment/analytics-consent-tools": "workspace:^",
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^",

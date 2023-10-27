@@ -49,7 +49,7 @@ pnpm add @segment/analytics-consent-wrapper-onetrust
 
 ```ts
 import { withOneTrust } from '@segment/analytics-consent-wrapper-onetrust'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 export const analytics = new AnalyticsBrowser()
 

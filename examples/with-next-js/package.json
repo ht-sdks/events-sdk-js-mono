@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@builder.io/partytown": "^0.7.4",
-    "@ht-sdks/events-sdk-js": "workspace:^",
+    "@ht-sdks/events-sdk-js-browser": "workspace:^",
     "faker": "^5.1.0",
     "lodash": "^4.17.21",
     "next": "^12.1.0",

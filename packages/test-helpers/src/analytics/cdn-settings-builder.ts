@@ -1,4 +1,4 @@
-import type { LegacySettings } from '@ht-sdks/events-sdk-js'
+import type { LegacySettings } from '@ht-sdks/events-sdk-js-browser'
 type RemotePlugin = NonNullable<LegacySettings['remotePlugins']>[0]
 
 export type DestinationSettingsBuilderConfig = Partial<RemotePlugin> & {

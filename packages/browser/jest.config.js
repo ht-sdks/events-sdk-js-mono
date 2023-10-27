@@ -12,4 +12,9 @@ module.exports = createJestTSConfig(__dirname, {
       statements: 87.25,
     },
   },
+  transformIgnorePatterns: [
+    // Hispter devs in crypto-es using ESM modules :facepalm:
+    // https://github.com/jestjs/jest/issues/6229#issuecomment-403539460
+    '/node_modules/(?!crypto-es).+\\.js$',
+  ],
 })

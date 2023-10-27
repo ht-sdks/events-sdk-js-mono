@@ -18,19 +18,19 @@ e.page()}}();
 
 ```sh
 # npm
-npm install @ht-sdks/events-sdk-js
+npm install @ht-sdks/events-sdk-js-browser
 
 # yarn
-yarn add @ht-sdks/events-sdk-js
+yarn add @ht-sdks/events-sdk-js-browser
 
 # pnpm
-pnpm add @ht-sdks/events-sdk-js
+pnpm add @ht-sdks/events-sdk-js-browser
 ```
 
 2. Import the package into your project and you're good to go (with working types)!
 
 ```ts
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
 
@@ -70,7 +70,7 @@ analytics
 
 ### Vanilla React
 ```tsx
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 // We can export this instance to share with rest of our codebase.
 export const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
@@ -89,7 +89,7 @@ const App = () => (
 1. Export analytics instance. E.g. `services/hightouch.ts`
 
 ```ts
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js'
+import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 export const analytics = AnalyticsBrowser.load({
   writeKey: '<YOUR_WRITE_KEY>',
@@ -125,12 +125,12 @@ export default defineComponent({
 
 NOTE: this is only required for snippet installation. NPM installation should already have type support.
 
-1. Install npm package `@ht-sdks/events-sdk-js` as a dev dependency.
+1. Install npm package `@ht-sdks/events-sdk-js-browser` as a dev dependency.
 
 2. Create `./typings/analytics.d.ts`
 ```ts
 // ./typings/analytics.d.ts
-import type { AnalyticsSnippet } from "@ht-sdks/events-sdk-js";
+import type { AnalyticsSnippet } from "@ht-sdks/events-sdk-js-browser";
 
 declare global {
   interface Window {
@@ -170,7 +170,7 @@ $ yarn test
 $ yarn dev  # optional: runs browser playground.
 ```
 
-> If you get "Cannot find module '@ht-sdks/events-sdk-js' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
+> If you get "Cannot find module '@ht-sdks/events-sdk-js-browser' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
 
 Then, make your changes and test them out in the test app!
 
@@ -196,7 +196,7 @@ and can be of five different types:
 Here is an example of a simple plugin that would convert all track events event names to lowercase before the event gets sent through the rest of the pipeline:
 
 ```ts
-import type { Plugin } from '@ht-sdks/events-sdk-js'
+import type { Plugin } from '@ht-sdks/events-sdk-js-browser'
 
 export const lowercase: Plugin = {
   name: 'Lowercase Event Name',

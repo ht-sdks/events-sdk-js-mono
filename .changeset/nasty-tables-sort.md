@@ -1,5 +1,5 @@
 ---
-'@ht-sdks/events-sdk-js': patch
+'@ht-sdks/events-sdk-js-browser': patch
 ---
 
 Fixes calls to .identify() with null as id

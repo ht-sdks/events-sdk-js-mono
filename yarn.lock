@@ -2624,7 +2624,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@example/standalone-playground@workspace:examples/standalone-playground"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
     http-server: 14.1.1
   languageName: unknown
@@ -2635,7 +2635,7 @@ __metadata:
   resolution: "@example/with-next-js@workspace:examples/with-next-js"
   dependencies:
     "@builder.io/partytown": ^0.7.4
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@next/bundle-analyzer": ^12.1.5
     "@types/faker": ^5.1.2
     "@types/react": ^17.0.37
@@ -2657,7 +2657,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@example/with-vite@workspace:examples/with-vite"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@types/react": ^18.0.0
     "@types/react-dom": ^18.0.0
     "@vitejs/plugin-react": ^1.3.0
@@ -2698,34 +2698,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ht-sdks/events-sdk-js-core@workspace:*, @ht-sdks/events-sdk-js-core@workspace:packages/core":
+"@ht-sdks/events-sdk-js-browser@workspace:*, @ht-sdks/events-sdk-js-browser@workspace:packages/browser":
   version: 0.0.0-use.local
-  resolution: "@ht-sdks/events-sdk-js-core@workspace:packages/core"
-  dependencies:
-    "@lukeed/uuid": ^2.0.0
-    dset: ^3.1.2
-    tslib: ^2.4.1
-  languageName: unknown
-  linkType: soft
-
-"@ht-sdks/events-sdk-js-node@workspace:*, @ht-sdks/events-sdk-js-node@workspace:packages/node":
-  version: 0.0.0-use.local
-  resolution: "@ht-sdks/events-sdk-js-node@workspace:packages/node"
-  dependencies:
-    "@ht-sdks/events-sdk-js-core": ^1.0.0
-    "@internal/config": 0.0.0
-    "@lukeed/uuid": ^2.0.0
-    "@types/node": ^16
-    axios: ^1.4.0
-    buffer: ^6.0.3
-    node-fetch: ^2.6.7
-    tslib: ^2.4.1
-  languageName: unknown
-  linkType: soft
-
-"@ht-sdks/events-sdk-js@workspace:*, @ht-sdks/events-sdk-js@workspace:packages/browser":
-  version: 0.0.0-use.local
-  resolution: "@ht-sdks/events-sdk-js@workspace:packages/browser"
+  resolution: "@ht-sdks/events-sdk-js-browser@workspace:packages/browser"
   dependencies:
     "@ht-sdks/events-sdk-js-core": ^1.0.0
     "@internal/config": 0.0.0
@@ -2737,7 +2712,6 @@ __metadata:
     "@segment/facade": ^3.4.9
     "@segment/tsub": ^2.0.0
     "@size-limit/preset-big-lib": ^7.0.8
-    "@types/crypto-js": ^4
     "@types/flat": ^5.0.1
     "@types/fs-extra": ^9.0.2
     "@types/jest-dev-server": ^5.0.0
@@ -2751,7 +2725,7 @@ __metadata:
     aws-sdk: ^2.814.0
     circular-dependency-plugin: ^5.2.2
     compression-webpack-plugin: ^8.0.1
-    crypto-js: 4.2.0
+    crypto-es: ^2.1.0
     dset: ^3.1.2
     execa: ^4.1.0
     flat: ^5.0.2
@@ -2782,6 +2756,31 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ht-sdks/events-sdk-js-core@workspace:*, @ht-sdks/events-sdk-js-core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@ht-sdks/events-sdk-js-core@workspace:packages/core"
+  dependencies:
+    "@lukeed/uuid": ^2.0.0
+    dset: ^3.1.2
+    tslib: ^2.4.1
+  languageName: unknown
+  linkType: soft
+
+"@ht-sdks/events-sdk-js-node@workspace:*, @ht-sdks/events-sdk-js-node@workspace:packages/node":
+  version: 0.0.0-use.local
+  resolution: "@ht-sdks/events-sdk-js-node@workspace:packages/node"
+  dependencies:
+    "@ht-sdks/events-sdk-js-core": ^1.0.0
+    "@internal/config": 0.0.0
+    "@lukeed/uuid": ^2.0.0
+    "@types/node": ^16
+    axios: ^1.4.0
+    buffer: ^6.0.3
+    node-fetch: ^2.6.7
+    tslib: ^2.4.1
+  languageName: unknown
+  linkType: soft
+
 "@humanwhocodes/config-array@npm:^0.9.2":
   version: 0.9.5
   resolution: "@humanwhocodes/config-array@npm:0.9.5"
@@ -2804,7 +2803,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/browser-integration-tests@workspace:packages/browser-integration-tests"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@internal/config": "workspace:^"
     "@internal/test-helpers": "workspace:^"
     "@playwright/test": ^1.28.1
@@ -2844,7 +2843,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/consent-tools-integration-tests@workspace:packages/consent/consent-tools-integration-tests"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@internal/test-helpers": "workspace:^"
     "@segment/analytics-consent-tools": "workspace:^"
     "@segment/analytics-consent-wrapper-onetrust": "workspace:^"
@@ -2893,7 +2892,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@internal/test-helpers@workspace:packages/test-helpers"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     tslib: ^2.4.1
   languageName: unknown
   linkType: soft
@@ -3786,7 +3785,7 @@ __metadata:
     "@segment/actions-core": ^3.76.0
     "@segment/browser-destination-runtime": ^1.6.0
   peerDependencies:
-    "@ht-sdks/events-sdk-js": "*"
+    "@ht-sdks/events-sdk-js-browser": "*"
   checksum: 7352cfd3c74275e0ec349dd252025c7233f781f79948b0b4c40cd7f36cff58b490b67098687de0da9ca0d4385d7540aba99519d12e79d7315352338f97984448
   languageName: node
   linkType: hard
@@ -3795,13 +3794,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@segment/analytics-consent-tools@workspace:packages/consent/consent-tools"
   dependencies:
-    "@ht-sdks/events-sdk-js": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "workspace:^"
     "@internal/config": "workspace:^"
     "@internal/test-helpers": "workspace:^"
   peerDependencies:
-    "@ht-sdks/events-sdk-js": ^1.0.0
+    "@ht-sdks/events-sdk-js-browser": ^1.0.0
   peerDependenciesMeta:
-    "@ht-sdks/events-sdk-js":
+    "@ht-sdks/events-sdk-js-browser":
       optional: true
   languageName: unknown
   linkType: soft
@@ -3814,9 +3813,9 @@ __metadata:
     "@internal/test-helpers": "workspace:^"
     "@segment/analytics-consent-tools": 0.2.1
   peerDependencies:
-    "@ht-sdks/events-sdk-js": ^1.0.0
+    "@ht-sdks/events-sdk-js-browser": ^1.0.0
   peerDependenciesMeta:
-    "@ht-sdks/events-sdk-js":
+    "@ht-sdks/events-sdk-js-browser":
       optional: true
   languageName: unknown
   linkType: soft
@@ -3879,7 +3878,7 @@ __metadata:
   dependencies:
     "@segment/actions-core": ^3.76.0
   peerDependencies:
-    "@ht-sdks/events-sdk-js": "*"
+    "@ht-sdks/events-sdk-js-browser": "*"
   checksum: 9ac97093ea07fc75a19c4be92a808e41413757193f19bb3f0b35716e165baaa9738f68c99dce953dc58143bb67c70ac935f5233aa9dc26cb1ee7792bddddc094
   languageName: node
   linkType: hard
@@ -5340,13 +5339,6 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: fe81351470f2d3165e8b12ce33542eef89ea893e36dd62e8f7d72566dfb7e448376ae962f9f3ea888547ce8b55a40020ca0e01d637fab5d99567673084542641
-  languageName: node
-  linkType: hard
-
-"@types/crypto-js@npm:^4":
-  version: 4.1.3
-  resolution: "@types/crypto-js@npm:4.1.3"
-  checksum: 4489854579c1b90b77da881fc980e3f05ab1e9c68b18ae580fedbb7b0fb40d531fda7bdc05f1b3bd5d4218c1d97c2f821bbac57eb3d7d9e505ce5a2c5b034166
   languageName: node
   linkType: hard
 
@@ -9286,10 +9278,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"crypto-js@npm:4.2.0":
-  version: 4.2.0
-  resolution: "crypto-js@npm:4.2.0"
-  checksum: f051666dbc077c8324777f44fbd3aaea2986f198fe85092535130d17026c7c2ccf2d23ee5b29b36f7a4a07312db2fae23c9094b644cc35f7858b1b4fcaf27774
+"crypto-es@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "crypto-es@npm:2.1.0"
+  checksum: 1eb458b4ee07a8e28d03d381f41ef97ed18b7e2a3323ec14f5129bd1dbabf39725fc003b5d8d8fd91413a1a700987ab5d47725ba40286a2afd282c9789af0b70
   languageName: node
   linkType: hard
 
