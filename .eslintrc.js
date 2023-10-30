@@ -57,7 +57,7 @@ module.exports = {
         'jest/no-conditional-expect': 'off', // best practice, but TODO
         'jest/no-alias-methods': 'off', // best practice, but TODO
         'jest/expect-expect': 'off', // sometimes we compose assertion functions
-        'jest/no-disabled-tests': process.env.CI ? 'error' : 'off', // fail CI if tests are disabled, but do not interfere with local development
+        'jest/no-disabled-tests': 'off',
         'jest/no-focused-tests': process.env.CI ? 'error' : 'off',
       },
       overrides: [
