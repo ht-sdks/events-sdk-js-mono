@@ -1,10 +1,10 @@
-name: Deploy to CDN - Candidate
+name: Deploy browser candidate to CDN
 
 on:
   push:
     # Pattern matched against refs/tags
     tags:
-      - '*'
+      - 'browser@*'
 
 env:
   HUSKY: 0
@@ -20,6 +20,12 @@ jobs:
     name: Deploy to CDN
     runs-on: ubuntu-latest
     steps:
+      - name: Get tag version
+        id: get_tag_version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "PATH_VERSION=${TAG##browser@}" >> $GITHUB_OUTPUT
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -39,5 +45,7 @@ jobs:
         run: |
           yarn install --immutable
       - name: Release to CDN
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
         run: |
           yarn run -T browser candidate:cdn

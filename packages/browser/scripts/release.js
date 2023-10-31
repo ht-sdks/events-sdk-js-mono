@@ -8,8 +8,6 @@ const path = require('path')
 const mime = require('mime')
 const logUpdate = require('log-update')
 
-const PROD_BRANCH_NAME = 'master'
-
 const bucket =
   process.env.NODE_ENV == 'production'
     ? process.env.PROD_BUCKET
@@ -24,6 +22,8 @@ const sessionToken = process.env.AWS_SESSION_TOKEN
 if (!sessionToken) throw new Error('Missing AWS_SESSION_TOKEN')
 
 const pathPrefix = process.env.PATH_PREFIX ?? 'browser/candidate'
+const pathVersion = process.env.PATH_VERSION
+if (!pathVersion) throw new Error('Missing PATH_VERSION')
 
 const getBranch = async () =>
   (await ex('git', ['branch', '--show-current'])).stdout
@@ -42,7 +42,7 @@ async function getFiles(dir) {
   return files.reduce((a, f) => a.concat(f, [])).map((f) => f.split(dir)[1])
 }
 
-async function upload(meta) {
+async function upload() {
   const s3 = new S3({
     accessKeyId,
     secretAccessKey,
@@ -59,14 +59,11 @@ async function upload(meta) {
 
     const options = {
       Bucket: bucket,
-      Key: path.join(pathPrefix, meta.branch, f),
+      Key: path.join(pathPrefix, pathVersion, f),
       Body: await fs.readFile(filePath),
       ContentType:
         mime.getType(filePath.replace('.gz', '')) || 'application/javascript',
-    }
-
-    if (meta.branch !== PROD_BRANCH_NAME) {
-      options.CacheControl = 'public,max-age=31536000,immutable'
+      CacheControl: 'public,max-age=31536000,immutable',
     }
 
     if (filePath.includes('.gz')) {
@@ -78,12 +75,12 @@ async function upload(meta) {
     if (pathPrefix === 'browser/release') {
       // only build "v1-latest" when it's a "release" build
       // put latest version with only 5 minutes caching
-      const majorVersion = meta.branch.split('.').reverse().pop()
+      const majorVersion = PATH_VERSION.split('.').reverse().pop()
       await s3
         .putObject({
           ...options,
           CacheControl: 'public,max-age=300,immutable',
-          Key: path.join(pathPrefix, `${majorVersion}-latest`, f),
+          Key: path.join(pathPrefix, `v${majorVersion}-latest`, f),
         })
         .promise()
     }
@@ -109,7 +106,11 @@ async function release() {
   }
 
   console.table(meta)
-
+  const envVars = {
+    PATH_VERSION: pathVersion,
+    PATH_PREFIX: pathPrefix,
+  }
+  console.table(envVars)
   console.log('Uploading Assets')
   await upload(meta)
 }

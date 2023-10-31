@@ -1,0 +1,169 @@
+name: Deploy Releases
+
+on:
+  release:
+    types: [published]
+
+env:
+  HUSKY: 0
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+  PROD_BUCKET: 'hightouch-events'
+
+permissions:
+  id-token: write # allows the JWT to be requested from GitHub's OIDC provider
+  contents: read # This is required for actions/checkout
+
+jobs:
+  deploy-core:
+    if: "startsWith( github.ref_name, 'core@' )"
+    name: Deploy Core to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Get tag version
+        id: get_tag_version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "PATH_VERSION=${TAG##core@}" >> $GITHUB_OUTPUT
+
+      - name: Get package version
+        id: get_package_version
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' < ./packages/core/package.json)" >> $GITHUB_OUTPUT
+
+      - name: Check package.json version
+        shell: bash
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+          PACKAGE_VERSION: '${{ steps.get_package_version.outputs.PACKAGE_VERSION }}'
+        run: |
+          node -e 'process.env.PATH_VERSION === process.env.PACKAGE_VERSION ? process.exit() : process.exit(1)'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+
+      - name: Build core for npm
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        run: |
+          cd packages/core && yarn . build
+
+      - name: Publish core package to NPM
+        run: |
+          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          cd packages/core && npm publish --access=public
+
+  deploy-browser:
+    if: "startsWith( github.ref_name, 'browser@' )"
+    name: Deploy Browser to NPM and CDN
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Get tag version
+        id: get_tag_version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "PATH_VERSION=${TAG##browser@}" >> $GITHUB_OUTPUT
+
+      - name: Get package version
+        id: get_package_version
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' < ./packages/browser/package.json)" >> $GITHUB_OUTPUT
+
+      - name: Check package.json version
+        shell: bash
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+          PACKAGE_VERSION: '${{ steps.get_package_version.outputs.PACKAGE_VERSION }}'
+        run: |
+          node -e 'process.env.PATH_VERSION === process.env.PACKAGE_VERSION ? process.exit() : process.exit(1)'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_PROD_ACCOUNT_ID }}:role/${{ secrets.AWS_PROD_S3_SYNC_ROLE }}
+          aws-region: us-east-1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+
+      - name: Release browser to CDN
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        run: |
+          yarn run -T browser release:cdn
+      
+      - name: Build browser for npm
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        run: |
+          cd packages/browser && yarn . build
+
+      - name: Publish browser package to NPM
+        run: |
+          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          cd packages/browser && npm publish --access=public
+
+  deploy-node:
+    if: "startsWith( github.ref_name, 'node@' )"
+    name: Deploy Node to NPM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source branch
+        uses: actions/checkout@v4
+
+      - name: Get tag version
+        id: get_tag_version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "PATH_VERSION=${TAG##node@}" >> $GITHUB_OUTPUT
+
+      - name: Get package version
+        id: get_package_version
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' < ./packages/node/package.json)" >> $GITHUB_OUTPUT
+
+      - name: Check package.json version
+        shell: bash
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+          PACKAGE_VERSION: '${{ steps.get_package_version.outputs.PACKAGE_VERSION }}'
+        run: |
+          node -e 'process.env.PATH_VERSION === process.env.PACKAGE_VERSION ? process.exit() : process.exit(1)'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+      
+      - name: Build node for npm
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        run: |
+          cd packages/node && yarn . build
+
+      - name: Publish node package to NPM
+        run: |
+          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          cd packages/node && npm publish --access=public
+

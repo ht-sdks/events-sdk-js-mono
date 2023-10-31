@@ -1,16 +1,18 @@
 # Events Javascript SDK
 
-## Installation
+## Installation via CDN
 
 To integrate the JavaScript SDK with your website, place the following code snippet in the `<head>` section of your website.
 
 ```javascript
 <script type="text/javascript">
-!function(){var e=window.htevents=window.htevents||[];if(!e.initialize)if(e.invoked)window.console&&console.error&&console.error("Hightouch snippet included twice.");else{e.invoked=!0,e.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"],e.factory=function(t){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(t),e.push(n),e}};for(var t=0;t<e.methods.length;t++){var n=e.methods[t];e[n]=e.factory(n)}e.load=function(t,n){var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src="https://cdn.hightouch-events.com/browser/release/latest/events.min.js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(o,r),e._loadOptions=n,e._writeKey=t},e.SNIPPET_VERSION="0.0.1",
+!function(){var e=window.htevents=window.htevents||[];if(!e.initialize)if(e.invoked)window.console&&console.error&&console.error("Hightouch snippet included twice.");else{e.invoked=!0,e.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"],e.factory=function(t){return function(){var n=Array.prototype.slice.call(arguments);return n.unshift(t),e.push(n),e}};for(var t=0;t<e.methods.length;t++){var n=e.methods[t];e[n]=e.factory(n)}e.load=function(t,n){var o=document.createElement("script");o.type="text/javascript",o.async=!0,o.src="https://cdn.hightouch-events.com/browser/release/v1-latest/events.min.js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(o,r),e._loadOptions=n,e._writeKey=t},e.SNIPPET_VERSION="0.0.1",
 e.load(<WRITE_KEY>,{apiHost:<DATA_PLANE_URL>}),
 e.page()}}();
 </script>
 ```
+
+`window.htevents.track(...)` will then be available for use.
 
 ### Alternative installation using NPM
 
@@ -121,20 +123,22 @@ export default defineComponent({
 </script>
 ```
 
-## How to add typescript support
+## How to add typescript support when using the CDN snippet
 
-NOTE: this is only required for snippet installation. NPM installation should already have type support.
+NOTE: this is only required for snippet installation.
+
+NPM installation should already have type support.
 
 1. Install npm package `@ht-sdks/events-sdk-js-browser` as a dev dependency.
 
-2. Create `./typings/analytics.d.ts`
+2. Create `./typings/htevents.d.ts`
 ```ts
 // ./typings/analytics.d.ts
 import type { AnalyticsSnippet } from "@ht-sdks/events-sdk-js-browser";
 
 declare global {
   interface Window {
-    analytics: AnalyticsSnippet;
+    htevents: AnalyticsSnippet;
   }
 }
 
@@ -162,28 +166,23 @@ declare global {
 First, clone the repo and then startup our local dev environment:
 
 ```sh
-$ git clone git@github.com:ht-sdks/events-sdk-js.git
-$ cd events-sdk-js
+$ git clone git@github.com:ht-sdks/events-sdk-js-mono.git
+$ cd events-sdk-js-mono
 $ nvm use  # installs correct version of node defined in .nvmrc.
 $ yarn && yarn build
 $ yarn test
-$ yarn dev  # optional: runs browser playground.
 ```
 
 > If you get "Cannot find module '@ht-sdks/events-sdk-js-browser' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
 
-Then, make your changes and test them out in the test app!
-
-<img src="https://user-images.githubusercontent.com/2866515/135407053-7561d522-b969-484d-8d3a-6f1c4d9c025b.gif" alt="Example of the development app" width="500px">
-
 # Plugins
 
-When developing against Analytics Next you will likely be writing plugins, which can augment functionality and enrich data. Plugins are isolated chunks which you can build, test, version, and deploy independently of the rest of the codebase. Plugins are bounded by Analytics Next which handles things such as observability, retries, and error management.
+When developing against Events SDK JS you will likely be writing plugins, which can augment functionality and enrich data. Plugins are isolated chunks which you can build, test, version, and deploy independently of the rest of the codebase. Plugins are bounded by Events SDK JS which handles things such as observability, retries, and error management.
 
 Plugins can be of two different priorities:
 
-1. **Critical**: Analytics Next should expect this plugin to be loaded before starting event delivery
-2. **Non-critical**: Analytics Next can start event delivery before this plugin has finished loading
+1. **Critical**: Events SDK JS should expect this plugin to be loaded before starting event delivery
+2. **Non-critical**: Events SDK JS can start event delivery before this plugin has finished loading
 
 and can be of five different types:
 
@@ -191,7 +190,7 @@ and can be of five different types:
 2. **After**: Plugins that need to run after all other plugins have run. An example of this is the Hightouch.io integration, which will wait for destinations to succeed or fail so that it can send its observability metrics.
 3. **Destination**: Destinations to send the event to (ie. legacy destinations). Does not modify the event and failure does not halt execution.
 4. **Enrichment**: Modifies an event, failure here could halt the event pipeline.
-5. **Utility**: Plugins that change Analytics Next functionality and don't fall into the other categories.
+5. **Utility**: Plugins that change Events SDK JS functionality and don't fall into the other categories.
 
 Here is an example of a simple plugin that would convert all track events event names to lowercase before the event gets sent through the rest of the pipeline:
 
@@ -217,7 +216,7 @@ analytics.register(lowercase)
 
 For further examples check out our [existing plugins](/packages/browser/src/plugins).
 
-## 🧪 QA
+## QA
 Feature work and bug fixes should include tests. Run all [Jest](https://jestjs.io) tests:
 ```
 $ yarn test

@@ -9,7 +9,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const isProd = process.env.NODE_ENV === 'production'
 // See release.js and pathPrefix / PATH_PREFIX
 const PATH_PREFIX = process.env.PATH_PREFIX ?? 'browser/candidate'
-const PATH_VERSION = process.env.GITHUB_REF_NAME ?? 'bundles'
+const PATH_VERSION = process.env.PATH_VERSION ?? 'bundles'
 const ASSET_PATH = isProd
   ? `https://cdn.hightouch-events.com/${PATH_PREFIX}/${PATH_VERSION}/`
   : '/dist/umd/'

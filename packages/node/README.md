@@ -51,7 +51,6 @@ app.post('/cart', (req, res) => {
 
 
 ## Settings & Configuration
-See the documentation: https://hightouch.com/docs/connections/sources/catalog/libraries/server/node/#configuration
 
 You can also see the complete list of settings in the [AnalyticsSettings interface](src/app/settings.ts).
 
