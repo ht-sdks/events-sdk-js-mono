@@ -2191,7 +2191,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ht-sdks/events-sdk-js-node@workspace:packages/node"
   dependencies:
-    "@ht-sdks/events-sdk-js-core": ^1.0.0
+    "@ht-sdks/events-sdk-js-core": ^1.1.0
     "@internal/config": 0.0.0
     "@lukeed/uuid": ^2.0.0
     "@types/node": ^16

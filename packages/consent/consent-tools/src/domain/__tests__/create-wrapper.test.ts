@@ -684,7 +684,7 @@ describe(createWrapper, () => {
         await expect(() =>
           getCategoriesFn()
         ).rejects.toThrowErrorMatchingInlineSnapshot(
-          `"[Validation] Invariant: No consent categories defined in Segment (Received: [])"`
+          `"[Validation] Invariant: No consent categories defined in Hightouch (Received: [])"`
         )
       })
 

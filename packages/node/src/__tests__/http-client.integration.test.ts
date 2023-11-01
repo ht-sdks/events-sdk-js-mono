@@ -1,6 +1,6 @@
 import { FetchHTTPClient, HTTPFetchFn } from '..'
 import { AbortSignal as AbortSignalShim } from '../lib/abort'
-import { httpClientOptionsBodyMatcher } from './test-helpers/assert-shape/segment-http-api'
+import { httpClientOptionsBodyMatcher } from './test-helpers/assert-shape/hightouch-http-api'
 import { createTestAnalytics } from './test-helpers/create-test-analytics'
 import { createSuccess } from './test-helpers/factories'
 
@@ -22,7 +22,7 @@ const helpers = {
     expect(options.headers).toEqual({
       Authorization: 'Basic Zm9vOg==',
       'Content-Type': 'application/json',
-      'User-Agent': 'analytics-node-next/latest',
+      'User-Agent': 'events-sdk-js-node/latest',
     })
     expect(options.method).toBe('POST')
     const getLastBatch = (): object[] => {

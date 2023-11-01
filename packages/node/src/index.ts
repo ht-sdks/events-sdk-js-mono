@@ -1,4 +1,4 @@
-export { Analytics } from './app/analytics-node'
+export { HtEvents } from './app/analytics-node'
 export { Context } from './app/context'
 export {
   HTTPClient,
@@ -19,8 +19,8 @@ export type {
   GroupParams,
   PageParams,
 } from './app/types'
-export type { AnalyticsSettings } from './app/settings'
+export type { HtEventsSettings } from './app/settings'
 
 // export Analytics as both a named export and a default export (for backwards-compat. reasons)
-import { Analytics } from './app/analytics-node'
-export default Analytics
+import { HtEvents } from './app/analytics-node'
+export default HtEvents

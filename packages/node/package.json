@@ -35,7 +35,7 @@
     "jest": "yarn run -T jest"
   },
   "dependencies": {
-    "@ht-sdks/events-sdk-js-core": "^1.0.0",
+    "@ht-sdks/events-sdk-js-core": "^1.1.0",
     "@lukeed/uuid": "^2.0.0",
     "buffer": "^6.0.3",
     "node-fetch": "^2.6.7",

@@ -23,7 +23,7 @@ export async function post(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'analytics-node-next/latest',
+        'User-Agent': 'events-sdk-js-node/latest',
         Authorization: `Basic ${btoa(writeKey)}`,
       },
       body: JSON.stringify(event),
@@ -39,7 +39,7 @@ export async function post(
 
 export function analyticsNode(settings: AnalyticsNodeSettings): Plugin {
   const send = async (ctx: Context): Promise<Context> => {
-    ctx.updateEvent('context.library.name', 'analytics-node-next')
+    ctx.updateEvent('context.library.name', 'events-sdk-js-node')
     ctx.updateEvent('context.library.version', version)
     ctx.updateEvent('_metadata.nodeVersion', process.versions.node)
 

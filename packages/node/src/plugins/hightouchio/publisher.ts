@@ -204,7 +204,7 @@ export class Publisher {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Basic ${this._auth}`,
-            'User-Agent': 'analytics-node-next/latest',
+            'User-Agent': 'events-sdk-js-node/latest',
           },
           data: { batch: events, sentAt: new Date() },
           httpRequestTimeout: this._httpRequestTimeout,

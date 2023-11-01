@@ -28,7 +28,7 @@ async function increment(metric, value = 0, tags = []) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'User-Agent': 'analytics-node-next/latest',
+      'User-Agent': 'events-sdk-js-node/latest',
       Authorization: `Basic ${btoa(process.env.STATS_WRITEKEY)}`,
     },
     body: JSON.stringify(event),

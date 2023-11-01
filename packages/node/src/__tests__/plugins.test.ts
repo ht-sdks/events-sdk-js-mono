@@ -2,7 +2,7 @@ import { createTestAnalytics } from './test-helpers/create-test-analytics'
 
 describe('Plugins', () => {
   describe('Initialize', () => {
-    it('loads analytics-node-next plugin', async () => {
+    it('loads events-sdk-js-node plugin', async () => {
       const analytics = createTestAnalytics()
       await analytics.ready
 

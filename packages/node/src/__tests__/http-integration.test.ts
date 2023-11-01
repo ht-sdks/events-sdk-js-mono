@@ -1,5 +1,5 @@
 import { version } from '../generated/version'
-import { Analytics } from '..'
+import { HtEvents } from '..'
 import { resolveCtx } from './test-helpers/resolve-ctx'
 import { createTestAnalytics } from './test-helpers/create-test-analytics'
 import { isValidDate } from './test-helpers/is-valid-date'
@@ -36,7 +36,7 @@ beforeEach(() => {
 
 describe('Method Smoke Tests', () => {
   let scope: nock.Scope
-  let ajs: Analytics
+  let ajs: HtEvents
   beforeEach(async () => {
     ajs = createTestAnalytics({}, { useRealHTTPClient: true })
   })
@@ -88,7 +88,7 @@ describe('Method Smoke Tests', () => {
                   "application/json",
                 ],
                 "user-agent": Array [
-                  "analytics-node-next/latest",
+                  "events-sdk-js-node/latest",
                 ],
               }
           `)

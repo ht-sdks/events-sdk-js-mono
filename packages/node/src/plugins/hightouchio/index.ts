@@ -29,11 +29,11 @@ type DefinedPluginFields =
   | 'screen'
   | 'track'
 
-type SegmentNodePlugin = Plugin & Required<Pick<Plugin, DefinedPluginFields>>
+type HightouchNodePlugin = Plugin & Required<Pick<Plugin, DefinedPluginFields>>
 
 export type ConfigureNodePluginProps = PublisherProps
 
-export function createNodePlugin(publisher: Publisher): SegmentNodePlugin {
+export function createNodePlugin(publisher: Publisher): HightouchNodePlugin {
   function action(ctx: Context): Promise<Context> {
     normalizeEvent(ctx)
     return publisher.enqueue(ctx)

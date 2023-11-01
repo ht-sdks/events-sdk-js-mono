@@ -20,7 +20,7 @@ export class AnalyticsNode {
 
     const nodeSettings = {
       writeKey: settings.writeKey,
-      name: 'analytics-node-next',
+      name: 'events-sdk-js-node',
       type: 'after' as Plugin['type'],
       version: 'latest',
     }

@@ -67,7 +67,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
           (await shouldLoad?.(new LoadContext())) || (await getCategories())
       } catch (e: unknown) {
         // consumer can call ctx.abort({ loadHightouchNormally: true })
-        // to load Segment but disable consent requirement
+        // to load Hightouch but disable consent requirement
         if (e instanceof AbortLoadError) {
           if (e.loadHightouchNormally === true) {
             ogLoad.call(analytics, settings, options)
@@ -103,7 +103,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
         if (!allCategories.length) {
           // No configured integrations found, so no categories will be sent (should not happen unless there's a configuration error)
           throw new ValidationError(
-            'Invariant: No consent categories defined in Segment',
+            'Invariant: No consent categories defined in Hightouch',
             []
           )
         }

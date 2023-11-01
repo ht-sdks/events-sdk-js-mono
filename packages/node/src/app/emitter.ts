@@ -1,13 +1,13 @@
 import { CoreEmitterContract, Emitter } from '@ht-sdks/events-sdk-js-core'
 import { Context } from './context'
-import type { AnalyticsSettings } from './settings'
+import type { HtEventsSettings } from './settings'
 import { HightouchEvent } from './types'
 
 /**
  * Map of emitter event names to method args.
  */
 export type NodeEmitterEvents = CoreEmitterContract<Context> & {
-  initialize: [AnalyticsSettings]
+  initialize: [HtEventsSettings]
   call_after_close: [HightouchEvent] // any event that did not get dispatched due to close
   http_request: [
     {

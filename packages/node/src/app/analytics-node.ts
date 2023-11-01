@@ -1,7 +1,7 @@
 import { CoreAnalytics, bindAll, pTimeout } from '@ht-sdks/events-sdk-js-core'
-import { AnalyticsSettings, validateSettings } from './settings'
+import { HtEventsSettings, validateSettings } from './settings'
 import { version } from '../generated/version'
-import { createConfiguredNodePlugin } from '../plugins/segmentio'
+import { createConfiguredNodePlugin } from '../plugins/hightouchio'
 import { NodeEventFactory } from './event-factory'
 import { Callback, dispatchAndEmit } from './dispatch-emit'
 import { NodeEmitter } from './emitter'
@@ -18,7 +18,7 @@ import { Context } from './context'
 import { NodeEventQueue } from './event-queue'
 import { FetchHTTPClient } from '../lib/http-client'
 
-export class Analytics extends NodeEmitter implements CoreAnalytics {
+export class HtEvents extends NodeEmitter implements CoreAnalytics {
   private readonly _eventFactory: NodeEventFactory
   private _isClosed = false
   private _pendingEvents = 0
@@ -31,7 +31,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
 
   ready: Promise<void>
 
-  constructor(settings: AnalyticsSettings) {
+  constructor(settings: HtEventsSettings) {
     super()
     validateSettings(settings)
 
@@ -94,15 +94,15 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     return timeout ? pTimeout(promise, timeout).catch(() => undefined) : promise
   }
 
-  private _dispatch(segmentEvent: HightouchEvent, callback?: Callback) {
+  private _dispatch(hightouchEvent: HightouchEvent, callback?: Callback) {
     if (this._isClosed) {
-      this.emit('call_after_close', segmentEvent as HightouchEvent)
+      this.emit('call_after_close', hightouchEvent as HightouchEvent)
       return undefined
     }
 
     this._pendingEvents++
 
-    dispatchAndEmit(segmentEvent, this._queue, this, callback)
+    dispatchAndEmit(hightouchEvent, this._queue, this, callback)
       .catch((ctx) => ctx)
       .finally(() => {
         this._pendingEvents--
@@ -120,12 +120,12 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     { userId, previousId, context, timestamp, integrations }: AliasParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.alias(userId, previousId, {
+    const hightouchEvent = this._eventFactory.alias(userId, previousId, {
       context,
       integrations,
       timestamp,
     })
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**
@@ -143,7 +143,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: GroupParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.group(groupId, traits, {
+    const hightouchEvent = this._eventFactory.group(groupId, traits, {
       context,
       anonymousId,
       userId,
@@ -151,7 +151,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       integrations,
     })
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**
@@ -168,14 +168,14 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: IdentifyParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.identify(userId, traits, {
+    const hightouchEvent = this._eventFactory.identify(userId, traits, {
       context,
       anonymousId,
       userId,
       timestamp,
       integrations,
     })
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**
@@ -194,20 +194,20 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: PageParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.page(
+    const hightouchEvent = this._eventFactory.page(
       category ?? null,
       name ?? null,
       properties,
       { context, anonymousId, userId, timestamp, integrations }
     )
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**
    * Records screen views on your app, along with optional extra information
    * about the screen viewed by the user.
    *
-   * TODO: This is not documented on the segment docs ATM (for node).
+   * TODO: This is not documented in the docs ATM (for node).
    */
   screen(
     {
@@ -222,14 +222,14 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: PageParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.screen(
+    const hightouchEvent = this._eventFactory.screen(
       category ?? null,
       name ?? null,
       properties,
       { context, anonymousId, userId, timestamp, integrations }
     )
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**
@@ -247,7 +247,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     }: TrackParams,
     callback?: Callback
   ): void {
-    const segmentEvent = this._eventFactory.track(event, properties, {
+    const hightouchEvent = this._eventFactory.track(event, properties, {
       context,
       userId,
       anonymousId,
@@ -255,7 +255,7 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
       integrations,
     })
 
-    this._dispatch(segmentEvent, callback)
+    this._dispatch(hightouchEvent, callback)
   }
 
   /**

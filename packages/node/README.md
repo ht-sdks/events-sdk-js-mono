@@ -24,15 +24,15 @@ pnpm install @ht-sdks/events-sdk-js-node
 ### Usage
 Assuming some express-like web framework.
 ```ts
-import { Analytics } from '@ht-sdks/events-sdk-js-node'
+import { HtEvents } from '@ht-sdks/events-sdk-js-node'
 // or, if you use require:
-const { Analytics } = require('@ht-sdks/events-sdk-js-node')
+const { HtEvents } = require('@ht-sdks/events-sdk-js-node')
 
 // instantiation
-const analytics = new Analytics({ writeKey: '<MY_WRITE_KEY>' })
+const htevents = new HtEvents({ writeKey: '<MY_WRITE_KEY>' })
 
 app.post('/login', (req, res) => {
-   analytics.identify({
+   htevents.identify({
       userId: req.body.userId,
       previousId: req.body.previousId
   })
@@ -40,7 +40,7 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/cart', (req, res) => {
-  analytics.track({
+  htevents.track({
     userId: req.body.userId,
     event: 'Add to cart',
     properties: { productId: '123456' }
@@ -52,20 +52,20 @@ app.post('/cart', (req, res) => {
 
 ## Settings & Configuration
 
-You can also see the complete list of settings in the [AnalyticsSettings interface](src/app/settings.ts).
+You can also see the complete list of settings in the [HtEventsSettings interface](src/app/settings.ts).
 
 
 ## Usage in non-node runtimes
 ### Usage in AWS Lambda
 - [AWS lambda execution environment](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtime-environment.html) is challenging for typically non-response-blocking async activites like tracking or logging, since the runtime terminates / freezes after a response is emitted.
 
-Here is an example of using analytics.js within a handler:
+Here is an example of using HtEvents within a handler:
 ```ts
-const { Analytics } = require('@ht-sdks/events-sdk-js-node');
+const { HtEvents } = require('@ht-sdks/events-sdk-js-node');
 
 // since analytics has the potential to be stateful if there are any plugins added,
 // to be on the safe side, we should instantiate a new instance of analytics on every request (the cost of instantiation is low).
-const analytics = () => new Analytics({
+const htevents = () => new HtEvents({
       maxEventsInBatch: 1,
       writeKey: '<MY_WRITE_KEY>',
     })
@@ -75,7 +75,7 @@ module.exports.handler = async (event) => {
   ...
   // we need to await before returning, otherwise the lambda will exit before sending the request.
   await new Promise((resolve) =>
-    analytics().track({ ... }, resolve)
+    htevents().track({ ... }, resolve)
    )
 
   ...
@@ -88,10 +88,10 @@ module.exports.handler = async (event) => {
 
 ### Usage in Vercel Edge Functions
 ```ts
-import { Analytics } from '@ht-sdks/events-sdk-js-node';
+import { HtEvents } from '@ht-sdks/events-sdk-js-node';
 import { NextRequest, NextResponse } from 'next/server';
 
-export const analytics = new Analytics({
+export const htevents = new HtEvents({
   writeKey: '<MY_WRITE_KEY>',
   maxEventsInBatch: 1,
 })
@@ -103,7 +103,7 @@ export const config = {
 
 export default async (req: NextRequest) => {
   await new Promise((resolve) =>
-    analytics.track({ ... }, resolve)
+    htevents.track({ ... }, resolve)
   );
   return NextResponse.json({ ... })
 };
@@ -111,7 +111,7 @@ export default async (req: NextRequest) => {
 
 ### Usage in Cloudflare Workers
 ```ts
-import { Analytics, Context } from '@ht-sdks/events-sdk-js-node';
+import { HtEvents, Context } from '@ht-sdks/events-sdk-js-node';
 
 export default {
   async fetch(
@@ -119,13 +119,13 @@ export default {
     env: Env,
     ctx: ExecutionContext
   ): Promise<Response> {
-    const analytics = new Analytics({
+    const htevents = new HtEvents({
       maxEventsInBatch: 1,
       writeKey: '<MY_WRITE_KEY>',
     }).on('error', console.error);
 
     await new Promise((resolve, reject) =>
-      analytics.track({ ... }, resolve)
+      htevents.track({ ... }, resolve)
     );
 
     ...

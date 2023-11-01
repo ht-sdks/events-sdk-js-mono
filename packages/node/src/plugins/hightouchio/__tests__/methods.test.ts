@@ -41,13 +41,13 @@ beforeEach(() => {
 })
 
 test('alias', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.alias('to', 'from')
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.alias(context)
+  await hightouchPlugin.alias(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
@@ -65,7 +65,7 @@ test('alias', async () => {
 })
 
 test('group', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.group(
     'foo-group-id',
@@ -77,7 +77,7 @@ test('group', async () => {
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.group(context)
+  await hightouchPlugin.group(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
@@ -98,7 +98,7 @@ test('group', async () => {
 })
 
 test('identify', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.identify('foo-user-id', {
     name: 'Chris Radek',
@@ -106,7 +106,7 @@ test('identify', async () => {
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.identify(context)
+  await hightouchPlugin.identify(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
@@ -125,7 +125,7 @@ test('identify', async () => {
 })
 
 test('page', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.page(
     'Category',
@@ -136,7 +136,7 @@ test('page', async () => {
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.page(context)
+  await hightouchPlugin.page(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
@@ -159,7 +159,7 @@ test('page', async () => {
 })
 
 test('screen', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.screen(
     'Category',
@@ -170,7 +170,7 @@ test('screen', async () => {
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.screen(context)
+  await hightouchPlugin.screen(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
@@ -192,7 +192,7 @@ test('screen', async () => {
 })
 
 test('track', async () => {
-  const { plugin: segmentPlugin } = createTestNodePlugin()
+  const { plugin: hightouchPlugin } = createTestNodePlugin()
 
   const event = eventFactory.track(
     'test event',
@@ -202,7 +202,7 @@ test('track', async () => {
   const context = new Context(event)
 
   fetcher.mockReturnValueOnce(createSuccess())
-  await segmentPlugin.screen(context)
+  await hightouchPlugin.screen(context)
 
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)

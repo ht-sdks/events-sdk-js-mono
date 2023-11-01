@@ -1,7 +1,7 @@
 import { ValidationError } from '@ht-sdks/events-sdk-js-core'
 import { HTTPClient, HTTPFetchFn } from '../lib/http-client'
 
-export interface AnalyticsSettings {
+export interface HtEventsSettings {
   /**
    * Key that corresponds to your Hightouch.io project
    */
@@ -42,7 +42,7 @@ export interface AnalyticsSettings {
   httpClient?: HTTPFetchFn | HTTPClient
 }
 
-export const validateSettings = (settings: AnalyticsSettings) => {
+export const validateSettings = (settings: HtEventsSettings) => {
   if (!settings.writeKey) {
     throw new ValidationError('writeKey', 'writeKey is missing.')
   }

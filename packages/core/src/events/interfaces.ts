@@ -149,7 +149,7 @@ export interface CoreExtraContext {
    */
   library?: {
     /**
-     * @example analytics-node-next/latest
+     * @example events-sdk-js-node/latest
      */
     name: string
     /**

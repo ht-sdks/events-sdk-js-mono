@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import axios from 'axios'
 import {
-  Analytics,
+  HtEvents,
   Context,
   Plugin,
   UserTraits,
@@ -18,7 +18,7 @@ import {
  */
 export default {
   'analytics.VERSION should be readonly': () => {
-    const analytics = new Analytics({ writeKey: 'abc' })
+    const analytics = new HtEvents({ writeKey: 'abc' })
     // should work
     analytics.VERSION
 
@@ -31,17 +31,17 @@ export default {
       makeRequest = () => Promise.resolve({} as Response)
     }
 
-    new Analytics({
+    new HtEvents({
       writeKey: 'foo',
       httpClient: new CustomClient(),
     })
 
-    new Analytics({
+    new HtEvents({
       writeKey: 'foo',
       httpClient: new FetchHTTPClient(globalThis.fetch),
     })
 
-    new Analytics({
+    new HtEvents({
       writeKey: 'foo',
       httpClient: new FetchHTTPClient(),
     })
@@ -49,7 +49,7 @@ export default {
 
   'track/id/pg/screen/grp calls should require either userId or anonymousId':
     () => {
-      const analytics = new Analytics({ writeKey: 'abc' })
+      const analytics = new HtEvents({ writeKey: 'abc' })
       const method: 'track' | 'identify' | 'page' | 'screen' | 'group' = 'track'
 
       // @ts-expect-error - no userID
@@ -61,7 +61,7 @@ export default {
     },
 
   'alias does not need a userId': () => {
-    const analytics = new Analytics({ writeKey: 'abc' })
+    const analytics = new HtEvents({ writeKey: 'abc' })
 
     // @ts-expect-error - no userId
     analytics.alias({ previousId: 'old_id_either_anon_or_regular' })
@@ -93,15 +93,15 @@ export default {
   'HTTPFetchFn should be compatible with standard fetch and node-fetch interface, as well as functions':
     () => {
       const fetch: HTTPFetchFn = require('node-fetch')
-      new Analytics({ writeKey: 'foo', httpClient: fetch })
-      new Analytics({ writeKey: 'foo', httpClient: globalThis.fetch })
+      new HtEvents({ writeKey: 'foo', httpClient: fetch })
+      new HtEvents({ writeKey: 'foo', httpClient: globalThis.fetch })
     },
 
   'HTTPFetchFn options should be the expected type': () => {
     type BadFetch = (url: string, requestInit: { _bad_object?: string }) => any
 
     // @ts-expect-error
-    new Analytics({ writeKey: 'foo', httpClient: {} as BadFetch })
+    new HtEvents({ writeKey: 'foo', httpClient: {} as BadFetch })
   },
 
   'httpClient setting should be compatible with axios': () => {

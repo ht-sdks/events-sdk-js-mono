@@ -5,7 +5,7 @@ import { HTTPClientRequest } from '../../../lib/http-client'
  * These map to the data properties of the HTTPClient options (the input value of 'makeRequest')
  */
 export const httpClientOptionsBodyMatcher = {
-  messageId: expect.stringMatching(/^node-next-\d*-\w*-\w*-\w*-\w*-\w*/),
+  messageId: expect.stringMatching(/^\d*-\w*-\w*-\w*-\w*-\w*/),
   timestamp: expect.any(Date),
   _metadata: expect.any(Object),
   context: {
@@ -27,7 +27,7 @@ export function assertHTTPRequestOptions(
     Object {
       "Authorization": "Basic Og==",
       "Content-Type": "application/json",
-      "User-Agent": "analytics-node-next/latest",
+      "User-Agent": "events-sdk-js-node/latest",
     }
   `)
 

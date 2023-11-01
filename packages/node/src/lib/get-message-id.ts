@@ -6,5 +6,5 @@ import { uuid } from './uuid'
  * @example "node-next-1668208232027-743be593-7789-4b74-8078-cbcc8894c586"
  */
 export const createMessageId = (): string => {
-  return `node-next-${Date.now()}-${uuid()}`
+  return `${Date.now()}-${uuid()}`
 }

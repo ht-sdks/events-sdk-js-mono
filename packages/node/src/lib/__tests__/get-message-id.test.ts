@@ -5,17 +5,15 @@ const uuidv4Regex =
   /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
 
 describe(createMessageId, () => {
-  it('returns a string in the format "node-next-[unix epoch time]-[uuid v4]"', () => {
+  it('returns a string in the format "[unix epoch time]-[uuid v4]"', () => {
     const msg = createMessageId().split('-')
-    expect(msg.length).toBe(8)
+    expect(msg.length).toBe(6)
 
-    expect(`${msg[0]}-${msg[1]}`).toBe('node-next')
-
-    const epochTimeSeg = msg[2]
+    const epochTimeSeg = msg[0]
     expect(typeof parseInt(epochTimeSeg)).toBe('number')
     expect(epochTimeSeg.length > 10).toBeTruthy()
 
-    const uuidSeg = msg.slice(3).join('-')
+    const uuidSeg = msg.slice(1).join('-')
     expect(uuidSeg).toEqual(expect.stringMatching(uuidv4Regex))
   })
 })

@@ -1,16 +1,16 @@
-import { Analytics } from '../../app/analytics-node'
-import { AnalyticsSettings } from '../../app/settings'
+import { HtEvents } from '../../app/analytics-node'
+import { HtEventsSettings } from '../../app/settings'
 import { FetchHTTPClient, HTTPFetchFn } from '../../lib/http-client'
 import { createError, createSuccess } from './factories'
 
 export const createTestAnalytics = (
-  settings: Partial<AnalyticsSettings> = {},
+  settings: Partial<HtEventsSettings> = {},
   {
     withError,
     useRealHTTPClient,
   }: TestFetchClientOptions & { useRealHTTPClient?: boolean } = {}
 ) => {
-  return new Analytics({
+  return new HtEvents({
     writeKey: 'foo',
     flushInterval: 100,
     ...(useRealHTTPClient

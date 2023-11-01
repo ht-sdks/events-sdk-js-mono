@@ -1,6 +1,6 @@
 import { TestFetchClient } from './test-helpers/create-test-analytics'
 import { performance as perf } from 'perf_hooks'
-import { Analytics } from '../app/analytics-node'
+import { HtEvents } from '../app/analytics-node'
 import { sleep } from './test-helpers/sleep'
 import { Plugin, HightouchEvent } from '../app/types'
 import { Context } from '../app/context'
@@ -16,11 +16,11 @@ const testPlugin: Plugin = {
 let testClient: TestFetchClient
 
 describe('Ability for users to exit without losing events', () => {
-  let ajs!: Analytics
+  let ajs!: HtEvents
   testClient = new TestFetchClient()
   const makeReqSpy = jest.spyOn(testClient, 'makeRequest')
   beforeEach(async () => {
-    ajs = new Analytics({
+    ajs = new HtEvents({
       writeKey: 'abc123',
       maxEventsInBatch: 1,
       httpClient: testClient,
@@ -86,7 +86,7 @@ describe('Ability for users to exit without losing events', () => {
   describe('.closeAndFlush()', () => {
     test('default timeout should be related to flush interval', () => {
       const flushInterval = 500
-      ajs = new Analytics({
+      ajs = new HtEvents({
         writeKey: 'abc123',
         flushInterval,
         httpClient: testClient,
@@ -187,7 +187,7 @@ describe('Ability for users to exit without losing events', () => {
     })
 
     test('should flush immediately if close is called and there are events in the hightouch.io plugin, but no more are expected', async () => {
-      const analytics = new Analytics({
+      const analytics = new HtEvents({
         writeKey: 'foo',
         flushInterval: 10000,
         maxEventsInBatch: 15,
@@ -218,7 +218,7 @@ describe('Ability for users to exit without losing events', () => {
           return ctx
         },
       }
-      const analytics = new Analytics({
+      const analytics = new HtEvents({
         writeKey: 'foo',
         flushInterval: 10000,
         maxEventsInBatch: 15,
