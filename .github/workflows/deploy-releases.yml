@@ -57,6 +57,9 @@ jobs:
           cd packages/core && yarn . build
 
       - name: Publish core package to NPM
+        env:
+          HUSKY: 0
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           cd packages/core && npm publish --access=public
@@ -116,6 +119,9 @@ jobs:
           cd packages/browser && yarn . build
 
       - name: Publish browser package to NPM
+        env:
+          HUSKY: 0
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           cd packages/browser && npm publish --access=public
@@ -163,6 +169,9 @@ jobs:
           cd packages/node && yarn . build
 
       - name: Publish node package to NPM
+        env:
+          HUSKY: 0
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           cd packages/node && npm publish --access=public
