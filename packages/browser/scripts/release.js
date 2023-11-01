@@ -75,7 +75,7 @@ async function upload() {
     if (pathPrefix === 'browser/release') {
       // only build "v1-latest" when it's a "release" build
       // put latest version with only 5 minutes caching
-      const majorVersion = PATH_VERSION.split('.').reverse().pop()
+      const majorVersion = pathVersion.split('.').reverse().pop()
       await s3
         .putObject({
           ...options,
