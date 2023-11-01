@@ -1,4 +1,4 @@
-import { AnalyticsBrowser } from '.'
+import { HtEventsBrowser } from '.'
 import { embeddedWriteKey } from '../lib/embedded-write-key'
 import { AnalyticsSnippet } from './standalone-interface'
 import {
@@ -57,6 +57,6 @@ export async function install(): Promise<void> {
   }
 
   setGlobalAnalytics(
-    (await AnalyticsBrowser.standalone(writeKey, options)) as AnalyticsSnippet
+    (await HtEventsBrowser.standalone(writeKey, options)) as AnalyticsSnippet
   )
 }

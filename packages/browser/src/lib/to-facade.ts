@@ -8,13 +8,16 @@ import {
   Screen,
   Track,
 } from '@segment/facade'
-import { SegmentEvent } from '../core/events'
+import { HightouchEvent } from '../core/events'
 
-export type SegmentFacade = Facade<SegmentEvent> & {
-  obj: SegmentEvent
+export type SegmentFacade = Facade<HightouchEvent> & {
+  obj: HightouchEvent
 }
 
-export function toFacade(evt: SegmentEvent, options?: Options): SegmentFacade {
+export function toFacade(
+  evt: HightouchEvent,
+  options?: Options
+): SegmentFacade {
   let fcd = new Facade(evt, options)
 
   if (evt.type === 'track') {

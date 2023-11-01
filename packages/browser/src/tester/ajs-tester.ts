@@ -14,7 +14,7 @@ function makeStub(page: playwright.Page) {
       return await page.evaluate((innerArgs) => {
         return (
           // @ts-ignore
-          window.analytics
+          window.htevents
             .register(...innerArgs)
             // @ts-ignore
             .then((ctx) => ctx.toJSON())
@@ -27,7 +27,7 @@ function makeStub(page: playwright.Page) {
       // @ts-expect-error
       const ctx = await page.evaluate((innerArgs) => {
         // @ts-ignore
-        return window.analytics.track(...innerArgs).then((ctx) => {
+        return window.htevents.track(...innerArgs).then((ctx) => {
           return ctx.toJSON()
         })
         // @ts-ignore
@@ -40,7 +40,7 @@ function makeStub(page: playwright.Page) {
     ): Promise<SerializedContext> {
       const ctx = await page.evaluate((innerArgs) => {
         // @ts-ignore
-        return window.analytics.page(...innerArgs).then((ctx) => {
+        return window.htevents.page(...innerArgs).then((ctx) => {
           return ctx.toJSON()
         })
         // @ts-ignore
@@ -54,7 +54,7 @@ function makeStub(page: playwright.Page) {
     ): Promise<SerializedContext> {
       const ctx = await page.evaluate((innerArgs) => {
         // @ts-ignore
-        return window.analytics.identify(...innerArgs).then((ctx) => {
+        return window.htevents.identify(...innerArgs).then((ctx) => {
           return ctx.toJSON()
         })
         // @ts-ignore
@@ -107,13 +107,13 @@ export async function tester(
     url || `file://${process.cwd()}/src/tester/__fixtures__/index.html`
   )
   await page.evaluate(`
-    window.AnalyticsNext.AnalyticsBrowser.load({
+    window.AnalyticsNext.HtEventsBrowser.load({
       writeKey: '${_writeKey}',
     }).then(loaded => {
-      window.analytics = loaded[0]
+      window.htevents = loaded[0]
     })
   `)
 
-  await page.waitForFunction('window.analytics !== undefined')
+  await page.waitForFunction('window.htevents !== undefined')
   return makeStub(page)
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Context } from '..'
-import { SegmentEvent } from '../../events'
+import { HightouchEvent } from '../../events'
 
 describe(Context, () => {
   // hide console spam when running tests
@@ -70,14 +70,14 @@ describe(Context, () => {
   })
 
   describe('events', () => {
-    const evt: SegmentEvent = {
+    const evt: HightouchEvent = {
       type: 'identify',
       traits: {
         banana: 'phone',
       },
     }
 
-    const anothaOne: SegmentEvent = {
+    const anothaOne: HightouchEvent = {
       type: 'identify',
       traits: {
         name: 'DJ Khaled',
@@ -117,14 +117,14 @@ describe(Context, () => {
     })
 
     it('allows updating integrations set to true', () => {
-      const trueEvt: SegmentEvent = {
+      const trueEvt: HightouchEvent = {
         type: 'identify',
         integrations: {
           Amplitude: true,
         },
       }
 
-      const falseEvt: SegmentEvent = {
+      const falseEvt: HightouchEvent = {
         type: 'identify',
         integrations: {
           Amplitude: false,
@@ -153,7 +153,7 @@ describe(Context, () => {
   })
 
   it('serializes a context to JSON', () => {
-    const evt: SegmentEvent = {
+    const evt: HightouchEvent = {
       type: 'track',
       properties: {
         serializable: true,

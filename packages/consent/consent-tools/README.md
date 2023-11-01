@@ -18,9 +18,9 @@ export const withCMP = createWrapper({
 
     // Optional -- for granular control of initialization
     if (noConsentNeeded) {
-      ctx.abort({ loadSegmentNormally: true })
+      ctx.abort({ loadHightouchNormally: true })
     } else if (allTrackingDisabled) {
-      ctx.abort({ loadSegmentNormally: false })
+      ctx.abort({ loadHightouchNormally: false })
     }
   },
 
@@ -50,23 +50,23 @@ const getCMP = async () => {
 
 ```js
 import { withCMP } from './wrapper'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
-export const analytics = new AnalyticsBrowser()
+export const htevents = new HtEventsBrowser()
 
-withCMP(analytics).load({
+withCMP(htevents).load({
   writeKey: '<MY_WRITE_KEY'>
 })
 
 ```
 
-## Snippet users (window.analytics)
+## Snippet users (window.htevents)
 ### Note: This assumes a project that can consume the library via es6 imports, using a like Webpack.
 
-1. Delete the `analytics.load()` line from the snippet
+1. Delete the `htevents.load()` line from the snippet
 
 ```diff
-- analytics.load("<MY_WRITE_KEY>");
+- htevents.load("<MY_WRITE_KEY>");
 ```
 
 2. Import Analytics
@@ -74,7 +74,7 @@ withCMP(analytics).load({
 ```js
 import { withCMP } from './wrapper'
 
-withCMP(window.analytics).load('<MY_WRITE_KEY')
+withCMP(window.htevents).load('<MY_WRITE_KEY')
 ```
 
 ## Wrapper Examples

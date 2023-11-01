@@ -32,29 +32,29 @@ pnpm add @ht-sdks/events-sdk-js-browser
 2. Import the package into your project and you're good to go (with working types)!
 
 ```ts
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
-const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
+const htevents = HtEventsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
 
-analytics.identify('hello world')
+htevents.identify('hello world')
 
 document.body?.addEventListener('click', () => {
-  analytics.track('document body clicked!')
+  htevents.track('document body clicked!')
 })
 ```
 
 ## Lazy / Delayed Loading
-You can load a buffered version of analytics that requires `.load` to be explicitly called before initiating any network activity. This can be useful if you want to wait for a user to consent before fetching any tracking destinations or sending buffered events to hightouch.
+You can load a buffered version of htevents that requires `.load` to be explicitly called before initiating any network activity. This can be useful if you want to wait for a user to consent before fetching any tracking destinations or sending buffered events to hightouch.
 
 - ⚠️ ️`.load` should only be called _once_.
 
 ```ts
-export const analytics = new AnalyticsBrowser()
+export const htevents = new HtEventsBrowser()
 
-analytics.identify("hello world")
+htevents.identify("hello world")
 
 if (userConsentsToBeingTracked) {
-    analytics.load({ writeKey: '<YOUR_WRITE_KEY>' }) // destinations loaded, enqueued events are flushed
+    htevents.load({ writeKey: '<YOUR_WRITE_KEY>' }) // destinations loaded, enqueued events are flushed
 }
 ```
 
@@ -62,8 +62,8 @@ if (userConsentsToBeingTracked) {
 ### Handling initialization errors
 If you want to catch initialization errors, you can do the following:
 ```ts
-export const analytics = new AnalyticsBrowser();
-analytics
+export const htevents = new HtEventsBrowser();
+htevents
   .load({ writeKey: "MY_WRITE_KEY" })
   .catch((err) => ...);
 ```
@@ -72,14 +72,14 @@ analytics
 
 ### Vanilla React
 ```tsx
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 // We can export this instance to share with rest of our codebase.
-export const analytics = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
+export const htevents = HtEventsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
 
 const App = () => (
   <div>
-    <button onClick={() => analytics.track('hello world')}>Track</button>
+    <button onClick={() => htevents.track('hello world')}>Track</button>
   </div>
 )
 ```
@@ -88,12 +88,12 @@ const App = () => (
 
 ### Vue
 
-1. Export analytics instance. E.g. `services/hightouch.ts`
+1. Export htevents instance. E.g. `services/hightouch.ts`
 
 ```ts
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
-export const analytics = AnalyticsBrowser.load({
+export const htevents = HtEventsBrowser.load({
   writeKey: '<YOUR_WRITE_KEY>',
 })
 ```
@@ -107,12 +107,12 @@ export const analytics = AnalyticsBrowser.load({
 
 <script>
 import { defineComponent } from 'vue'
-import { analytics } from './services/hightouch'
+import { htevents } from './services/hightouch'
 
 export default defineComponent({
   setup() {
     function track() {
-      analytics.track('Hello world')
+      htevents.track('Hello world')
     }
 
     return {
@@ -133,7 +133,7 @@ NPM installation should already have type support.
 
 2. Create `./typings/htevents.d.ts`
 ```ts
-// ./typings/analytics.d.ts
+// ./typings/htevents.d.ts
 import type { AnalyticsSnippet } from "@ht-sdks/events-sdk-js-browser";
 
 declare global {
@@ -211,7 +211,7 @@ export const lowercase: Plugin = {
   }
 }
 
-analytics.register(lowercase)
+htevents.register(lowercase)
 ```
 
 For further examples check out our [existing plugins](/packages/browser/src/plugins).

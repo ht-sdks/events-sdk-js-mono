@@ -1,8 +1,8 @@
 import { validation } from '..'
 import { Context } from '../../../core/context'
-import { SegmentEvent } from '../../../core/events'
+import { HightouchEvent } from '../../../core/events'
 
-const validEvent: SegmentEvent = {
+const validEvent: HightouchEvent = {
   type: 'track',
   anonymousId: 'abc',
   event: 'test',

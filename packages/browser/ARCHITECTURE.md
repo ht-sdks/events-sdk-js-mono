@@ -22,7 +22,7 @@ Some of the bigger core modules are briefly outlined here -
 The general end to end flow of events-sdk-js core is as follows:
 
 1. Legacy settings and destinations are loaded from a settings object passed at initialization
-2. The Analytics object is instantiated with the loaded settings, and sets up things such as new/existing users and an event queue.
+2. The HtEvents object is instantiated with the loaded settings, and sets up things such as new/existing users and an event queue.
 3. Events are built and queued when a user makes a call (ie. analytics.track())
 4. The event is dispatched, goes through all enabled plugins, and is finally sent through the hightouch.io plugin to get the data into hightouch
 

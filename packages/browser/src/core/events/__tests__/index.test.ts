@@ -3,7 +3,7 @@ import { range, uniq } from 'lodash'
 import { EventFactory } from '..'
 import { getDefaultPageContext } from '../../page'
 import { User } from '../../user'
-import { SegmentEvent, Options } from '../interfaces'
+import { HightouchEvent, Options } from '../interfaces'
 
 describe('Event Factory', () => {
   let user: User
@@ -230,7 +230,7 @@ describe('Event Factory', () => {
       )
 
       expect(track.integrations).toEqual({
-        // do not pass Segment.io global settings
+        // do not pass Hightouch.io global settings
         'Hightouch.io': true,
         // accept amplitude event level settings
         Amplitude: {
@@ -395,13 +395,13 @@ describe('Event Factory', () => {
   })
 
   describe('normalize', function () {
-    const msg: SegmentEvent = { type: 'track' }
+    const msg: HightouchEvent = { type: 'track' }
     const opts: Options = (msg.options = {})
 
     describe('message', function () {
       it('should merge original with normalized', function () {
         msg.userId = 'user-id'
-        opts.integrations = { Segment: true }
+        opts.integrations = { Hightouch: true }
         const normalized = factory['normalize'](msg)
 
         expect(normalized.messageId?.length).toBeGreaterThanOrEqual(32) // 'ajs-next-md5(content + [UUID])'
@@ -411,7 +411,7 @@ describe('Event Factory', () => {
         delete normalized.timestamp
 
         expect(normalized).toStrictEqual({
-          integrations: { Segment: true },
+          integrations: { Hightouch: true },
           type: 'track',
           userId: 'user-id',
           context: defaultContext,

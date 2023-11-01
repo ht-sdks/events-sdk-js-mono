@@ -225,7 +225,7 @@ export abstract class CoreEventQueue<
 
   private availableExtensions(denyList: Integrations) {
     const available = this.plugins.filter((p) => {
-      // Only filter out destination plugins or the Segment.io plugin
+      // Only filter out destination plugins or the Hightouch.io plugin
       if (p.type !== 'destination' && p.name !== 'Hightouch.io') {
         return true
       }
@@ -237,7 +237,7 @@ export abstract class CoreEventQueue<
         }
       })
 
-      // Explicit integration option takes precedence, `All: false` does not apply to Segment.io
+      // Explicit integration option takes precedence, `All: false` does not apply to Hightouch.io
       return (
         denyList[p.name] ??
         alternativeNameMatch ??

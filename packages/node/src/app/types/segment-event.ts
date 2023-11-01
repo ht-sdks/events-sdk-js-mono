@@ -1,7 +1,7 @@
-import type { CoreSegmentEvent } from '@ht-sdks/events-sdk-js-core'
+import type { CoreHightouchEvent } from '@ht-sdks/events-sdk-js-core'
 
-type SegmentEventType = 'track' | 'page' | 'identify' | 'alias' | 'screen'
+type HightouchEventType = 'track' | 'page' | 'identify' | 'alias' | 'screen'
 
-export interface SegmentEvent extends CoreSegmentEvent {
-  type: SegmentEventType
+export interface HightouchEvent extends CoreHightouchEvent {
+  type: HightouchEventType
 }

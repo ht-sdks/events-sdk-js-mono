@@ -1,16 +1,16 @@
 import { Analytics } from '../../core/analytics'
 
 export async function loadLegacyVideoPlugins(
-  analytics: Analytics
+  htevents: Analytics
 ): Promise<void> {
   const plugins = await import(
     // @ts-expect-error
     '@segment/analytics.js-video-plugins/dist/index.umd.js'
   )
 
-  // This is super gross, but we need to support the `window.analytics.plugins` namespace
-  // that is linked in the segment docs in order to be backwards compatible with ajs-classic
+  // This is super gross, but we need to support the `window.htevents.plugins` namespace
+  // that is linked in the hightouch docs in order to be backwards compatible with ajs-classic
 
   // @ts-expect-error
-  analytics._plugins = plugins
+  htevents._plugins = plugins
 }

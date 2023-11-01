@@ -3,7 +3,7 @@ import cookie from 'js-cookie'
 import { HightouchioSettings } from '..'
 import { normalize } from '../normalize'
 import { Analytics } from '../../../core/analytics'
-import { SegmentEvent } from '../../../core/events'
+import { HightouchEvent } from '../../../core/events'
 import { JSDOM } from 'jsdom'
 
 describe('before loading', () => {
@@ -52,7 +52,7 @@ describe('before loading', () => {
   })
 
   describe('#normalize', () => {
-    let object: SegmentEvent
+    let object: HightouchEvent
     let defaultCtx: any
 
     beforeEach(() => {

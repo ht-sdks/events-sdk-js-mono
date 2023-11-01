@@ -18,7 +18,7 @@ export interface LegacyIntegration extends Emitter {
   alias?: (event: Alias) => void | Promise<void>
   group?: (event: Group) => void | Promise<void>
 
-  // Segment.io specific
+  // Hightouch.io specific
   ontrack?: (event: Track) => void | Promise<void>
   onidentify?: (event: Identify) => void | Promise<void>
   onpage?: (event: Page) => void | Promise<void>

@@ -1,7 +1,7 @@
 import { Analytics } from '../analytics'
 import { Context } from '../context'
 import { isThenable } from '../../lib/is-thenable'
-import { AnalyticsBrowserCore } from '../analytics/interfaces'
+import { HtEventsBrowserCore } from '../analytics/interfaces'
 import { version } from '../../generated/version'
 import { getGlobalAnalytics } from '../../lib/global-analytics-helper'
 import {
@@ -13,7 +13,7 @@ import {
 } from '../page'
 
 /**
- * The names of any AnalyticsBrowser methods that also exist on Analytics
+ * The names of any HtEventsBrowser methods that also exist on Analytics
  */
 export type PreInitMethodName =
   | 'screen'
@@ -264,7 +264,7 @@ export type AnalyticsLoader = (
 ) => Promise<[Analytics, Context]>
 
 export class AnalyticsBuffered
-  implements PromiseLike<[Analytics, Context]>, AnalyticsBrowserCore
+  implements PromiseLike<[Analytics, Context]>, HtEventsBrowserCore
 {
   instance?: Analytics
   ctx?: Context
@@ -317,7 +317,7 @@ export class AnalyticsBuffered
   pageView = this._createMethod('pageview')
   identify = this._createMethod('identify')
   reset = this._createMethod('reset')
-  group = this._createMethod('group') as AnalyticsBrowserCore['group']
+  group = this._createMethod('group') as HtEventsBrowserCore['group']
   track = this._createMethod('track')
   ready = this._createMethod('ready')
   alias = this._createMethod('alias')

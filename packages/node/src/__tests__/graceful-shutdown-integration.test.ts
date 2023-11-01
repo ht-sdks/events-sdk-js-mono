@@ -2,7 +2,7 @@ import { TestFetchClient } from './test-helpers/create-test-analytics'
 import { performance as perf } from 'perf_hooks'
 import { Analytics } from '../app/analytics-node'
 import { sleep } from './test-helpers/sleep'
-import { Plugin, SegmentEvent } from '../app/types'
+import { Plugin, HightouchEvent } from '../app/types'
 import { Context } from '../app/context'
 
 const testPlugin: Plugin = {
@@ -128,7 +128,7 @@ describe('Ability for users to exit without losing events', () => {
     })
 
     test('any events created after close should be emitted', async () => {
-      const events: SegmentEvent[] = []
+      const events: HightouchEvent[] = []
       ajs.on('call_after_close', (event) => {
         events.push(event)
       })

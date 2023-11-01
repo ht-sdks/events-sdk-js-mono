@@ -1,7 +1,7 @@
 import jsdom, { JSDOM } from 'jsdom'
 import { InitOptions, getGlobalAnalytics } from '../../'
-import { AnalyticsBrowser, loadLegacySettings } from '../../browser'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { HtEventsBrowser, loadLegacySettings } from '../../browser'
+import { snippet } from '../../tester/__fixtures__/hightouch-snippet'
 import { install } from '../standalone-analytics'
 import unfetch from 'unfetch'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
@@ -54,7 +54,7 @@ describe('standalone bundle', () => {
             true,
             `
             window.htevents.track('fruit basket', { fruits: ['🍌', '🍇'] })
-            window.htevents.identify('netto', { employer: 'segment' })
+            window.htevents.identify('netto', { employer: 'hightouch' })
             window.htevents.setAnonymousId('anonNetto')
             window.htevents.on('initialize', () => ({ user: 'ariel' }))
           `
@@ -71,7 +71,7 @@ describe('standalone bundle', () => {
     const jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'https://hightouch.com',
       virtualConsole,
     })
 
@@ -100,7 +100,7 @@ describe('standalone bundle', () => {
     }
 
     const spy = jest
-      .spyOn(AnalyticsBrowser, 'standalone')
+      .spyOn(HtEventsBrowser, 'standalone')
       .mockResolvedValueOnce(fakeAjs as AnalyticsStandalone)
 
     await install()
@@ -115,7 +115,7 @@ describe('standalone bundle', () => {
       },
     }
     const spy = jest
-      .spyOn(AnalyticsBrowser, 'standalone')
+      .spyOn(HtEventsBrowser, 'standalone')
       .mockResolvedValueOnce(fakeAjs as AnalyticsStandalone)
 
     await install()
@@ -169,7 +169,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'segment',
+        employer: 'hightouch',
       },
       getBufferedPageCtxFixture()
     )
@@ -293,7 +293,7 @@ describe('standalone bundle', () => {
     expect(identify).toHaveBeenCalledWith(
       'netto',
       {
-        employer: 'segment',
+        employer: 'hightouch',
       },
       getBufferedPageCtxFixture()
     )

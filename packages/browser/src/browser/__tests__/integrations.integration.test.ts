@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom'
-import { AnalyticsBrowser } from '../..'
+import { HtEventsBrowser } from '../..'
 import { LegacyDestination } from '../../plugins/ajs-destination'
 import { ClassicIntegrationBuilder } from '../../plugins/ajs-destination/types'
 import { ActionDestination } from '../../plugins/remote-loader'
@@ -64,7 +64,7 @@ describe.skip('Integrations', () => {
 
   describe('addDestinationMiddleware', () => {
     it('supports registering destination middlewares', async () => {
-      const [analytics] = await AnalyticsBrowser.load({
+      const [analytics] = await HtEventsBrowser.load({
         writeKey,
       })
 
@@ -116,7 +116,7 @@ describe.skip('Integrations', () => {
         isLoaded: () => true,
       }
 
-      const [analytics] = await AnalyticsBrowser.load({
+      const [analytics] = await HtEventsBrowser.load({
         writeKey,
       })
 
@@ -157,7 +157,7 @@ describe.skip('Integrations', () => {
         {}
       )
 
-      const [analytics] = await AnalyticsBrowser.load({
+      const [analytics] = await HtEventsBrowser.load({
         writeKey,
         plugins: [amplitude, ga],
       })
@@ -198,7 +198,7 @@ describe.skip('Integrations', () => {
         {}
       )
 
-      const [analytics] = await AnalyticsBrowser.load({
+      const [analytics] = await HtEventsBrowser.load({
         writeKey,
         plugins: [amplitude, ga, customerIO],
       })
@@ -219,7 +219,7 @@ describe.skip('Integrations', () => {
       const intializeSpy = jest.spyOn(Fake.prototype, 'initialize')
       const trackSpy = jest.spyOn(Fake.prototype, 'track')
 
-      const [analytics] = await AnalyticsBrowser.load(
+      const [analytics] = await HtEventsBrowser.load(
         {
           writeKey,
           classicIntegrations: [Fake],
@@ -243,7 +243,7 @@ describe.skip('Integrations', () => {
       const intializeSpy = jest.spyOn(Fake.prototype, 'initialize')
       const trackSpy = jest.spyOn(Fake.prototype, 'track')
 
-      const [analytics] = await AnalyticsBrowser.load({
+      const [analytics] = await HtEventsBrowser.load({
         writeKey,
         classicIntegrations: [Fake as unknown as ClassicIntegrationBuilder],
       })

@@ -20,7 +20,7 @@ export interface OneTrustSettings {
 
 /**
  *
- * @param analyticsInstance - An analytics instance. Either `window.analytics`, or the instance returned by `new AnalyticsBrowser()` or `AnalyticsBrowser.load({...})`
+ * @param analyticsInstance - An analytics instance. Either `window.htevents`, or the instance returned by `new HtEventsBrowser()` or `HtEventsBrowser.load({...})`
  * @param settings - Optional settings for configuring your OneTrust wrapper
  */
 export const withOneTrust = <Analytics extends AnyAnalytics>(

@@ -23,7 +23,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
   validateSettings(createWrapperOptions)
 
   const {
-    shouldDisableSegment,
+    shouldDisableHightouch,
     shouldDisableConsentRequirement,
     getCategories,
     shouldLoad,
@@ -49,7 +49,7 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
       options
     ): Promise<void> => {
       // do not load anything -- hightouch included
-      if (await shouldDisableSegment?.()) {
+      if (await shouldDisableHightouch?.()) {
         return
       }
 
@@ -66,10 +66,10 @@ export const createWrapper = <Analytics extends AnyAnalytics>(
         initialCategories =
           (await shouldLoad?.(new LoadContext())) || (await getCategories())
       } catch (e: unknown) {
-        // consumer can call ctx.abort({ loadSegmentNormally: true })
+        // consumer can call ctx.abort({ loadHightouchNormally: true })
         // to load Segment but disable consent requirement
         if (e instanceof AbortLoadError) {
-          if (e.loadSegmentNormally === true) {
+          if (e.loadHightouchNormally === true) {
             ogLoad.call(analytics, settings, options)
           }
           // do not load anything, but do not log anything either

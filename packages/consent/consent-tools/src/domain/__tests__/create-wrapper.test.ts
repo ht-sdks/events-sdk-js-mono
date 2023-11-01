@@ -6,7 +6,7 @@ import type {
   CreateWrapperSettings,
   AnyAnalytics,
   CDNSettings,
-  AnalyticsBrowserSettings,
+  HtEventsBrowserSettings,
   Categories,
 } from '../../types'
 import { CDNSettingsBuilder } from '@internal/test-helpers'
@@ -40,7 +40,7 @@ const getAnalyticsLoadLastCall = () => {
   const updateCDNSettings = arg2!.updateCDNSettings || ((id) => id)
   const updatedCDNSettings = updateCDNSettings(cdnSettings) as CDNSettings
   return {
-    args: [arg1 as AnalyticsBrowserSettings, arg2!] as const,
+    args: [arg1 as HtEventsBrowserSettings, arg2!] as const,
     cdnSettings,
     updatedCDNSettings,
   }
@@ -142,7 +142,7 @@ describe(createWrapper, () => {
 
       it('should throw a special error if ctx.abort is called', async () => {
         const { shouldLoad, getError } = createShouldLoadThatThrows({
-          loadSegmentNormally: true,
+          loadHightouchNormally: true,
         })
         wrapTestAnalytics({
           shouldLoad,
@@ -151,7 +151,10 @@ describe(createWrapper, () => {
         expect(getError() instanceof AbortLoadError).toBeTruthy()
       })
 
-      it.each([{ loadSegmentNormally: true }, { loadSegmentNormally: false }])(
+      it.each([
+        { loadHightouchNormally: true },
+        { loadHightouchNormally: false },
+      ])(
         `should not log a console error or throw an error if ctx.abort is called (%p)`,
         async (args) => {
           wrapTestAnalytics({
@@ -167,7 +170,7 @@ describe(createWrapper, () => {
         wrapTestAnalytics({
           shouldLoad: (ctx) => {
             ctx.abort({
-              loadSegmentNormally: true, // magic config option
+              loadHightouchNormally: true, // magic config option
             })
           },
         })
@@ -180,7 +183,7 @@ describe(createWrapper, () => {
         wrapTestAnalytics({
           shouldLoad: (ctx) => {
             ctx.abort({
-              loadSegmentNormally: false, // magic config option
+              loadHightouchNormally: false, // magic config option
             })
             throw new Error('Fail')
           },
@@ -525,10 +528,10 @@ describe(createWrapper, () => {
     })
   })
 
-  describe('shouldDisableSegment', () => {
+  describe('shouldDisableHightouch', () => {
     it('should load analytics if disableAll returns false', async () => {
       wrapTestAnalytics({
-        shouldDisableSegment: () => false,
+        shouldDisableHightouch: () => false,
       })
       await analytics.load(DEFAULT_LOAD_SETTINGS)
       expect(analyticsLoadSpy).toBeCalled()
@@ -536,7 +539,7 @@ describe(createWrapper, () => {
 
     it('should not load analytics if disableAll returns true', async () => {
       wrapTestAnalytics({
-        shouldDisableSegment: () => true,
+        shouldDisableHightouch: () => true,
       })
       await analytics.load(DEFAULT_LOAD_SETTINGS)
       expect(mockGetCategories).not.toBeCalled()
@@ -787,7 +790,7 @@ describe(createWrapper, () => {
 
       // if OnConsentChanged callback is called with categories, it should send event
       expect(analyticsTrackSpy).toBeCalledWith(
-        'Segment Consent Preference',
+        'Hightouch Consent Preference',
         undefined,
         { consent: { categoryPreferences: { C0001: true, C0002: false } } }
       )

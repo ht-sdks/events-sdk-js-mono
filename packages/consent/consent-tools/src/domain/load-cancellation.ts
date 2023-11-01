@@ -5,7 +5,7 @@ import { ValidationError } from './validation/validation-error'
  * Thrown when a load should be cancelled.
  */
 export class AbortLoadError extends AnalyticsConsentError {
-  constructor(public loadSegmentNormally: boolean) {
+  constructor(public loadHightouchNormally: boolean) {
     super('AbortLoadError', '')
   }
 }
@@ -15,7 +15,7 @@ export interface AbortLoadOptions {
    * Whether or not to load hightouch.
    * If true -- load hightouch normally (and disable consent requirement.) Wrapper is essentially a no-op
    */
-  loadSegmentNormally: boolean
+  loadHightouchNormally: boolean
 }
 
 export class LoadContext {
@@ -26,6 +26,6 @@ export class LoadContext {
     if (typeof options !== 'object') {
       throw new ValidationError('arg should be an object', options)
     }
-    throw new AbortLoadError(options.loadSegmentNormally)
+    throw new AbortLoadError(options.loadHightouchNormally)
   }
 }

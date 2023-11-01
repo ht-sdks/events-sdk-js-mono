@@ -23,7 +23,7 @@ export interface CreateWrapperSettings {
   ) => Categories | void | Promise<Categories | void>
 
   /**
-   * Fetch the categories which stamp every event. Called each time a new Segment event is dispatched.
+   * Fetch the categories which stamp every event. Called each time a new Hightouch event is dispatched.
    * @example
    * ```ts
    * () => ({ "Advertising": true, "Analytics": false })
@@ -32,7 +32,7 @@ export interface CreateWrapperSettings {
   getCategories: () => Categories | Promise<Categories>
 
   /**
-   * Function to register a listener for consent changes to programatically send a "Segment Consent Preference" event to Segment when consent preferences change.
+   * Function to register a listener for consent changes to programatically send a "Hightouch Consent Preference" event to Hightouch when consent preferences change.
    *
    * #### Note: The callback requires the categories to be in the shape of { "C0001": true, "C0002": false }, so some normalization may be needed.
    * @example
@@ -45,7 +45,7 @@ export interface CreateWrapperSettings {
    * /* event payload
    * {
    *  "type": "track",
-   *  "event": "Segment Consent Preference",
+   *  "event": "Hightouch Consent Preference",
    *  "context": {
    *    "consent": {
    *      "version": 2,
@@ -66,12 +66,12 @@ export interface CreateWrapperSettings {
   shouldDisableConsentRequirement?: () => boolean | Promise<boolean>
 
   /**
-   * Disable the Segment analytics SDK completely. analytics.load() will have no effect.
-   * .track / .identify etc calls should not throw any errors, but analytics settings will never be fetched and no events will be sent to Segment.
+   * Disable the HtEvents SDK completely. htevents.load() will have no effect.
+   * .track / .identify etc calls should not throw any errors, but analytics settings will never be fetched and no events will be sent to Hightouch.
    * Called on wrapper initialization. This can be useful in dev environments (e.g. 'devMode').
    * **shouldLoad will never be called**
    **/
-  shouldDisableSegment?: () => boolean | Promise<boolean>
+  shouldDisableHightouch?: () => boolean | Promise<boolean>
 
   /**
    * Object that maps `integrationName -> categories`. Typically, this is not needed, as this data comes from the CDN and is attached to each integration.
@@ -100,9 +100,9 @@ export interface CreateWrapperSettings {
   ) => boolean
 
   /**
-   * Prune consent categories from the `context.consent.categoryPreferences` payload if that category is not mapped to any integration in your Segment.io source.
-   * This is helpful if you want to save on bytes sent to Segment and do need the complete list of CMP's categories for debugging or other reasons.
-   * By default, all consent categories returned by `getCategories()` are sent to Segment.
+   * Prune consent categories from the `context.consent.categoryPreferences` payload if that category is not mapped to any integration in your Hightouch.io source.
+   * This is helpful if you want to save on bytes sent to Hightouch and do need the complete list of CMP's categories for debugging or other reasons.
+   * By default, all consent categories returned by `getCategories()` are sent to Hightouch.
    * @default false
    * ### Example Behavior
    * You have the following categories mappings defined:

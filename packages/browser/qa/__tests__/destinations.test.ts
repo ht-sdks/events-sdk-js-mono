@@ -21,23 +21,23 @@ describe('Destination Tests', () => {
   // needs to be written as a string so it's not transpiled
 
   // We use a 150ms fake interval between each to ensure that we don't any destination buffering
-  // e.g. Clicky, Google Analytics, and others will treat our events as bots (or will buffer them)
+  // e.g. Clicky, GA, and others will treat our events as bots (or will buffer them)
   // if we deliver events too quickly.
 
   const code = `(async () => {
-    await new Promise(res => window.analytics.page({}, res))
+    await new Promise(res => window.htevents.page({}, res))
 
     // second page so that assumePageView destinations stop complaining
     await new Promise(res => setTimeout(res, Math.random() * 150 + 100))
-    await new Promise(res => window.analytics.page({}, res))
+    await new Promise(res => window.htevents.page({}, res))
 
     await new Promise(res => setTimeout(res, Math.random() * 150 + 100))
-    await new Promise(res => window.analytics.identify('Test', {
+    await new Promise(res => window.htevents.identify('Test', {
       email: 'test@mctesting.org',
     }, res))
 
     await new Promise(res => setTimeout(res, Math.random() * 150 + 100))
-    await new Promise(res => window.analytics.track('Track!', {
+    await new Promise(res => window.htevents.track('Track!', {
       leProp: 'propé',
     }, res))
   })()`

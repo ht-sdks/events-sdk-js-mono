@@ -20,7 +20,7 @@ import {
   Integrations,
   Plan,
   EventProperties,
-  SegmentEvent,
+  HightouchEvent,
 } from '../events'
 import type { Plugin } from '../plugin'
 import { EventQueue } from '../queue/event-queue'
@@ -124,7 +124,7 @@ export interface InitOptions {
    */
   highEntropyValuesClientHints?: HighEntropyHint[]
   /**
-   * When using the snippet, this is the key that points to the global analytics instance (e.g. window.analytics).
+   * When using the snippet, this is the key that points to the global analytics instance (e.g. window.htevents).
    * default: analytics
    */
   globalAnalyticsKey?: string
@@ -481,7 +481,7 @@ export class Analytics
   }
 
   private async _dispatch(
-    event: SegmentEvent,
+    event: HightouchEvent,
     callback?: Callback
   ): Promise<DispatchedEvent> {
     const ctx = new Context(event)
@@ -577,7 +577,7 @@ export class Analytics
     return this
   }
 
-  normalize(msg: SegmentEvent): SegmentEvent {
+  normalize(msg: HightouchEvent): HightouchEvent {
     console.warn(deprecationWarning)
     return this.eventFactory.normalize(msg)
   }

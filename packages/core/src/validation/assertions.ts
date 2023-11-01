@@ -1,4 +1,4 @@
-import { CoreSegmentEvent } from '../events'
+import { CoreHightouchEvent } from '../events'
 import { ValidationError } from './errors'
 import { isString, isPlainObject, exists } from './helpers'
 
@@ -6,10 +6,10 @@ const stringError = 'is not a string'
 const objError = 'is not an object'
 const nilError = 'is nil'
 
-export function assertUserIdentity(event: CoreSegmentEvent): void {
+export function assertUserIdentity(event: CoreHightouchEvent): void {
   const USER_FIELD_NAME = '.userId/anonymousId/previousId/groupId'
 
-  const getAnyUserId = (event: CoreSegmentEvent) =>
+  const getAnyUserId = (event: CoreHightouchEvent) =>
     event.userId ?? event.anonymousId ?? event.groupId ?? event.previousId
 
   const id = getAnyUserId(event)
@@ -21,8 +21,8 @@ export function assertUserIdentity(event: CoreSegmentEvent): void {
 }
 
 export function assertEventExists(
-  event?: CoreSegmentEvent | null
-): asserts event is CoreSegmentEvent {
+  event?: CoreHightouchEvent | null
+): asserts event is CoreHightouchEvent {
   if (!exists(event)) {
     throw new ValidationError('Event', nilError)
   }
@@ -31,31 +31,31 @@ export function assertEventExists(
   }
 }
 
-export function assertEventType(event: CoreSegmentEvent): void {
+export function assertEventType(event: CoreHightouchEvent): void {
   if (!isString(event.type)) {
     throw new ValidationError('.type', stringError)
   }
 }
 
-export function assertTrackEventName(event: CoreSegmentEvent): void {
+export function assertTrackEventName(event: CoreHightouchEvent): void {
   if (!isString(event.event)) {
     throw new ValidationError('.event', stringError)
   }
 }
 
-export function assertTrackEventProperties(event: CoreSegmentEvent): void {
+export function assertTrackEventProperties(event: CoreHightouchEvent): void {
   if (!isPlainObject(event.properties)) {
     throw new ValidationError('.properties', objError)
   }
 }
 
-export function assertTraits(event: CoreSegmentEvent): void {
+export function assertTraits(event: CoreHightouchEvent): void {
   if (!isPlainObject(event.traits)) {
     throw new ValidationError('.traits', objError)
   }
 }
 
-export function validateEvent(event?: CoreSegmentEvent | null) {
+export function validateEvent(event?: CoreHightouchEvent | null) {
   assertEventExists(event)
   assertEventType(event)
 

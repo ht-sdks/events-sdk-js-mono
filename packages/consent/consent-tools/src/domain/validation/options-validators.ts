@@ -43,8 +43,8 @@ export function validateSettings(options: {
   options.shouldEnableIntegration &&
     assertIsFunction(options.shouldEnableIntegration, 'shouldEnableIntegration')
 
-  options.shouldDisableSegment &&
-    assertIsFunction(options.shouldDisableSegment, 'shouldDisableSegment')
+  options.shouldDisableHightouch &&
+    assertIsFunction(options.shouldDisableHightouch, 'shouldDisableHightouch')
 
   options.integrationCategoryMappings &&
     assertIsObject(

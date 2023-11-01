@@ -15,7 +15,7 @@ export const isInstallableIntegration = (
   // checking for iterable is a quick fix we need in place to prevent
   // errors showing Iterable as a failed destiantion. Ideally, we should
   // fix the Iterable metadata instead, but that's a longer process.
-  return !name.startsWith('Segment') && name !== 'Iterable' && deviceMode
+  return !name.startsWith('Hightouch') && name !== 'Iterable' && deviceMode
 }
 
 export const isDisabledIntegration = (

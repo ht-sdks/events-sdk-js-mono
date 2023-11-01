@@ -1,24 +1,24 @@
 import type { CreateWrapperSettings } from './settings'
 
-export interface AnalyticsBrowserSettings {
+export interface HtEventsBrowserSettings {
   writeKey: string
   cdnURL?: string
   cdnSettings?: CDNSettings
 }
 
 /**
- * 2nd arg to AnalyticsBrowser.load / analytics
+ * 2nd arg to HtEventsBrowser.load / analytics
  */
 export interface InitOptions {
   updateCDNSettings(cdnSettings: CDNSettings): CDNSettings
 }
 
 /**
- * This interface is a stub of the actual Segment analytics instance.
+ * This interface is a stub of the actual HtEvents instance.
  * This can be either:
- * - window.analytics (i.e `AnalyticsSnippet`)
- * - the instance returned by `AnalyticsBrowser.load({...})`
- * - the instance created by `new AnalyticsBrowser(...)`
+ * - window.htevents (i.e `AnalyticsSnippet`)
+ * - the instance returned by `HtEventsBrowser.load({...})`
+ * - the instance created by `new HtEventsBrowser(...)`
  */
 export interface AnyAnalytics {
   addSourceMiddleware(...args: any[]): any
@@ -26,18 +26,18 @@ export interface AnyAnalytics {
   track(event: string, properties?: unknown, ...args: any[]): void
 
   /**
-   * This interface is meant to be compatible with both the snippet (`window.analytics.load`)
-   * and the npm lib (`AnalyticsBrowser.load`)
+   * This interface is meant to be compatible with both the snippet (`window.htevents.load`)
+   * and the npm lib (`HtEventsBrowser.load`)
    */
   load(
-    writeKeyOrSettings: AnalyticsBrowserSettings | string,
+    writeKeyOrSettings: HtEventsBrowserSettings | string,
     options?: InitOptions
   ): void
 }
 
 /**
  * This function modifies an analytics instance to add consent management.
- * This is an analytics instance (either window.analytics, new AnalyticsBrowser(), or the instance returned by `AnalyticsBrowser.load({...})`
+ * This is an analytics instance (either window.htevents, new HtEventsBrowser(), or the instance returned by `HtEventsBrowser.load({...})`
  **/
 // Why type this as 'object' rather than 'AnyAnalytics'? IMO, the chance of a false positive is much higher than the chance that someone will pass in an object that is not an analytics instance.
 // We have an assertion function that throws an error if the analytics instance is not compatible.

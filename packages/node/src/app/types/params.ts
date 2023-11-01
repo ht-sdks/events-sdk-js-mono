@@ -36,7 +36,7 @@ export type GroupParams = {
   groupId: string
   /**
    * Traits are pieces of information you know about a group.
-   * This interface represents reserved traits that Segment has standardized.
+   * This interface represents reserved traits that Hightouch has standardized.
    */
   traits?: GroupTraits
   context?: ExtraContext
@@ -47,7 +47,7 @@ export type GroupParams = {
 export type IdentifyParams = {
   /**
    * Traits are pieces of information you know about a group.
-   * This interface represents reserved traits that Segment has standardized.
+   * This interface represents reserved traits that Hightouch has standardized.
    */
   traits?: UserTraits
   context?: ExtraContext

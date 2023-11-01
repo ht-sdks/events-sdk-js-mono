@@ -1,16 +1,16 @@
 import { EventFactory } from '@ht-sdks/events-sdk-js-core'
 import { createMessageId } from '../lib/get-message-id'
-import { SegmentEvent } from './types'
+import { HightouchEvent } from './types'
 
-// use declaration merging to downcast CoreSegmentEvent without adding any runtime code.
+// use declaration merging to downcast CoreHightouchEvent without adding any runtime code.
 // if/when we decide to add an actual implementation to NodeEventFactory that actually changes the event shape, we can remove this.
 export interface NodeEventFactory {
-  alias(...args: Parameters<EventFactory['alias']>): SegmentEvent
-  group(...args: Parameters<EventFactory['group']>): SegmentEvent
-  identify(...args: Parameters<EventFactory['identify']>): SegmentEvent
-  track(...args: Parameters<EventFactory['track']>): SegmentEvent
-  page(...args: Parameters<EventFactory['page']>): SegmentEvent
-  screen(...args: Parameters<EventFactory['screen']>): SegmentEvent
+  alias(...args: Parameters<EventFactory['alias']>): HightouchEvent
+  group(...args: Parameters<EventFactory['group']>): HightouchEvent
+  identify(...args: Parameters<EventFactory['identify']>): HightouchEvent
+  track(...args: Parameters<EventFactory['track']>): HightouchEvent
+  page(...args: Parameters<EventFactory['page']>): HightouchEvent
+  screen(...args: Parameters<EventFactory['screen']>): HightouchEvent
 }
 
 export class NodeEventFactory extends EventFactory {

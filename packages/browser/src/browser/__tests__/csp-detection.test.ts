@@ -2,7 +2,7 @@ import jsdom, { JSDOM } from 'jsdom'
 import unfetch from 'unfetch'
 import { LegacySettings } from '..'
 import { pWhile } from '../../lib/p-while'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { snippet } from '../../tester/__fixtures__/hightouch-snippet'
 import * as Factory from '../../test-helpers/factories'
 
 const cdnResponse: LegacySettings = {
@@ -14,7 +14,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Hightouchio: {
       type: 'browser',
     },
     Iterable: {

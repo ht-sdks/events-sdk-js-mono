@@ -4,15 +4,15 @@ export function next(writekey: string, obfuscate: boolean) {
     <head></head>
     <script>
       !(function () {
-        var analytics = (window.analytics = window.analytics || [])
-        if (!analytics.initialize)
-          if (analytics.invoked)
+        var htevents = (window.htevents = window.htevents || [])
+        if (!htevents.initialize)
+          if (htevents.invoked)
             window.console &&
               console.error &&
-              console.error('Segment snippet included twice.')
+              console.error('Hightouch snippet included twice.')
           else {
-            analytics.invoked = !0
-            analytics.methods = [
+            htevents.invoked = !0
+            htevents.methods = [
               'screen',
               'register',
               'deregister',
@@ -37,30 +37,30 @@ export function next(writekey: string, obfuscate: boolean) {
               'setAnonymousId',
               'addDestinationMiddleware',
             ]
-            analytics.factory = function (e) {
+            htevents.factory = function (e) {
               return function () {
                 var t = Array.prototype.slice.call(arguments)
                 t.unshift(e)
-                analytics.push(t)
-                return analytics
+                htevents.push(t)
+                return htevents
               }
             }
-            for (var e = 0; e < analytics.methods.length; e++) {
-              var key = analytics.methods[e]
-              analytics[key] = analytics.factory(key)
+            for (var e = 0; e < htevents.methods.length; e++) {
+              var key = htevents.methods[e]
+              htevents[key] = htevents.factory(key)
             }
-            analytics.load = function (key, e) {
+            htevents.load = function (key, e) {
               var t = document.createElement('script')
               t.type = 'text/javascript'
               t.async = !0
               t.src = 'http://localhost:4000/dist/umd/standalone.js'
               var n = document.getElementsByTagName('script')[0]
               n.parentNode.insertBefore(t, n)
-              analytics._loadOptions = e
+              htevents._loadOptions = e
             }
-            analytics.SNIPPET_VERSION = '4.13.1'
-            analytics._writeKey = '${writekey}'
-            analytics.load('${writekey}', { obfuscate: ${obfuscate} })
+            htevents.SNIPPET_VERSION = '4.13.1'
+            htevents._writeKey = '${writekey}'
+            htevents.load('${writekey}', { obfuscate: ${obfuscate} })
           }
       })()
     </script>
@@ -78,15 +78,15 @@ export function classic(writekey: string) {
   <head>
   </head>
     <script>!(function () {
-    var analytics = (window.analytics = window.analytics || [])
-    if (!analytics.initialize)
-      if (analytics.invoked)
+    var htevents = (window.htevents = window.htevents || [])
+    if (!htevents.initialize)
+      if (htevents.invoked)
         window.console &&
           console.error &&
-          console.error('Segment snippet included twice.')
+          console.error('Hightouch snippet included twice.')
       else {
-        analytics.invoked = !0
-        analytics.methods = [
+        htevents.invoked = !0
+        htevents.methods = [
           'screen',
           'register',
           'deregister',
@@ -111,32 +111,32 @@ export function classic(writekey: string) {
           'setAnonymousId',
           'addDestinationMiddleware',
         ]
-        analytics.factory = function (e) {
+        htevents.factory = function (e) {
           return function () {
             var t = Array.prototype.slice.call(arguments)
             t.unshift(e)
-            analytics.push(t)
-            return analytics
+            htevents.push(t)
+            return htevents
           }
         }
-        for (var e = 0; e < analytics.methods.length; e++) {
-          var key = analytics.methods[e]
-          analytics[key] = analytics.factory(key)
+        for (var e = 0; e < htevents.methods.length; e++) {
+          var key = htevents.methods[e]
+          htevents[key] = htevents.factory(key)
         }
-        analytics.load = function (key, e) {
+        htevents.load = function (key, e) {
           var t = document.createElement('script')
           t.type = 'text/javascript'
           t.async = !0
           t.src =
-            'https://cdn.hightouch-events.com/analytics.js/v1/' +
+            'https://cdn.hightouch-events.com/htevents.js/v1/' +
             key +
-            '/analytics.classic.js'
+            '/htevents.classic.js'
           var n = document.getElementsByTagName('script')[0]
           n.parentNode.insertBefore(t, n)
-          analytics._loadOptions = e
+          htevents._loadOptions = e
         }
-        analytics.SNIPPET_VERSION = '4.13.1'
-        analytics.load('${writekey}')
+        htevents.SNIPPET_VERSION = '4.13.1'
+        htevents.load('${writekey}')
       }
   })()</script>
   <body>

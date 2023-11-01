@@ -11,7 +11,7 @@ export interface MetricsOptions {
 }
 
 /**
- * Type expected by the segment metrics API endpoint
+ * Type expected by the hightouch metrics API endpoint
  */
 type RemoteMetric = {
   type: 'Counter'

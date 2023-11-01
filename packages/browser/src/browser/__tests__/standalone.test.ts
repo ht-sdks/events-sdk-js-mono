@@ -2,7 +2,7 @@ import jsdom, { JSDOM } from 'jsdom'
 import unfetch from 'unfetch'
 import { LegacySettings } from '..'
 import { pWhile } from '../../lib/p-while'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { snippet } from '../../tester/__fixtures__/hightouch-snippet'
 import * as Factory from '../../test-helpers/factories'
 import { getGlobalAnalytics } from '../..'
 
@@ -15,7 +15,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Hightouchio: {
       type: 'browser',
     },
     Iterable: {
@@ -32,7 +32,7 @@ jest.mock('unfetch', () => {
 })
 
 describe('standalone bundle', () => {
-  const segmentDotCom = `foo`
+  const hightouchDotCom = `foo`
 
   let jsd: JSDOM
   let windowSpy: jest.SpyInstance
@@ -53,7 +53,7 @@ describe('standalone bundle', () => {
     <!DOCTYPE html>
       <head>
         <script>
-          ${snippet(segmentDotCom, true)}
+          ${snippet(hightouchDotCom, true)}
         </script>
       </head>
       <body>
@@ -65,7 +65,7 @@ describe('standalone bundle', () => {
     jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'https://hightouch.com',
       virtualConsole,
     })
 

@@ -1,7 +1,7 @@
 import { isPlainObject } from '@ht-sdks/events-sdk-js-core'
 
 /**
- * Final Page Context object expected in the Segment Event context
+ * Final Page Context object expected in the Hightouch Event context
  */
 export interface PageContext {
   path: string

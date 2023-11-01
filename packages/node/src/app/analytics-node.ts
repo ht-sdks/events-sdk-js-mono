@@ -12,7 +12,7 @@ import {
   PageParams,
   TrackParams,
   Plugin,
-  SegmentEvent,
+  HightouchEvent,
 } from './types'
 import { Context } from './context'
 import { NodeEventQueue } from './event-queue'
@@ -94,9 +94,9 @@ export class Analytics extends NodeEmitter implements CoreAnalytics {
     return timeout ? pTimeout(promise, timeout).catch(() => undefined) : promise
   }
 
-  private _dispatch(segmentEvent: SegmentEvent, callback?: Callback) {
+  private _dispatch(segmentEvent: HightouchEvent, callback?: Callback) {
     if (this._isClosed) {
-      this.emit('call_after_close', segmentEvent as SegmentEvent)
+      this.emit('call_after_close', segmentEvent as HightouchEvent)
       return undefined
     }
 

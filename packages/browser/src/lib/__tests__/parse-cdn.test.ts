@@ -68,7 +68,7 @@ it('if analytics is not loaded yet, should still return cdn', () => {
   expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })
 
-it('detects custom cdns that match Segment in domain instrumentation patterns', () => {
+it('detects custom cdns that match Hightouch in domain instrumentation patterns', () => {
   withTag(`
     <script src="https://my.cdn.domain/analytics.js/v1/gA5MBlJXrtZaB5sMMZvCF6czfBcfzNO6/analytics.min.js" />
   `)
@@ -82,7 +82,7 @@ it('falls back to Hightouch if CDN is used as a proxy', () => {
   expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })
 
-it('falls back to Segment if the script is not at all present on the page', () => {
+it('falls back to Hightouch if the script is not at all present on the page', () => {
   withTag('')
   expect(getCDN()).toMatchInlineSnapshot(`"https://cdn.hightouch-events.com"`)
 })

@@ -12,8 +12,8 @@ describe('Backwards compatibility', () => {
     const code = `(() => {
       return [
         ...new Set([
-          ...Object.getOwnPropertyNames(Object.getPrototypeOf(window.analytics)),
-          ...Object.getOwnPropertyNames(window.analytics)
+          ...Object.getOwnPropertyNames(Object.getPrototypeOf(window.htevents)),
+          ...Object.getOwnPropertyNames(window.htevents)
         ])
       ].sort()
     })()`
@@ -39,8 +39,8 @@ describe('Backwards compatibility', () => {
 
   test('accesses user_id the same way', async () => {
     const code = `(async () => {
-      await analytics.identify('Test User')
-      return analytics.user().id()
+      await htevents.identify('Test User')
+      return htevents.user().id()
     })()`
 
     const results = await run({
@@ -59,8 +59,8 @@ describe('Backwards compatibility', () => {
 
   test('accesses traits the same way', async () => {
     const code = `(async () => {
-      await analytics.identify('Test User', { email: 'test@example.org' })
-      return analytics.user().traits()
+      await htevents.identify('Test User', { email: 'test@example.org' })
+      return htevents.user().traits()
     })()`
 
     const results = await run({
@@ -109,23 +109,23 @@ describe('Backwards compatibility', () => {
   test('event emitters emit the same properties', async () => {
     const code = `(async () => {
       let allEvents = {}
-      const analytics = window.analytics
+      const htevents = window.htevents
 
-      analytics.on('page', (...args) => {
+      htevents.on('page', (...args) => {
         allEvents['page'] = [...args].filter(a => a !== undefined && Object.keys(a ?? {}).length > 0)
       })
 
-      analytics.on('track', (...args) => {
+      htevents.on('track', (...args) => {
         allEvents['track'] = [...args].filter(a => a !== undefined && Object.keys(a ?? {}).length > 0)
       })
 
-      analytics.on('identify', (...args) => {
+      htevents.on('identify', (...args) => {
         allEvents['identify'] = [...args].filter(a => a !== undefined && Object.keys(a ?? {}).length > 0)
       })
 
-      await analytics.page()
-      await analytics.identify('Hasbulla', { goat: true })
-      await analytics.track('hello world')
+      await htevents.page()
+      await htevents.identify('Hasbulla', { goat: true })
+      await htevents.track('hello world')
 
       return allEvents
     })()`

@@ -176,7 +176,7 @@ describe.skip('loading ajsDestinations', () => {
   // we do not support the legacy destination
   it.skip('loads type:browser legacy ajs destinations from cdn', () => {
     const destinations = ajsDestinations(writeKey, cdnResponse, {}, {})
-    // ignores segment.io
+    // ignores hightouch.io
     expect(destinations.length).toBe(5)
   })
 
@@ -253,7 +253,7 @@ describe.skip('loading ajsDestinations', () => {
       {
         All: false,
         Amplitude: true,
-        Segmentio: false,
+        Hightouchio: false,
       },
       {}
     )
@@ -395,7 +395,7 @@ describe.skip('remote loading', () => {
     )
   })
 
-  it('loads integrations from the Segment CDN', async () => {
+  it('loads integrations from the Hightouch CDN', async () => {
     await loadAmplitude()
 
     const sources = Array.from(window.document.querySelectorAll('script'))
@@ -413,7 +413,7 @@ describe.skip('remote loading', () => {
     )
   })
 
-  it('loads obfuscated integrations from the Segment CDN', async () => {
+  it('loads obfuscated integrations from the Hightouch CDN', async () => {
     await loadAmplitude(true)
 
     const sources = Array.from(window.document.querySelectorAll('script'))

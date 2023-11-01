@@ -6,7 +6,7 @@ export type Callback<Ctx extends CoreContext = CoreContext> = (
   ctx: Ctx
 ) => Promise<unknown> | unknown
 
-export type SegmentEventType =
+export type HightouchEventType =
   | 'track'
   | 'page'
   | 'identify'
@@ -192,9 +192,9 @@ export interface CoreExtraContext {
   [key: string]: any
 }
 
-export interface CoreSegmentEvent {
+export interface CoreHightouchEvent {
   messageId?: string
-  type: SegmentEventType
+  type: HightouchEventType
 
   // page specific
   category?: string
@@ -219,12 +219,12 @@ export interface CoreSegmentEvent {
 
   sentAt?: Date
 
-  _metadata?: SegmentEventMetadata
+  _metadata?: HightouchEventMetadata
 
   timestamp?: Timestamp
 }
 
-export interface SegmentEventMetadata {
+export interface HightouchEventMetadata {
   failedInitializations?: unknown[]
   bundled?: string[]
   unbundled?: string[]
@@ -269,7 +269,7 @@ type PhoneNumber = string | number // TODO: the docs say this can only be a stri
 
 /**
  * Traits are pieces of information you know about a group.
- * This interface represents reserved traits that Segment has standardized.
+ * This interface represents reserved traits that Hightouch has standardized.
  */
 type BaseGroupTraits = DeepNullable<{
   /**
@@ -283,7 +283,7 @@ type BaseGroupTraits = DeepNullable<{
   avatar?: BaseUserTraits['avatar']
 
   /**
-   * Date the group's account was first created. Segment recommends ISO-8601 date strings.
+   * Date the group's account was first created. Hightouch recommends ISO-8601 date strings.
    */
   createdAt?: BaseUserTraits['createdAt']
 
@@ -333,7 +333,7 @@ type BaseGroupTraits = DeepNullable<{
 
 /**
  * Traits are pieces of information you know about a user.
- * This interface represents reserved traits that Segment has standardized.
+ * This interface represents reserved traits that Hightouch has standardized.
  */
 type BaseUserTraits = DeepNullable<{
   /**
@@ -357,7 +357,7 @@ type BaseUserTraits = DeepNullable<{
   lastName?: string
 
   /**
-   * Full name of a user. If you only pass a first and last name Segment automatically fills in the full name for you.
+   * Full name of a user. If you only pass a first and last name Hightouch automatically fills in the full name for you.
    */
   name?: string
 
@@ -426,7 +426,7 @@ type BaseUserTraits = DeepNullable<{
   plan?: string
 
   /**
-   * 	Date the user's account was first created. Segment recommends using ISO-8601 date strings.
+   * 	Date the user's account was first created. Hightouch recommends using ISO-8601 date strings.
    */
   createdAt?: Timestamp
 
@@ -448,7 +448,7 @@ type BaseUserTraits = DeepNullable<{
 
 /**
  * Traits are pieces of information you know about a group.
- * This interface represents reserved traits that Segment has standardized.
+ * This interface represents reserved traits that Hightouch has standardized.
  */
 export type GroupTraits = BaseGroupTraits & {
   [customTrait: string]: any

@@ -49,15 +49,15 @@ pnpm add @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 
 ```ts
 import { withOneTrust } from '@ht-sdks/events-sdk-js-consent-wrapper-onetrust'
-import { AnalyticsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
-export const analytics = new AnalyticsBrowser()
+export const analytics = new HtEventsBrowser()
 
 withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
 
 ```
 
-## For snippet users (window.analytics)
+## For snippet users (window.htevents)
 
 1. In your head
 
@@ -79,9 +79,9 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
     * Find and replace: analytics.load('<MY_WRITE_KEY'>) -> withOneTrust(analytics).load('<MY_WRITE_KEY'>)
   -->
   <script>
-    !function(){var analytics=window.analytics...
+    !function(){var htevents=window.htevents...
     ....
-    withOneTrust(analytics).load('<MY_WRITE_KEY'>) // replace analytics.load()
+    withOneTrust(htevents).load('<MY_WRITE_KEY'>) // replace analytics.load()
     ....
   </script>
 </head>

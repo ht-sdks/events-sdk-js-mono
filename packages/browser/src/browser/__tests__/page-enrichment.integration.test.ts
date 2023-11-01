@@ -1,5 +1,5 @@
 import unfetch from 'unfetch'
-import { Analytics, AnalyticsBrowser } from '../..'
+import { Analytics, HtEventsBrowser } from '../..'
 import { PageContext } from '../../core/page'
 import {
   cdnSettingsMinimal,
@@ -12,7 +12,7 @@ jest.mocked(unfetch).mockImplementation(createMockFetchImplementation())
 let ajs: Analytics
 
 beforeEach(async () => {
-  const [analytics] = await AnalyticsBrowser.load({
+  const [analytics] = await HtEventsBrowser.load({
     writeKey: 'abc_123',
     cdnSettings: { ...cdnSettingsMinimal },
   })

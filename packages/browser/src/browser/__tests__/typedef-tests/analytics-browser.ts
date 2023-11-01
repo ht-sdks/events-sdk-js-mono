@@ -1,4 +1,4 @@
-import { AnalyticsBrowser, Analytics, Context, User, Group } from '../../..'
+import { HtEventsBrowser, Analytics, Context, User, Group } from '../../..'
 import { assertNotAny, assertIs } from '../../../test-helpers/type-assertions'
 
 /**
@@ -6,25 +6,24 @@ import { assertNotAny, assertIs } from '../../../test-helpers/type-assertions'
  * They aren't meant to be run by anything but the typescript compiler.
  */
 export default {
-  'AnalyticsBrowser should return the correct type': () => {
-    const result = AnalyticsBrowser.load({ writeKey: 'abc' })
+  'HtEventsBrowser should return the correct type': () => {
+    const result = HtEventsBrowser.load({ writeKey: 'abc' })
     assertNotAny(result)
-    assertIs<AnalyticsBrowser>(result)
+    assertIs<HtEventsBrowser>(result)
   },
-  'AnalyticsBrowser should return the correct type if awaited on.':
-    async () => {
-      const [analytics, context] = await AnalyticsBrowser.load({
-        writeKey: 'foo',
-      })
+  'HtEventsBrowser should return the correct type if awaited on.': async () => {
+    const [analytics, context] = await HtEventsBrowser.load({
+      writeKey: 'foo',
+    })
 
-      assertNotAny(analytics)
-      assertIs<Analytics>(analytics)
+    assertNotAny(analytics)
+    assertIs<Analytics>(analytics)
 
-      assertNotAny(context)
-      assertIs<Context>(context)
-    },
+    assertNotAny(context)
+    assertIs<Context>(context)
+  },
   'Promise API should work': () => {
-    void AnalyticsBrowser.load({ writeKey: 'foo' })
+    void HtEventsBrowser.load({ writeKey: 'foo' })
       .then(([analytics, context]) => {
         assertNotAny(analytics)
         assertIs<Analytics>(analytics)
@@ -42,7 +41,7 @@ export default {
   },
   'If catch is before "then" in the middleware chain, .then should take into account the catch clause':
     () => {
-      void AnalyticsBrowser.load({ writeKey: 'foo' })
+      void HtEventsBrowser.load({ writeKey: 'foo' })
         .catch((err: string) => {
           assertIs<string>(err)
           return 123
@@ -54,7 +53,7 @@ export default {
     },
 
   'Group should have the correct type': () => {
-    const ajs = AnalyticsBrowser.load({ writeKey: 'foo' })
+    const ajs = HtEventsBrowser.load({ writeKey: 'foo' })
     {
       const grpResult = ajs.group()
       assertIs<Promise<Group>>(grpResult)
@@ -65,7 +64,7 @@ export default {
     }
   },
   'User should have the correct type': () => {
-    const ajs = AnalyticsBrowser.load({ writeKey: 'foo' })
+    const ajs = HtEventsBrowser.load({ writeKey: 'foo' })
     {
       const grpResult = ajs.user()
       assertIs<Promise<User>>(grpResult)
@@ -77,7 +76,7 @@ export default {
       id: 'abc123',
     }
     const { id, ...traits } = user
-    void AnalyticsBrowser.load({ writeKey: 'foo' }).identify('foo', traits)
+    void HtEventsBrowser.load({ writeKey: 'foo' }).identify('foo', traits)
   },
   'Track should work with spread objects': () => {
     const user = {
@@ -85,17 +84,17 @@ export default {
       id: 'abc123',
     }
     const { id, ...traits } = user
-    void AnalyticsBrowser.load({ writeKey: 'foo' }).track('foo', traits)
+    void HtEventsBrowser.load({ writeKey: 'foo' }).track('foo', traits)
   },
   'Identify should work with generic objects ': () => {
     const user = {
       name: 'john',
       id: 'abc123',
     }
-    void AnalyticsBrowser.load({ writeKey: 'foo' }).identify('foo', user)
+    void HtEventsBrowser.load({ writeKey: 'foo' }).identify('foo', user)
   },
   'Context should have a key allowing arbitrary properties': async () => {
-    const [_, ctx] = await AnalyticsBrowser.load({ writeKey: 'foo' })
+    const [_, ctx] = await HtEventsBrowser.load({ writeKey: 'foo' })
     const properties = ctx.event.properties!
 
     properties.category.baz = 'hello'
@@ -105,23 +104,23 @@ export default {
       name?: string
       thing: 123
     }
-    void AnalyticsBrowser.load({ writeKey: 'foo' }).track('foo', {} as User)
+    void HtEventsBrowser.load({ writeKey: 'foo' }).track('foo', {} as User)
   },
   'Lazy instantiation should be supported': () => {
-    const analytics = new AnalyticsBrowser()
+    const analytics = new HtEventsBrowser()
     assertNotAny(analytics)
-    assertIs<AnalyticsBrowser>(analytics)
+    assertIs<HtEventsBrowser>(analytics)
     analytics.load({ writeKey: 'foo' })
     void analytics.track('foo')
   },
   '.load should return this': () => {
-    const analytics = new AnalyticsBrowser().load({ writeKey: 'foo' })
+    const analytics = new HtEventsBrowser().load({ writeKey: 'foo' })
     assertNotAny(analytics)
-    assertIs<AnalyticsBrowser>(analytics)
+    assertIs<HtEventsBrowser>(analytics)
   },
 
   'Should accept traits': () => {
-    const analytics = {} as AnalyticsBrowser
+    const analytics = {} as HtEventsBrowser
 
     class Foo {
       name = 'hello'
@@ -138,7 +137,7 @@ export default {
   },
 
   'Should accept optional ExtraContext': () => {
-    const analytics = {} as AnalyticsBrowser
+    const analytics = {} as HtEventsBrowser
     void analytics.track('foo', undefined, { context: {} })
     void analytics.track('foo', undefined, { context: { active: true } })
     void analytics.track('foo', undefined, {

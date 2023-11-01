@@ -1,6 +1,6 @@
 import {
   CoreOptions,
-  CoreSegmentEvent,
+  CoreHightouchEvent,
   Callback,
   Integrations,
   Plan,
@@ -21,7 +21,7 @@ export type { GroupTraits, UserTraits, Traits }
 
 export type EventProperties = Record<string, any>
 
-export interface SegmentEvent extends CoreSegmentEvent {}
+export interface HightouchEvent extends CoreHightouchEvent {}
 
 export type {
   Integrations,

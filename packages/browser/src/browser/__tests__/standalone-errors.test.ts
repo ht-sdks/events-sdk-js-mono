@@ -1,6 +1,6 @@
 import jsdom, { JSDOM } from 'jsdom'
-import { AnalyticsBrowser, LegacySettings } from '..'
-import { snippet } from '../../tester/__fixtures__/segment-snippet'
+import { HtEventsBrowser, LegacySettings } from '..'
+import { snippet } from '../../tester/__fixtures__/hightouch-snippet'
 import { pWhile } from '../../lib/p-while'
 import unfetch from 'unfetch'
 import { RemoteMetrics } from '../../core/stats/remote-metrics'
@@ -15,7 +15,7 @@ const cdnResponse: LegacySettings = {
     Amplitude: {
       type: 'browser',
     },
-    Segmentio: {
+    Hightouchio: {
       type: 'browser',
     },
     Iterable: {
@@ -63,7 +63,7 @@ describe('standalone bundle', () => {
     jsd = new JSDOM(html, {
       runScripts: 'dangerously',
       resources: 'usable',
-      url: 'https://segment.com',
+      url: 'https://hightouch.com',
       virtualConsole,
     })
 
@@ -100,7 +100,7 @@ describe('standalone bundle', () => {
       })
 
     jest
-      .spyOn(AnalyticsBrowser, 'standalone')
+      .spyOn(HtEventsBrowser, 'standalone')
       .mockRejectedValueOnce(new Error('Ohhh nooo'))
 
     await import('../standalone')

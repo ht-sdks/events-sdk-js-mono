@@ -1,8 +1,8 @@
 ### Advanced QA
 
-Analytics-Next contains a comprehensive QA test suite that verifies that E2E functionality is compatible with analytics.js classic.
+HtEvents contains a comprehensive QA test suite that verifies that E2E functionality is compatible with analytics.js classic.
 
-1. Compile Analytics-Next (browser)
+1. Compile HtEvents (browser)
 
 ```sh
 $ yarn build
@@ -27,7 +27,7 @@ or run individual tests (much faster)
 $ yarn jest --runTestsByPath qa/__tests__/<test_path>
 ```
 
-2.1. QAing Analytics-Next against all destinations
+2.1. QAing HtEvents against all destinations
 
 ```sh
 make test-qa-destinations

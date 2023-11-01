@@ -1,5 +1,5 @@
 import { createSuccess } from '../../test-helpers/factories'
-import { AnalyticsBrowser } from '../..'
+import { HtEventsBrowser } from '../..'
 
 import unfetch from 'unfetch'
 jest.mock('unfetch')
@@ -17,7 +17,7 @@ describe('Inspector', () => {
   })
 
   it('attaches to inspector', async () => {
-    const [analytics] = await AnalyticsBrowser.load({
+    const [analytics] = await HtEventsBrowser.load({
       writeKey,
     })
 
@@ -27,7 +27,7 @@ describe('Inspector', () => {
   })
 
   it('emits essential message lifecycle events', async () => {
-    const [analytics] = await AnalyticsBrowser.load({
+    const [analytics] = await HtEventsBrowser.load({
       writeKey,
     })
 
@@ -60,7 +60,7 @@ describe('Inspector', () => {
   })
 
   it('emits message enrichment events with enricher information', async () => {
-    const [analytics] = await AnalyticsBrowser.load({
+    const [analytics] = await HtEventsBrowser.load({
       writeKey,
     })
 
@@ -89,7 +89,7 @@ describe('Inspector', () => {
   })
 
   it('emits expected events if before plugin throws error ', async () => {
-    const [analytics] = await AnalyticsBrowser.load(
+    const [analytics] = await HtEventsBrowser.load(
       {
         writeKey,
       },

@@ -4,7 +4,7 @@ export const snippet = (writeKey: string, load: boolean = true, extra = '') => `
 !(function () {
   var htevents = (window.htevents = window.htevents || [])
   if (!htevents.initialize)
-    if (htevents.invoked) window.console && console.error && console.error('Segment snippet included twice.')
+    if (htevents.invoked) window.console && console.error && console.error('Hightouch snippet included twice.')
     else {
       htevents.invoked = !0
       htevents.methods = [

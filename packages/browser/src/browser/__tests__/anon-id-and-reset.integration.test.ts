@@ -1,5 +1,5 @@
 import unfetch from 'unfetch'
-import { AnalyticsBrowser } from '..'
+import { HtEventsBrowser } from '..'
 import {
   clearAjsBrowserStorage,
   getAnonId,
@@ -14,7 +14,7 @@ const helpers = {
       .mockImplementation(() => createSuccess({ integrations: {} }))
   },
   loadAnalytics() {
-    return AnalyticsBrowser.load({ writeKey: 'foo' })
+    return HtEventsBrowser.load({ writeKey: 'foo' })
   },
 }
 

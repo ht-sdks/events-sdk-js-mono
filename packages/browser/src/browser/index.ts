@@ -53,7 +53,7 @@ export interface LegacyIntegrationConfiguration {
     categories: string[]
   }
 
-  // Segment.io specific
+  // Hightouch.io specific
   retryQueue?: boolean
 
   // any extra unknown settings
@@ -92,15 +92,15 @@ export interface LegacySettings {
   }
 }
 
-export interface AnalyticsBrowserSettings extends AnalyticsSettings {
+export interface HtEventsBrowserSettings extends AnalyticsSettings {
   /**
-   * The settings for the Segment Source.
-   * If provided, `AnalyticsBrowser` will not fetch remote settings
+   * The settings for the Hightouch Source.
+   * If provided, `HtEventsBrowser` will not fetch remote settings
    * for the source.
    */
   cdnSettings?: LegacySettings & Record<string, unknown>
   /**
-   * If provided, will override the default Segment CDN (https://cdn.hightouch-events.com) for this application.
+   * If provided, will override the default Hightouch CDN (https://cdn.hightouch-events.com) for this application.
    */
   cdnURL?: string
 }
@@ -321,7 +321,7 @@ const defaultSettings: LegacySettings = {
 }
 
 async function loadAnalytics(
-  settings: AnalyticsBrowserSettings,
+  settings: HtEventsBrowserSettings,
   options: InitOptions = {},
   preInitBuffer: PreInitMethodCallBuffer
 ): Promise<[Analytics, Context]> {
@@ -406,24 +406,24 @@ async function loadAnalytics(
 }
 
 /**
- * The public browser interface for Segment Analytics
+ * The public browser interface for Hightouch Events
  *
  * @example
  * ```ts
- *  export const analytics = new AnalyticsBrowser()
- *  analytics.load({ writeKey: 'foo' })
+ *  export const htevents = new HtEventsBrowser()
+ *  htevents.load({ writeKey: 'foo' })
  * ```
  * @link https://github.com/ht-sdks/events-sdk-js-mono/tree/master/packages/browser#readme
  */
-export class AnalyticsBrowser extends AnalyticsBuffered {
+export class HtEventsBrowser extends AnalyticsBuffered {
   private _resolveLoadStart: (
-    settings: AnalyticsBrowserSettings,
+    settings: HtEventsBrowserSettings,
     options: InitOptions
   ) => void
 
   constructor() {
     const { promise: loadStart, resolve: resolveLoadStart } =
-      createDeferred<Parameters<AnalyticsBrowser['load']>>()
+      createDeferred<Parameters<HtEventsBrowser['load']>>()
 
     super((buffer) =>
       loadStart.then(([settings, options]) =>
@@ -447,14 +447,14 @@ export class AnalyticsBrowser extends AnalyticsBuffered {
    *
    * @example
    * ```ts
-   * export const analytics = new AnalyticsBrowser()
+   * export const analytics = new HtEventsBrowser()
    * analytics.load({ writeKey: 'foo' })
    * ```
    */
   load(
-    settings: AnalyticsBrowserSettings,
+    settings: HtEventsBrowserSettings,
     options: InitOptions = {}
-  ): AnalyticsBrowser {
+  ): HtEventsBrowser {
     this._resolveLoadStart(settings, options)
     return this
   }
@@ -464,23 +464,23 @@ export class AnalyticsBrowser extends AnalyticsBuffered {
    *
    * @example
    * ```ts
-   * const ajs = AnalyticsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
+   * const ajs = HtEventsBrowser.load({ writeKey: '<YOUR_WRITE_KEY>' })
    *
    * ajs.track("foo")
    * ...
    * ```
    */
   static load(
-    settings: AnalyticsBrowserSettings,
+    settings: HtEventsBrowserSettings,
     options: InitOptions = {}
-  ): AnalyticsBrowser {
-    return new AnalyticsBrowser().load(settings, options)
+  ): HtEventsBrowser {
+    return new HtEventsBrowser().load(settings, options)
   }
 
   static standalone(
     writeKey: string,
     options?: InitOptions
   ): Promise<Analytics> {
-    return AnalyticsBrowser.load({ writeKey }, options).then((res) => res[0])
+    return HtEventsBrowser.load({ writeKey }, options).then((res) => res[0])
   }
 }

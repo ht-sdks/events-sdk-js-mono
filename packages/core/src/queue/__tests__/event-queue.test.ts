@@ -441,7 +441,7 @@ describe('Flushing', () => {
       expect(hightouchio.track).not.toHaveBeenCalled()
     })
 
-    test('does not deliver to any destination except Segment.io if All: false ', async () => {
+    test('does not deliver to any destination except Hightouch.io if All: false ', async () => {
       const eq = new TestEventQueue()
 
       jest.spyOn(amplitude, 'track')
@@ -541,7 +541,7 @@ describe('Flushing', () => {
       expect(hightouchio.track).toHaveBeenCalled()
     })
 
-    test('delivers to Segment.io if All: false but Segment.io is not specified', async () => {
+    test('delivers to Hightouch.io if All: false but Hightouch.io is not specified', async () => {
       const eq = new TestEventQueue()
 
       jest.spyOn(amplitude, 'track')

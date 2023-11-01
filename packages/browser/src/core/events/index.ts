@@ -6,7 +6,7 @@ import {
   Integrations,
   EventProperties,
   Traits,
-  SegmentEvent,
+  HightouchEvent,
 } from './interfaces'
 import md5 from 'spark-md5'
 import { addPageContext, PageContext } from '../page'
@@ -22,7 +22,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): HightouchEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -43,8 +43,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const event: Partial<SegmentEvent> = {
+  ): HightouchEvent {
+    const event: Partial<HightouchEvent> = {
       type: 'page' as const,
       properties: { ...properties },
       options: { ...options },
@@ -65,7 +65,7 @@ export class EventFactory {
       {
         ...this.baseEvent(),
         ...event,
-      } as SegmentEvent,
+      } as HightouchEvent,
       pageCtx
     )
   }
@@ -77,8 +77,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const event: Partial<SegmentEvent> = {
+  ): HightouchEvent {
+    const event: Partial<HightouchEvent> = {
       type: 'screen' as const,
       properties: { ...properties },
       options: { ...options },
@@ -96,7 +96,7 @@ export class EventFactory {
       {
         ...this.baseEvent(),
         ...event,
-      } as SegmentEvent,
+      } as HightouchEvent,
       pageCtx
     )
   }
@@ -107,7 +107,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): HightouchEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -127,7 +127,7 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
+  ): HightouchEvent {
     return this.normalize(
       {
         ...this.baseEvent(),
@@ -147,8 +147,8 @@ export class EventFactory {
     options?: Options,
     globalIntegrations?: Integrations,
     pageCtx?: PageContext
-  ): SegmentEvent {
-    const base: Partial<SegmentEvent> = {
+  ): HightouchEvent {
+    const base: Partial<HightouchEvent> = {
       userId: to,
       type: 'alias' as const,
       options: { ...options },
@@ -163,20 +163,20 @@ export class EventFactory {
       return this.normalize({
         ...base,
         ...this.baseEvent(),
-      } as SegmentEvent)
+      } as HightouchEvent)
     }
 
     return this.normalize(
       {
         ...this.baseEvent(),
         ...base,
-      } as SegmentEvent,
+      } as HightouchEvent,
       pageCtx
     )
   }
 
-  private baseEvent(): Partial<SegmentEvent> {
-    const base: Partial<SegmentEvent> = {
+  private baseEvent(): Partial<HightouchEvent> {
+    const base: Partial<HightouchEvent> = {
       integrations: {},
       options: {},
     }
@@ -198,7 +198,7 @@ export class EventFactory {
    * Builds the context part of an event based on "foreign" keys that
    * are provided in the `Options` parameter for an Event
    */
-  private context(event: SegmentEvent): [object, object] {
+  private context(event: HightouchEvent): [object, object] {
     const optionsKeys = ['integrations', 'anonymousId', 'timestamp', 'userId']
 
     const options = event.options ?? {}
@@ -224,7 +224,10 @@ export class EventFactory {
     return [context, overrides]
   }
 
-  public normalize(event: SegmentEvent, pageCtx?: PageContext): SegmentEvent {
+  public normalize(
+    event: HightouchEvent,
+    pageCtx?: PageContext
+  ): HightouchEvent {
     // set anonymousId globally if we encounter an override
     event.options?.anonymousId &&
       this.user.anonymousId(event.options.anonymousId)
@@ -254,7 +257,7 @@ export class EventFactory {
     const [context, overrides] = this.context(event)
     const { options, ...rest } = event
 
-    const newEvent: SegmentEvent = {
+    const newEvent: HightouchEvent = {
       timestamp: new Date(),
       ...rest,
       context,

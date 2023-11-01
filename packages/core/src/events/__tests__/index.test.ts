@@ -1,6 +1,6 @@
 import { EventFactory } from '..'
 import { User } from '../../user'
-import { CoreSegmentEvent } from '../..'
+import { CoreHightouchEvent } from '../..'
 import { isDate } from 'lodash'
 
 describe('Event Factory', () => {
@@ -240,7 +240,7 @@ describe('Event Factory', () => {
       )
 
       expect(track.integrations).toEqual({
-        // do not pass Segment.io global settings
+        // do not pass Hightouch.io global settings
         'Hightouch.io': true,
         // accept amplitude event level settings
         Amplitude: {
@@ -354,12 +354,12 @@ describe('Event Factory', () => {
 
   describe('normalize', () => {
     it('should merge original with normalized', () => {
-      const msg: CoreSegmentEvent = {
+      const msg: CoreHightouchEvent = {
         type: 'track',
         event: 'My Event',
         properties: {},
         options: {
-          integrations: { Segment: true },
+          integrations: { Hightouch: true },
         },
         userId: 'user-id',
       }
@@ -375,7 +375,7 @@ describe('Event Factory', () => {
         event: msg.event,
         userId: msg.userId,
         properties: msg.properties,
-        integrations: { Segment: true },
+        integrations: { Hightouch: true },
         context: {},
       })
     })

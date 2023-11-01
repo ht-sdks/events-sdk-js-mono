@@ -1,7 +1,7 @@
-import { CoreSegmentEvent } from '../../events'
+import { CoreHightouchEvent } from '../../events'
 import { validateEvent } from '../assertions'
 
-const baseEvent: Partial<CoreSegmentEvent> = {
+const baseEvent: Partial<CoreHightouchEvent> = {
   userId: 'foo',
   event: 'Test Event',
 }

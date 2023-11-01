@@ -1,12 +1,12 @@
 import { Context, ContextCancelation } from '../../core/context'
-import { SegmentEvent } from '../../core/events'
+import { HightouchEvent } from '../../core/events'
 import { Plugin } from '../../core/plugin'
 import { SegmentFacade, toFacade } from '../../lib/to-facade'
 
 export interface MiddlewareParams {
   payload: SegmentFacade
 
-  integrations?: SegmentEvent['integrations']
+  integrations?: HightouchEvent['integrations']
   next: (payload: MiddlewareParams['payload'] | null) => void
 }
 
@@ -26,20 +26,20 @@ export type DestinationMiddlewareFunction = (
 
 export async function applyDestinationMiddleware(
   destination: string,
-  evt: SegmentEvent,
+  evt: HightouchEvent,
   middleware: DestinationMiddlewareFunction[]
-): Promise<SegmentEvent | null> {
+): Promise<HightouchEvent | null> {
   // Clone the event so mutations are localized to a single destination.
   let modifiedEvent = toFacade(evt, {
     clone: true,
     traverse: false,
-  }).rawEvent() as SegmentEvent
+  }).rawEvent() as HightouchEvent
   async function applyMiddleware(
-    event: SegmentEvent,
+    event: HightouchEvent,
     fn: DestinationMiddlewareFunction
-  ): Promise<SegmentEvent | null> {
+  ): Promise<HightouchEvent | null> {
     let nextCalled = false
-    let returnedEvent: SegmentEvent | null = null
+    let returnedEvent: HightouchEvent | null = null
 
     await fn({
       payload: toFacade(event, {
@@ -61,7 +61,7 @@ export async function applyDestinationMiddleware(
     })
 
     if (!nextCalled && returnedEvent !== null) {
-      returnedEvent = returnedEvent as SegmentEvent
+      returnedEvent = returnedEvent as HightouchEvent
       returnedEvent.integrations = {
         ...event.integrations,
         [destination]: false,
@@ -84,7 +84,7 @@ export async function applyDestinationMiddleware(
 
 export function sourceMiddlewarePlugin(
   fn: MiddlewareFunction,
-  integrations: SegmentEvent['integrations']
+  integrations: HightouchEvent['integrations']
 ): Plugin {
   async function apply(ctx: Context): Promise<Context> {
     let nextCalled = false

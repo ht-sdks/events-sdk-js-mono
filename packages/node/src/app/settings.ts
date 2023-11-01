@@ -3,7 +3,7 @@ import { HTTPClient, HTTPFetchFn } from '../lib/http-client'
 
 export interface AnalyticsSettings {
   /**
-   * Key that corresponds to your Segment.io project
+   * Key that corresponds to your Hightouch.io project
    */
   writeKey: string
   /**

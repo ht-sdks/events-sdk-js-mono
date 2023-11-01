@@ -36,7 +36,7 @@ function compareSchema(results: RemovePromise<ReturnType<typeof run>>) {
       // @ts-ignore need all sources to be rebuilt first
       delete classic.data._metadata.bundledIds
 
-      // @ts-ignore sort unbundled metadata because of a breaking change in the SegmentIO destination
+      // @ts-ignore sort unbundled metadata because of a breaking change in the HightouchIO destination
       classic.data._metadata.unbundled = uniq(
         // @ts-ignore
         classic.data._metadata.unbundled.sort()
@@ -97,15 +97,15 @@ function compareSchema(results: RemovePromise<ReturnType<typeof run>>) {
 describe('Smoke Tests', () => {
   // needs to be written as a string so it's not transpiled
   const code = `(async () => {
-    await window.analytics.identify('Test', {
+    await window.htevents.identify('Test', {
       email: 'test@mctesting.org',
     })
 
-    await window.analytics.track('Track!', {
+    await window.htevents.track('Track!', {
       leProp: 'propé',
     })
 
-    await window.analytics.page()
+    await window.htevents.page()
   })()`
 
   test.concurrent.each(samples)(`smoke test (writekey: %p)`, async (writekey) => {

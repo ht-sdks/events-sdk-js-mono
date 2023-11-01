@@ -1,7 +1,7 @@
-import { AnalyticsBrowserSettings } from '../..'
+import { HtEventsBrowserSettings } from '../..'
 import { mockIntegrationName } from './classic-destination'
 
-type CDNSettings = NonNullable<AnalyticsBrowserSettings['cdnSettings']>
+type CDNSettings = NonNullable<HtEventsBrowserSettings['cdnSettings']>
 
 export const cdnSettingsKitchenSink: CDNSettings = {
   integrations: {

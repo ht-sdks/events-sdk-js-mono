@@ -2,7 +2,7 @@ import jar from 'js-cookie'
 import type { Context } from '../../core/context'
 import type { Plugin } from '../../core/plugin'
 import { version } from '../../generated/version'
-import { SegmentEvent } from '../../core/events'
+import { HightouchEvent } from '../../core/events'
 import { Campaign, PluginType } from '@ht-sdks/events-sdk-js-core'
 import { getVersionType } from '../../lib/version-type'
 import { tld } from '../../core/user/tld'
@@ -84,7 +84,7 @@ export function ampId(): string | undefined {
 
 function referrerId(
   query: string,
-  ctx: SegmentEvent['context'],
+  ctx: HightouchEvent['context'],
   disablePersistance: boolean
 ): void {
   const storage = new UniversalStorage<{

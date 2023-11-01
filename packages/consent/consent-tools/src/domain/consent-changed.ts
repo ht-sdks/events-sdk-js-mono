@@ -7,7 +7,7 @@ import { validateCategories } from './validation'
  * ```ts
  * {
  * "type": "track",
- *  "event": "Segment Consent Preference",
+ *  "event": "Hightouch Consent Preference",
  *  "context": {
  *    "consent": {
  *      "categoryPreferences" : {
@@ -29,7 +29,7 @@ export const sendConsentChangedEvent = (
   )
 }
 
-const CONSENT_CHANGED_EVENT = 'Segment Consent Preference'
+const CONSENT_CHANGED_EVENT = 'Hightouch Consent Preference'
 
 const createConsentChangedCtxDto = (categories: Categories) => ({
   consent: {

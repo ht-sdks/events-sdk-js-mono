@@ -9,7 +9,7 @@ import type {
   GroupParams,
 } from '../arguments-resolver'
 import type { Context } from '../context'
-import type { SegmentEvent } from '../events'
+import type { HightouchEvent } from '../events'
 import type { Group, User } from '../user'
 import type { LegacyIntegration } from '../../plugins/ajs-destination/types'
 import { CoreAnalytics } from '@ht-sdks/events-sdk-js-core'
@@ -58,7 +58,7 @@ export interface AnalyticsClassic extends AnalyticsClassicStubs {
   noConflict(): Analytics
 
   /** @deprecated */
-  normalize(msg: SegmentEvent): SegmentEvent
+  normalize(msg: HightouchEvent): HightouchEvent
 
   /** @deprecated */
   readonly failedInitializations: string[]
@@ -74,7 +74,7 @@ export interface AnalyticsClassic extends AnalyticsClassicStubs {
 }
 
 /**
- * Interface implemented by concrete Analytics class (commonly accessible if you use "await" on AnalyticsBrowser.load())
+ * Interface implemented by concrete Analytics class (commonly accessible if you use "await" on HtEventsBrowser.load())
  */
 export interface AnalyticsCore extends CoreAnalytics {
   track(...args: EventParams): Promise<DispatchedEvent>
@@ -91,9 +91,9 @@ export interface AnalyticsCore extends CoreAnalytics {
 }
 
 /**
- * Interface implemented by AnalyticsBrowser (buffered version of analytics) (commonly accessible through AnalyticsBrowser.load())
+ * Interface implemented by HtEventsBrowser (buffered version of analytics) (commonly accessible through HtEventsBrowser.load())
  */
-export type AnalyticsBrowserCore = Omit<AnalyticsCore, 'group' | 'user'> & {
+export type HtEventsBrowserCore = Omit<AnalyticsCore, 'group' | 'user'> & {
   group(): Promise<Group>
   group(...args: GroupParams): Promise<DispatchedEvent>
   user(): Promise<User>

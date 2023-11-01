@@ -31,7 +31,7 @@ export interface PublisherProps {
 }
 
 /**
- * The Publisher is responsible for batching events and sending them to the Segment API.
+ * The Publisher is responsible for batching events and sending them to the Hightouch API.
  */
 export class Publisher {
   private pendingFlushTimeout?: ReturnType<typeof setTimeout>
@@ -118,7 +118,7 @@ export class Publisher {
 
   /**
    * Enqueues the context for future delivery.
-   * @param ctx - Context containing a Segment event.
+   * @param ctx - Context containing a Hightouch event.
    * @returns a promise that resolves with the context after the event has been delivered.
    */
   enqueue(ctx: Context): Promise<Context> {
