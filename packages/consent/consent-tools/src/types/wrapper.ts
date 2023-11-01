@@ -16,7 +16,7 @@ export interface InitOptions {
 /**
  * This interface is a stub of the actual HtEvents instance.
  * This can be either:
- * - window.htevents (i.e `AnalyticsSnippet`)
+ * - window.htevents (i.e `HtEventsSnippet`)
  * - the instance returned by `HtEventsBrowser.load({...})`
  * - the instance created by `new HtEventsBrowser(...)`
  */

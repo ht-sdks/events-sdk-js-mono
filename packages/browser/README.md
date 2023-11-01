@@ -134,11 +134,11 @@ NPM installation should already have type support.
 2. Create `./typings/htevents.d.ts`
 ```ts
 // ./typings/htevents.d.ts
-import type { AnalyticsSnippet } from "@ht-sdks/events-sdk-js-browser";
+import type { HtEventsSnippet } from "@ht-sdks/events-sdk-js-browser";
 
 declare global {
   interface Window {
-    htevents: AnalyticsSnippet;
+    htevents: HtEventsSnippet;
   }
 }
 

@@ -1,4 +1,4 @@
-import { AnalyticsSnippet } from '../browser/standalone-interface'
+import { HtEventsSnippet } from '../browser/standalone-interface'
 
 /**
  * Stores the global window analytics key
@@ -8,9 +8,9 @@ let _globalAnalyticsKey = 'htevents'
 /**
  * Gets the global analytics/buffer
  * @param key name of the window property where the buffer is stored (default: analytics)
- * @returns AnalyticsSnippet
+ * @returns HtEventsSnippet
  */
-export function getGlobalAnalytics(): AnalyticsSnippet | undefined {
+export function getGlobalAnalytics(): HtEventsSnippet | undefined {
   return (window as any)[_globalAnalyticsKey]
 }
 
@@ -26,6 +26,6 @@ export function setGlobalAnalyticsKey(key: string) {
  * Sets the global analytics object
  * @param analytics analytics snippet
  */
-export function setGlobalAnalytics(analytics: AnalyticsSnippet): void {
+export function setGlobalAnalytics(analytics: HtEventsSnippet): void {
   ;(window as any)[_globalAnalyticsKey] = analytics
 }
