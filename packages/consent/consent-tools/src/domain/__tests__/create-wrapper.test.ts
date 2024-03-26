@@ -790,9 +790,15 @@ describe(createWrapper, () => {
 
       // if OnConsentChanged callback is called with categories, it should send event
       expect(analyticsTrackSpy).toBeCalledWith(
-        'Hightouch Consent Preference',
-        undefined,
-        { consent: { categoryPreferences: { C0001: true, C0002: false } } }
+        'Consent Updated',
+        {
+          categoryPreferences: { C0001: true, C0002: false },
+        },
+        {
+          consent: {
+            categoryPreferences: { C0001: true, C0002: false },
+          },
+        }
       )
     })
     it('should throw an error if categories are invalid', async () => {

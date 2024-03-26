@@ -32,7 +32,7 @@ export interface CreateWrapperSettings {
   getCategories: () => Categories | Promise<Categories>
 
   /**
-   * Function to register a listener for consent changes to programatically send a "Hightouch Consent Preference" event to Hightouch when consent preferences change.
+   * Function to register a listener for consent changes to programatically send a "Consent Updated" event to Hightouch when consent preferences change.
    *
    * #### Note: The callback requires the categories to be in the shape of { "C0001": true, "C0002": false }, so some normalization may be needed.
    * @example
@@ -45,11 +45,17 @@ export interface CreateWrapperSettings {
    * /* event payload
    * {
    *  "type": "track",
-   *  "event": "Hightouch Consent Preference",
+   *  "event": "Consent Updated",
+   *  "properties": {
+   *    "categoryPreferences": {
+   *      "C0001": true,
+   *      "C0002": false,
+   *    }
+   *  },
    *  "context": {
    *    "consent": {
    *      "version": 2,
-   *      "categoryPreferences" : {
+   *      "categoryPreferences": {
    *         "C0001": true,
    *         "C0002": false,
    *    }
