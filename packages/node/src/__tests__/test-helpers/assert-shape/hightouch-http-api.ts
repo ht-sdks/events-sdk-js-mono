@@ -24,7 +24,7 @@ export function assertHTTPRequestOptions(
   expect(url).toBe('https://us-east-1.hightouch-events.com/v1/batch')
   expect(method).toBe('POST')
   expect(headers).toMatchInlineSnapshot(`
-    Object {
+    {
       "Authorization": "Basic Og==",
       "Content-Type": "application/json",
       "User-Agent": "events-sdk-js-node/latest",

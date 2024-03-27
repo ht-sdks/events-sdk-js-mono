@@ -590,7 +590,7 @@ describe('Dispatch', () => {
     })
 
     expect(boo.event.properties).toMatchInlineSnapshot(`
-      Object {
+      {
         "billingPlan": "free-99",
         "total": 25,
       }
@@ -611,7 +611,7 @@ describe('Dispatch', () => {
     const metrics = delivered.stats.metrics
 
     expect(metrics.map((m) => m.metric)).toMatchInlineSnapshot(`
-      Array [
+      [
         "message_dispatched",
         "plugin_time",
         "plugin_time",
