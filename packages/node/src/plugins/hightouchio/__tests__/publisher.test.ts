@@ -30,7 +30,7 @@ const createTestNodePlugin = (props: Partial<PublisherProps> = {}) =>
   )
 
 const validateFetcherInputs = (...contexts: Context[]) => {
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   return assertHTTPRequestOptions(request, contexts)
 }
 
