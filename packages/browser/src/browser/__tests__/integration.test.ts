@@ -1127,7 +1127,7 @@ describe.skip('Options', () => {
         iso: '2020-10-10',
       })
 
-      const [integrationEvent] = integrationMock.mock.lastCall
+      const [integrationEvent] = integrationMock.mock.lastCall!
 
       expect(integrationEvent.properties()).toEqual({
         date: expect.any(Date),
@@ -1164,7 +1164,7 @@ describe.skip('Options', () => {
         iso: '2020-10-10',
       })
 
-      const [integrationEvent] = integrationMock.mock.lastCall
+      const [integrationEvent] = integrationMock.mock.lastCall!
 
       expect(integrationEvent.properties()).toEqual({
         date: expect.any(Date),
@@ -1201,7 +1201,7 @@ describe.skip('Options', () => {
         iso: '2020-10-10',
       })
 
-      const [integrationEvent] = integrationMock.mock.lastCall
+      const [integrationEvent] = integrationMock.mock.lastCall!
 
       expect(integrationEvent.properties()).toEqual({
         date: expect.any(Date),
