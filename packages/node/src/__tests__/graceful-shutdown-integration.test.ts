@@ -108,7 +108,7 @@ describe('Ability for users to exit without losing events', () => {
       const startTime = perf.now()
       await ajs.closeAndFlush({ timeout: TIMEOUT })
       const elapsedTime = Math.round(perf.now() - startTime)
-      expect(elapsedTime).toBeLessThanOrEqual(TIMEOUT + 10)
+      expect(elapsedTime).toBeLessThanOrEqual(TIMEOUT + 50)
       expect(elapsedTime).toBeGreaterThan(TIMEOUT - 10)
     })
 

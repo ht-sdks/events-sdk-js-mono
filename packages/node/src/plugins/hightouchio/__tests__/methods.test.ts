@@ -28,7 +28,7 @@ const createTestNodePlugin = (props: Partial<PublisherProps> = {}) =>
   )
 
 const validateFetcherInputs = (...contexts: Context[]) => {
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   return assertHTTPRequestOptions(request, contexts)
 }
 
@@ -52,7 +52,7 @@ test('alias', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
 
   expect(data.batch).toHaveLength(1)
@@ -82,7 +82,7 @@ test('group', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
 
   expect(data.batch).toHaveLength(1)
@@ -111,7 +111,7 @@ test('identify', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
   expect(data.batch).toHaveLength(1)
   expect(data.batch[0]).toEqual({
@@ -141,7 +141,7 @@ test('page', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
 
   expect(data.batch).toHaveLength(1)
@@ -175,7 +175,7 @@ test('screen', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
 
   expect(data.batch).toHaveLength(1)
@@ -207,7 +207,7 @@ test('track', async () => {
   expect(fetcher).toHaveBeenCalledTimes(1)
   validateFetcherInputs(context)
 
-  const [request] = fetcher.mock.lastCall
+  const [request] = fetcher.mock.lastCall!
   const data = request.data
 
   expect(data.batch).toHaveLength(1)
