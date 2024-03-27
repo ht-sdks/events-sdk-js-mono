@@ -35,7 +35,7 @@ const analyticsTrackSpy: jest.MockedFn<AnyAnalytics['track']> = jest.fn()
 let consoleErrorSpy: jest.SpiedFunction<typeof console['error']>
 
 const getAnalyticsLoadLastCall = () => {
-  const [arg1, arg2] = analyticsLoadSpy.mock.lastCall
+  const [arg1, arg2] = analyticsLoadSpy.mock.lastCall!
   const cdnSettings = (arg1 as any).cdnSettings as CDNSettings
   const updateCDNSettings = arg2!.updateCDNSettings || ((id) => id)
   const updatedCDNSettings = updateCDNSettings(cdnSettings) as CDNSettings
@@ -132,7 +132,6 @@ describe(createWrapper, () => {
         const shouldLoad = jest.fn().mockImplementation((ctx: LoadContext) => {
           try {
             ctx.abort(...args)
-            throw new Error('Fail')
           } catch (_err: any) {
             err = _err
           }
@@ -580,7 +579,7 @@ describe(createWrapper, () => {
         cdnSettings: mockCdnSettings,
       })
 
-      const getCategoriesFn = fn.mock.lastCall[0]
+      const getCategoriesFn = fn.mock.lastCall![0]
       await expect(getCategoriesFn()).rejects.toMatchInlineSnapshot(
         `[ValidationError: [Validation] Consent Categories should be {[categoryName: string]: boolean} (Received: {"invalidCategory":"hello"})]`
       )
@@ -654,7 +653,7 @@ describe(createWrapper, () => {
           cdnSettings: mockCdnSettings,
         })
 
-        const getCategoriesFn = fn.mock.lastCall[0]
+        const getCategoriesFn = fn.mock.lastCall![0]
         await expect(getCategoriesFn()).resolves.toEqual({
           Something: true,
           SomethingElse: false,
@@ -680,7 +679,7 @@ describe(createWrapper, () => {
           cdnSettings: mockCdnSettings,
         })
 
-        const getCategoriesFn = fn.mock.lastCall[0]
+        const getCategoriesFn = fn.mock.lastCall![0]
         await expect(() =>
           getCategoriesFn()
         ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -718,7 +717,7 @@ describe(createWrapper, () => {
           cdnSettings: mockCdnSettings,
         })
 
-        const getCategoriesFn = fn.mock.lastCall[0]
+        const getCategoriesFn = fn.mock.lastCall![0]
         await expect(getCategoriesFn()).resolves.toEqual({
           Foo: true,
           Bar: false,
@@ -752,7 +751,7 @@ describe(createWrapper, () => {
           cdnSettings: mockCdnSettings,
         })
 
-        const getCategoriesFn = fn.mock.lastCall[0]
+        const getCategoriesFn = fn.mock.lastCall![0]
         await expect(getCategoriesFn()).resolves.toEqual({ Foo: true })
       })
     })
@@ -806,7 +805,7 @@ describe(createWrapper, () => {
       expect(consoleErrorSpy).not.toBeCalled()
       categoriesChangedCb(['OOPS'] as any)
       expect(consoleErrorSpy).toBeCalledTimes(1)
-      const err = consoleErrorSpy.mock.lastCall[0]
+      const err = consoleErrorSpy.mock.lastCall![0]
       expect(err.toString()).toMatch(/validation/i)
       // if OnConsentChanged callback is called with categories, it should send event
       expect(sendConsentChangedEventSpy).not.toBeCalled()
