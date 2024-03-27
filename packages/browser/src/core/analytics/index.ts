@@ -55,6 +55,10 @@ import {
 import { PluginFactory } from '../../plugins/remote-loader'
 import { setGlobalAnalytics } from '../../lib/global-analytics-helper'
 import { popPageContext } from '../buffer'
+import type {
+  HTTPCookieService,
+  HTTPCookieServiceOptions,
+} from '../http-cookies'
 
 const deprecationWarning =
   'This is being deprecated and will be not be available in future releases of Analytics JS'
@@ -130,6 +134,15 @@ export interface InitOptions {
   globalAnalyticsKey?: string
 
   /**
+   * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created
+   */
+  httpCookieServiceOptions?: HTTPCookieServiceOptions
+  /**
+   * When not setting httpCookieServiceOptions, you may pass your own instance
+   */
+  httpCookieService?: HTTPCookieService
+
+  /**
    * Shortcuts for overriding the default Hightouch.io integration settings
    */
   apiHost?: string // Defaults to us-east-1.hightouch-events.com
@@ -191,6 +204,7 @@ export class Analytics
         {
           persist: !disablePersistance,
           storage: options?.storage,
+          httpCookieService: options?.httpCookieService,
           // Any User specific options override everything else
           ...options?.user,
         },
