@@ -1,18 +1,14 @@
 # @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 
-### Try our Playground! [Next.js CodeSandbox](https://codesandbox.io/p/sandbox/focused-bhaskara-jysqr5) 🚀
-
 <img src="img/onetrust-popup.jpg" width="500" />
 
-# Quick Start
+## Installation
 
-## Configure OneTrust + hightouch
-
-### Ensure that the OneTrust Banner SDK is loaded first
+### Include the OneTrust Banner SDK script
 
 ```html
 <head>
-  <!-- This should be included before the hightouch snippet -->
+  <!-- This should be included before the Hightouch snippet -->
   <script
     src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"
     type="text/javascript"
@@ -22,15 +18,13 @@
 </head>
 ```
 
-### Ensure that consent is enabled and that you have created your Integration -> Consent Category Mappings
+### Verify OneTrust category configuration
 
-- Ensure that your integrations in the hightouch UI have consent enabled, and that they map to your Consent Category IDs (also called Cookie Group IDs or Cookie Consent IDs).
-  The IDs look like "C0001", "C0002"and are configurable in OneTrust
-  ![onetrust category ids](img/onetrust-cat-id.jpg)
+![onetrust category ids](img/onetrust-cat-id.jpg)
 
-- Debugging: this library expects the [OneTrust Banner SDK](https://community.cookiepro.com/s/article/UUID-d8291f61-aa31-813a-ef16-3f6dec73d643?language=en_US) to be available in order interact with OneTrust. This library derives the group IDs that are active for the current user from the `window.OneTrustActiveGroups` object provided by the OneTrust SDK. [Read this for more information [community.cookiepro.com]](https://community.cookiepro.com/s/article/UUID-66bcaaf1-c7ca-5f32-6760-c75a1337c226?language=en_US).
+- Debugging: this library expects the [OneTrust Banner SDK](https://my.onetrust.com/s/article/UUID-d8291f61-aa31-813a-ef16-3f6dec73d643?language=en_US) to be available in order interact with OneTrust. This library derives the group IDs that are active for the current user from the `window.OneTrustActiveGroups` object provided by the OneTrust SDK. [Read this for more information](https://my.onetrust.com/s/article/UUID-66bcaaf1-c7ca-5f32-6760-c75a1337c226?language=en_US).
 
-## For `npm` library users
+### For `npm` library users
 
 1. Install the package
 
@@ -45,25 +39,25 @@ yarn add @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 pnpm add @ht-sdks/events-sdk-js-consent-wrapper-onetrust
 ```
 
-2. Initialize alongside analytics
+2. Initialize with `HtEventsBrowser`
 
 ```ts
 import { withOneTrust } from '@ht-sdks/events-sdk-js-consent-wrapper-onetrust'
 import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
-export const analytics = new HtEventsBrowser()
+export const htevents = new HtEventsBrowser()
 
-withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
+withOneTrust(htevents).load({ writeKey: 'WRITE_KEY' })
 
 ```
 
-## For snippet users (window.htevents)
+### For snippet users (`window.htevents`)
 
 1. In your head
 
 ```html
 <head>
-  <!-- Add OneTrust -->
+  <!-- OneTrust -->
   <script
     src="https://cdn.cookielaw.org/scripttemplates/otSDKStub.js"
     type="text/javascript"
@@ -71,34 +65,26 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
     data-domain-script="YOUR-DOMAIN-SCRIPT-ID"
   ></script>
 
-  <!-- Add OneTrust Consent Wrapper -->
-  <script src="https://cdn.jsdelivr.net/npm/@ht-sdks/events-sdk-js-consent-wrapper-onetrust@latest/dist/umd/analytics-onetrust.umd.js"></script>
+  <!-- OneTrust Consent Wrapper -->
+  <script src="https://unpkg.com/@ht-sdks/events-sdk-js-consent-wrapper-onetrust@latest/dist/umd/analytics-onetrust.umd.js"></script>
 
-  <!--
-    Add / Modify hightouch Analytics Snippet
-    * Find and replace: analytics.load('<MY_WRITE_KEY'>) -> withOneTrust(analytics).load('<MY_WRITE_KEY'>)
-  -->
-  <script>
-    !function(){var htevents=window.htevents...
+  <!-- Hightouch SDK -->
+  <script type="text/javascript">
+    !function(){var e=window.htevents...
     ....
-    withOneTrust(htevents).load('<MY_WRITE_KEY'>) // replace analytics.load()
+    // replace `e.load('WRITE_KEY')` with `withOneTrust(e).load('WRITE_KEY')`
+    withOneTrust(e).load('WRITE_KEY')
     ....
   </script>
 </head>
 ```
 
-#### ⚠️ Reminder: _you must modify_ `analytics.load('....')` from the original hightouch snippet. See markup comment in example above.
+> [!NOTE]
+> You must replace `e.load(...)` in the original Hightouch SDK snippet with `withOneTrust(e).load(...)` in order to integrate with OneTrust.
 
-## Other examples:
+### Environments
 
-> Note: Playgrounds are meant for experimentation / testing, and as such, may be a bit overly complicated.
-> We recommend you try to follcaow the documentation for best practice.
-
-- [Standalone playground](/examples/standalone-playground/pages/index-consent.html)
-
-## Environments
-
-### Build Artifacts
+#### Build Artifacts
 
 - We build three versions of the library:
 
@@ -106,7 +92,7 @@ withOneTrust(analytics).load({ writeKey: '<MY_WRITE_KEY'> })
 2. `esm` (es6 modules) - for npm library users
 3. `umd` (bundle) - for snippet users (typically)
 
-### Browser Support
+#### Browser Support
 
 - `cjs/esm` - Support modern JS syntax (ES2020). These are our npm library users, so we expect them to transpile this module themselves using something like babel/webpack if they need extra legacy browser support.
 
