@@ -111,7 +111,7 @@ jobs:
           PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
         run: |
           yarn run -T browser release:cdn
-      
+
       - name: Build browser for npm
         env:
           PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
@@ -161,7 +161,7 @@ jobs:
       - name: Install dependencies
         run: |
           yarn install --immutable
-      
+
       - name: Build node for npm
         env:
           PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
@@ -176,3 +176,14 @@ jobs:
           npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
           cd packages/node && npm publish --access=public
 
+  deploy-consent-tools:
+    uses: ./.github/workflows/deploy-npm.template.yml
+    with:
+      name: consent-tools
+      working-directory: packages/consent/consent-tools
+
+  deploy-consent-wrapper-onetrust:
+    uses: ./.github/workflows/deploy-npm.template.yml
+    with:
+      name: consent-wrapper-onetrust
+      working-directory: packages/consent/consent-wrapper-onetrust
