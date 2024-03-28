@@ -66,7 +66,7 @@ withOneTrust(htevents).load({ writeKey: 'WRITE_KEY' })
   ></script>
 
   <!-- OneTrust Consent Wrapper -->
-  <script src="https://unpkg.com/@ht-sdks/events-sdk-js-consent-wrapper-onetrust@latest/dist/umd/analytics-onetrust.umd.js"></script>
+  <script src="https://unpkg.com/@ht-sdks/events-sdk-js-consent-wrapper-onetrust@latest/dist/umd/htevents-onetrust.umd.js"></script>
 
   <!-- Hightouch SDK -->
   <script type="text/javascript">
