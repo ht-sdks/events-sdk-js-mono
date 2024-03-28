@@ -198,7 +198,8 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyCreate = jest.spyOn(cookieService, 'dispatchCreate')
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
-    // we expect 1 call to dispatchCreate (1 new server cookie)
+    // we expect 1 call to dispatchCreate to create the anonymousId cookie
+    // we don't expect to set the userId cookie
     await analytics.user().anonymousId()
 
     expect(spyClear).toHaveBeenCalledTimes(0)
@@ -216,7 +217,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
     // we expect 1 call to dispatchCreate through the anonymousId codepath
-    // we dont expect a userId cookie
+    // we dont expect to set a userId cookie
     await analytics.track('Checkout')
 
     expect(spyClear).toHaveBeenCalledTimes(0)
@@ -234,7 +235,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
     // we expect 1 call to dispatchCreate through the userId codepath.
-    // we dont expect an anonymousId cookie.
+    // we dont expect to set an anonymousId cookie.
     await analytics.user().id('bob')
 
     expect(spyClear).toHaveBeenCalledTimes(0)
@@ -251,8 +252,8 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyCreate = jest.spyOn(cookieService, 'dispatchCreate')
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
-    // calling identify, means both anonymousId and userId are set
-    // through separate codepaths that *could* be called independently.
+    // calling identify, means both anonymousId and userId are set.
+    // these are two separate codepaths (that *could* be called independently).
     // therefore, we expect 2 calls to dispatchCreate.
     await analytics.identify('123')
 
@@ -271,7 +272,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
     // calling identify, means both anonymousId and userId are set,
-    // therefore, we expect 2 calls to dispatchCreate (2 new server cookies)
+    // therefore, we expect 2 calls to dispatchCreate (2 different code paths)
     await analytics.identify('123')
 
     expect(spyClear).toHaveBeenCalledTimes(0)
@@ -345,7 +346,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
     // we expect 2 calls to dispatchClear
-    // we have to call separate codepaths for clearing anonymousId and userId
+    // we have to call both codepaths for clearing anonymousId and userId
     await analytics.reset()
 
     expect(spyClear).toHaveBeenCalledTimes(2)
@@ -366,7 +367,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     const spyClear = jest.spyOn(cookieService, 'dispatchClear')
 
     // we expect 2 calls to dispatchClear
-    // we have to call separate codepaths for clearing anonymousId and userId
+    // we have to call both codepaths for clearing anonymousId and userId
     await analytics.reset()
 
     expect(spyClear).toHaveBeenCalledTimes(2)
@@ -390,6 +391,7 @@ describe('Analytics - HTTPCookieService - Integration', () => {
 
     // we expect 1 call to dispatchClear
     // we expect 1 call to dispatchCreate
+    // they should happen in this order
     await analytics.user().id('tim')
 
     expect(spyClear).toHaveBeenCalledTimes(1)

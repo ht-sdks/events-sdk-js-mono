@@ -138,7 +138,7 @@ export interface InitOptions {
    */
   httpCookieServiceOptions?: HTTPCookieServiceOptions
   /**
-   * When not setting httpCookieServiceOptions, you may pass your own instance
+   * When not setting httpCookieServiceOptions, you may pass your own instance of HTTPCookieService
    */
   httpCookieService?: HTTPCookieService
 

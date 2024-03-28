@@ -32,6 +32,10 @@ export interface UserOptions {
   disable?: boolean
   localStorageFallbackDisabled?: boolean
   persist?: boolean
+
+  /**
+   * Replicates "BrowserCookie" actions against a matching "ServerCookie".
+   */
   httpCookieService?: HTTPCookieService
 
   cookie?: {

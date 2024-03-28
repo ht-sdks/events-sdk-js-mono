@@ -70,24 +70,24 @@ export class HTTPCookieService {
   }
 
   startQueueConsumer() {
-    if (!this.flushIntervalId) {
-      const bound = this.consumeQueue.bind(this)
-      this.flushIntervalId = setInterval(
-        () => bound().catch(console.error),
-        this.flushInterval
-      )
+    if (this.flushIntervalId) {
+      console.error('HTTPCookie queue consumer is already running.')
       return
     }
-    console.error('HTTPCookie queue consumer is already running.')
+    const bound = this.consumeQueue.bind(this)
+    this.flushIntervalId = setInterval(
+      () => bound().catch(console.error),
+      this.flushInterval
+    )
   }
 
   stopQueueConsumer() {
-    if (this.flushIntervalId) {
-      clearInterval(this.flushIntervalId)
-      this.flushIntervalId = undefined
+    if (!this.flushIntervalId) {
+      console.error('HTTPCookie queue consumer is already stopped.')
       return
     }
-    console.error('HTTPCookie queue consumer is already stopped.')
+    clearInterval(this.flushIntervalId)
+    this.flushIntervalId = undefined
   }
 
   private sendHTTPCookies(serviceUrl: string): DeferredRequest {
