@@ -7,7 +7,13 @@ import { validateCategories } from './validation'
  * ```ts
  * {
  * "type": "track",
- *  "event": "Hightouch Consent Preference",
+ *  "event": "Consent Updated",
+ *  "properties": {
+ *    "categoryPreferences": {
+ *      "C0001": true,
+ *      "C0002": false,
+ *    }
+ *  },
  *  "context": {
  *    "consent": {
  *      "categoryPreferences" : {
@@ -23,19 +29,17 @@ export const sendConsentChangedEvent = (
   categories: Categories
 ): void => {
   getInitializedAnalytics(analytics).track(
-    CONSENT_CHANGED_EVENT,
-    undefined,
-    createConsentChangedCtxDto(categories)
+    'Consent Updated',
+    {
+      categoryPreferences: categories,
+    },
+    {
+      consent: {
+        categoryPreferences: categories,
+      },
+    }
   )
 }
-
-const CONSENT_CHANGED_EVENT = 'Hightouch Consent Preference'
-
-const createConsentChangedCtxDto = (categories: Categories) => ({
-  consent: {
-    categoryPreferences: categories,
-  },
-})
 
 export const validateAndSendConsentChangedEvent = (
   analytics: AnyAnalytics,
