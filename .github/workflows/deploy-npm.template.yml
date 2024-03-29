@@ -38,9 +38,9 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: echo "VERSION=${TAG##${{ inputs.name }}@}" >> $GITHUB_OUTPUT
 
-      - name: Set NPM version
+      - name: Set version
         working-directory: ${{ inputs.working-directory}}
-        run: npm version ${{ steps.parse_version.outputs.VERSION }} --allow-same-version --no-commit-hooks --no-git-tag-version
+        run: yarn version ${{ steps.parse_version.outputs.VERSION }}
 
       - name: Build
         working-directory: ${{ inputs.working-directory}}
