@@ -6,21 +6,17 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@internal/test-helpers",
-    "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
-    "build": "yarn concurrently 'yarn:build:*'",
-    "build:cjs": "yarn tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
-    "build:esm": "yarn tsc -p tsconfig.build.json",
-    "tsc": "yarn run -T tsc",
-    "watch": "yarn build:esm --watch",
-    "eslint": "yarn run -T eslint",
-    "concurrently": "yarn run -T concurrently"
+    ".": "turbo run --filter=@internal/test-helpers",
+    "lint": "concurrently 'eslint .' 'tsc --noEmit'",
+    "build": "concurrently 'npm:build:*'",
+    "build:cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "watch": "npm run build:esm -- --watch"
   },
   "dependencies": {
     "tslib": "^2.4.1"
   },
-  "packageManager": "yarn@3.4.1",
   "devDependencies": {
-    "@ht-sdks/events-sdk-js-browser": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "*"
   }
 }

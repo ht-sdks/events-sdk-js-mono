@@ -5,7 +5,7 @@ HtEvents contains a comprehensive QA test suite that verifies that E2E functiona
 1. Compile HtEvents (browser)
 
 ```sh
-$ yarn build
+$ turbo build
 ```
 
 2. Grab list of test sources
@@ -24,7 +24,7 @@ $ make test-qa ## if you'd like to run all tests in one go (generally slower)
 or run individual tests (much faster)
 
 ```sh
-$ yarn jest --runTestsByPath qa/__tests__/<test_path>
+$ npx jest --runTestsByPath qa/__tests__/<test_path>
 ```
 
 2.1. QAing HtEvents against all destinations

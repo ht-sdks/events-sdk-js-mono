@@ -169,8 +169,9 @@ First, clone the repo and then startup our local dev environment:
 $ git clone git@github.com:ht-sdks/events-sdk-js-mono.git
 $ cd events-sdk-js-mono
 $ nvm use  # installs correct version of node defined in .nvmrc.
-$ yarn && yarn build
-$ yarn test
+$ npm install
+$ turbo run build
+$ turbo run test
 ```
 
 > If you get "Cannot find module '@ht-sdks/events-sdk-js-browser' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
@@ -219,9 +220,9 @@ For further examples check out our [existing plugins](/packages/browser/src/plug
 ## QA
 Feature work and bug fixes should include tests. Run all [Jest](https://jestjs.io) tests:
 ```
-$ yarn test
+$ turbo test
 ```
 Lint all with [ESLint](https://github.com/typescript-eslint/typescript-eslint/):
 ```
-$ yarn lint
+$ turbo lint
 ```

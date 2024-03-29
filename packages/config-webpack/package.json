@@ -2,7 +2,6 @@
   "name": "@internal/config-webpack",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "yarn@3.4.1",
   "devDependencies": {
     "@babel/cli": "^7.22.10",
     "@babel/core": "^7.22.11",

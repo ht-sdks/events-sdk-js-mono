@@ -12,18 +12,14 @@
     "!*.tsbuildinfo"
   ],
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-consent-tools",
-    "test": "yarn jest",
-    "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
-    "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",
-    "build:esm": "yarn tsc -p tsconfig.build.json",
-    "build:cjs": "yarn tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
-    "watch": "yarn build:esm --watch",
-    "watch:test": "yarn test --watch",
-    "tsc": "yarn run -T tsc",
-    "eslint": "yarn run -T eslint",
-    "concurrently": "yarn run -T concurrently --raw",
-    "jest": "yarn run -T jest"
+    ".": "turbo run --filter=@ht-sdks/events-sdk-js-consent-tools",
+    "test": "jest",
+    "lint": "concurrently 'eslint .' 'tsc --noEmit'",
+    "build": "rm -rf dist && concurrently 'npm:build:*'",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "build:cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
+    "watch": "npm run build:esm -- --watch",
+    "watch:test": "jest --watch"
   },
   "peerDependencies": {
     "@ht-sdks/events-sdk-js-browser": "^1.0.0"
@@ -34,11 +30,10 @@
     }
   },
   "devDependencies": {
-    "@ht-sdks/events-sdk-js-browser": "workspace:^",
-    "@internal/config": "workspace:^",
-    "@internal/test-helpers": "workspace:^"
+    "@ht-sdks/events-sdk-js-browser": "*",
+    "@internal/config": "*",
+    "@internal/test-helpers": "*"
   },
-  "packageManager": "yarn@3.4.1",
   "license": "MIT",
   "repository": {
     "directory": "packages/consent/consent-tools",

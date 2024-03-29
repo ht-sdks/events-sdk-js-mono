@@ -19,7 +19,7 @@ const createJestTSConfig = (
   return {
     ...(isRootConfig ? {} : { displayName: path.basename(process.cwd()) }),
     /**
-     * No need to manually run yarn build all the time.
+     * No need to manually run npm build all the time.
      * This resolve packages for ts-jest so typescript compilation happens in-memory.
      */
     moduleNameMapper: moduleMap,

@@ -90,11 +90,11 @@ See the complete list of settings in the **[Settings interface](src/types/settin
 1. Build this package + all dependencies
 
 ```sh
-yarn . build
+turbo build
 ```
 
 2. Run tests
 
 ```
-yarn test
+turbo test
 ```
