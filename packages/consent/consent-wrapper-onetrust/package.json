@@ -19,7 +19,7 @@
     "!*.tsbuildinfo"
   ],
   "scripts": {
-    ".": "turbo run --filter=@ht-sdks/events-sdk-js-consent-wrapper-onetrust",
+    ".": "turbo run --filter=@ht-sdks/events-sdk-js-consent-wrapper-onetrust...",
     "test": "jest",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
     "build": "rm -rf dist && concurrently 'npm:build:*'",
