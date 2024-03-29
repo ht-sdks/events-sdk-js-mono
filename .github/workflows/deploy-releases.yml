@@ -15,54 +15,10 @@ permissions:
 
 jobs:
   deploy-core:
-    if: "startsWith( github.ref_name, 'core@' )"
-    name: Deploy Core to NPM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source branch
-        uses: actions/checkout@v4
-
-      - name: Get tag version
-        id: get_tag_version
-        env:
-          TAG: ${{ github.ref_name }}
-        run: echo "PATH_VERSION=${TAG##core@}" >> $GITHUB_OUTPUT
-
-      - name: Get package version
-        id: get_package_version
-        run: echo "PACKAGE_VERSION=$(jq -r '.version' < ./packages/core/package.json)" >> $GITHUB_OUTPUT
-
-      - name: Check package.json version
-        shell: bash
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
-          PACKAGE_VERSION: '${{ steps.get_package_version.outputs.PACKAGE_VERSION }}'
-        run: |
-          node -e 'process.env.PATH_VERSION === process.env.PACKAGE_VERSION ? process.exit() : process.exit(1)'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          yarn install --immutable
-
-      - name: Build core for npm
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
-        run: |
-          cd packages/core && yarn . build
-
-      - name: Publish core package to NPM
-        env:
-          HUSKY: 0
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          cd packages/core && npm publish --access=public
+    uses: ./.github/workflows/deploy-npm.template.yml
+    with:
+      name: core
+      working-directory: packages/core
 
   deploy-browser:
     if: "startsWith( github.ref_name, 'browser@' )"
@@ -97,84 +53,42 @@ jobs:
           aws-region: us-east-1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
+          registry-url: https://registry.npmjs.org
           node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build
+        env:
+          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        working-directory: packages/browser
         run: |
-          yarn install --immutable
+          npx turbo run build
 
       - name: Release browser to CDN
         env:
           PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        working-directory: packages/browser
         run: |
-          yarn run -T browser release:cdn
-
-      - name: Build browser for npm
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
-        run: |
-          cd packages/browser && yarn . build
+          npm run release:cdn
 
       - name: Publish browser package to NPM
         env:
           HUSKY: 0
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: packages/browser
         run: |
-          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          cd packages/browser && npm publish --access=public
+          npm publish --access=public
 
   deploy-node:
-    if: "startsWith( github.ref_name, 'node@' )"
-    name: Deploy Node to NPM
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source branch
-        uses: actions/checkout@v4
-
-      - name: Get tag version
-        id: get_tag_version
-        env:
-          TAG: ${{ github.ref_name }}
-        run: echo "PATH_VERSION=${TAG##node@}" >> $GITHUB_OUTPUT
-
-      - name: Get package version
-        id: get_package_version
-        run: echo "PACKAGE_VERSION=$(jq -r '.version' < ./packages/node/package.json)" >> $GITHUB_OUTPUT
-
-      - name: Check package.json version
-        shell: bash
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
-          PACKAGE_VERSION: '${{ steps.get_package_version.outputs.PACKAGE_VERSION }}'
-        run: |
-          node -e 'process.env.PATH_VERSION === process.env.PACKAGE_VERSION ? process.exit() : process.exit(1)'
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: |
-          yarn install --immutable
-
-      - name: Build node for npm
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
-        run: |
-          cd packages/node && yarn . build
-
-      - name: Publish node package to NPM
-        env:
-          HUSKY: 0
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          npm set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          cd packages/node && npm publish --access=public
+    uses: ./.github/workflows/deploy-npm.template.yml
+    with:
+      name: node
+      working-directory: packages/node
 
   deploy-consent-tools:
     uses: ./.github/workflows/deploy-npm.template.yml

@@ -36,16 +36,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
       - name: Install dependencies
         run: |
-          yarn install --immutable
+          npm ci --no-audit --no-fund
+
       - name: Release to CDN
         env:
           PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
+        working-directory: packages/browser
         run: |
-          yarn run -T browser candidate:cdn
+          npm run candidate:cdn

@@ -44,7 +44,7 @@ jobs:
 
       - name: Build
         working-directory: ${{ inputs.working-directory}}
-        run: npm run build
+        run: npx turbo run build
 
       - name: Publish
         working-directory: ${{ inputs.working-directory}}
