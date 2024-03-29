@@ -21,6 +21,7 @@ import {
   hasSessionExpired,
   updateSessionExpiration,
 } from '../session'
+import type { HTTPCookieService } from '../http-cookies'
 
 export type ID = string | null | undefined
 
@@ -31,6 +32,11 @@ export interface UserOptions {
   disable?: boolean
   localStorageFallbackDisabled?: boolean
   persist?: boolean
+
+  /**
+   * Replicates "BrowserCookie" actions against a matching "ServerCookie".
+   */
+  httpCookieService?: HTTPCookieService
 
   cookie?: {
     key?: string
@@ -145,11 +151,22 @@ export class User {
     const prevId = this.identityStore.getAndSync(this.idKey)
 
     if (id !== undefined) {
+      const clearingIdentity = id === null
+      const changingIdentity = id !== prevId && prevId !== null && id !== null
+      const creatingIdentity = id !== prevId && prevId === null && id !== null
+
       this.identityStore.set(this.idKey, id)
 
-      const changingIdentity = id !== prevId && prevId !== null && id !== null
+      if (clearingIdentity) {
+        this.options?.httpCookieService?.dispatchClear()
+      }
+
       if (changingIdentity) {
-        this.anonymousId(null)
+        this.anonymousId(null) // this also runs dispatchClear()
+      }
+
+      if (changingIdentity || creatingIdentity) {
+        this.options?.httpCookieService?.dispatchCreate()
       }
     }
 
@@ -176,26 +193,34 @@ export class User {
 
     if (id === undefined) {
       let val = this.identityStore.getAndSync(this.anonKey)
+      let migrated = false
 
       // support anonymousId migration from other analytics providers
       if (!val) {
         val = decryptRudderHtValue(
           this.identityStore.getAndSync(rudderHtAnonymousIdKey) ?? ''
         )
+        migrated = Boolean(val)
         if (val) this.identityStore.set(this.anonKey, val)
       }
       if (!val) {
         val = this.identityStore.getAndSync(segmentAnonymousIdKey)
+        migrated = Boolean(val)
         if (val) this.identityStore.set(this.anonKey, val)
       }
       if (!val) {
         val = decryptRudderValue(
           this.identityStore.getAndSync(rudderAnonymousIdKey) ?? ''
         )
+        migrated = Boolean(val)
         if (val) this.identityStore.set(this.anonKey, val)
       }
       if (!val) {
         val = this.legacySIO()?.[0] ?? null
+      }
+
+      if (migrated) {
+        this.options?.httpCookieService?.dispatchCreate()
       }
 
       if (val) {
@@ -205,11 +230,16 @@ export class User {
 
     if (id === null) {
       this.identityStore.set(this.anonKey, null)
-      return this.identityStore.getAndSync(this.anonKey)
+      const clearedVal = this.identityStore.getAndSync(this.anonKey)
+      this.options?.httpCookieService?.dispatchClear()
+      return clearedVal
     }
 
     this.identityStore.set(this.anonKey, id ?? uuid())
-    return this.identityStore.getAndSync(this.anonKey)
+    const syncedVal = this.identityStore.getAndSync(this.anonKey)
+
+    this.options?.httpCookieService?.dispatchCreate()
+    return syncedVal
   }
 
   traits = (traits?: Traits | null): Traits | undefined => {
