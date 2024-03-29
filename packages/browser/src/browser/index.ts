@@ -4,6 +4,7 @@ import { getCDN, setGlobalCDNUrl } from '../lib/parse-cdn'
 import { fetch } from '../lib/fetch'
 import { Analytics, AnalyticsSettings, InitOptions } from '../core/analytics'
 import { Context } from '../core/context'
+import { HTTPCookieService } from '../core/http-cookies'
 import { Plan } from '../core/events'
 import { Plugin } from '../core/plugin'
 import { MetricsOptions } from '../core/stats/remote-metrics'
@@ -358,6 +359,12 @@ async function loadAnalytics(
 
   const retryQueue: boolean =
     legacySettings.integrations['Hightouch.io']?.retryQueue ?? true
+
+  if (!options.disableClientPersistence && options.httpCookieServiceOptions) {
+    options.httpCookieService = await HTTPCookieService.load(
+      options.httpCookieServiceOptions
+    )
+  }
 
   const opts: InitOptions = { retryQueue, ...options }
   const analytics = new Analytics(settings, opts)
