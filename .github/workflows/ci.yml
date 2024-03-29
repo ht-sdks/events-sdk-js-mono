@@ -1,9 +1,12 @@
 name: CI
+
 on:
   push:
+
 env:
   HUSKY: 0
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
 jobs:
   sdk-ci:
     name: 'SDK CI'
@@ -13,17 +16,22 @@ jobs:
         node-version: [16, 18]
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
+
       - run: yarn install --immutable
+
       - name: Turbo cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules/.cache/turbo
           key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
+
       - run: yarn turbo run lint --filter='@ht-sdks/events-sdk-js*'
+
       - run: yarn turbo run test --filter='@ht-sdks/events-sdk-js*'
