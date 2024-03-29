@@ -31,7 +31,7 @@ A user visiting a website on both 01/01/2023 and 01/14/2023 can still look like 
 1. If `$server` is on a subdomain of the website, its IP address must match the IP address that served the main HTML document.
 
 Routing a subdomain via DNS will not suffice. You'll need **one of** the following:
-- A **webserver** that serves  both your HTML document and a programamtic API (e.g. something like Django, Rails, Spring, etc)
+- A **webserver** that serves  both your HTML document and an API (e.g. something like Django, Rails, Spring, etc)
 - A **reverse proxy** that can forward requests for your HTML document to one place, your API requests to another, and make it look like it's all on one server (e.g. NGINX, Caddy, etc)
 - A **CDN** that can run programmatic logic when matching certain requests (e.g. Lambda@Edge, Clouflare Workers, etc)
 

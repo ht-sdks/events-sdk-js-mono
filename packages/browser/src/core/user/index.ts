@@ -153,7 +153,7 @@ export class User {
     if (id !== undefined) {
       const clearingIdentity = id === null
       const changingIdentity = id !== prevId && prevId !== null && id !== null
-      const creatingIdentity = id !== prevId && prevId == null && id !== null
+      const creatingIdentity = id !== prevId && prevId === null && id !== null
 
       this.identityStore.set(this.idKey, id)
 
