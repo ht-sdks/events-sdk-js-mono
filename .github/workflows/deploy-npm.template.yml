@@ -27,10 +27,10 @@ jobs:
         with:
           registry-url: https://registry.npmjs.org
           node-version-file: .nvmrc
-          cache: yarn
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci --no-audit --no-fund
 
       - name: Parse version
         id: parse_version
@@ -40,11 +40,11 @@ jobs:
 
       - name: Set version
         working-directory: ${{ inputs.working-directory}}
-        run: yarn version ${{ steps.parse_version.outputs.VERSION }}
+        run: npm version ${{ steps.parse_version.outputs.VERSION }} --allow-same-version --no-commit-hooks --no-git-tag-version
 
       - name: Build
         working-directory: ${{ inputs.working-directory}}
-        run: yarn . build
+        run: npm run build
 
       - name: Publish
         working-directory: ${{ inputs.working-directory}}
