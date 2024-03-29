@@ -6,7 +6,6 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "scripts": {
-    ".": "turbo run --filter=@internal/test-helpers",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
     "build": "concurrently 'npm:build:*'",
     "build:cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",

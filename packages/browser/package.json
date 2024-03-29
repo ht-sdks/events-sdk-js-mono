@@ -24,7 +24,6 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "turbo run --filter=@ht-sdks/events-sdk-js-browser...",
     "build-prep": "sh scripts/build-prep.sh",
     "version": "npm run build-prep && git add src/generated/version.ts",
     "umd": "webpack",

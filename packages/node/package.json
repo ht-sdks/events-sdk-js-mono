@@ -20,7 +20,6 @@
     "node": ">=14"
   },
   "scripts": {
-    ".": "turbo run --filter=@ht-sdks/events-sdk-js-node...",
     "test": "jest",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
     "build": "rm -rf dist && concurrently 'npm:build:*'",

@@ -18,7 +18,6 @@
   ],
   "sideEffects": false,
   "scripts": {
-    ".": "turbo run --filter=@ht-sdks/events-sdk-js-core",
     "test": "jest",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
     "build": "concurrently 'npm:build:*'",
