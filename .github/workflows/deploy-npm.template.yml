@@ -1,0 +1,54 @@
+name: Deploy to NPM
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: true
+        type: string
+      working-directory:
+        required: true
+        type: string
+    outputs:
+      version:
+        description: "The NPM package version"
+        value: ${{ jobs.deploy.outputs.version }}
+
+jobs:
+  deploy:
+    if: ${{ startsWith(github.ref_name, inputs.name) }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse_version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: https://registry.npmjs.org
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Parse version
+        id: parse_version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: echo "VERSION=${TAG##${{ inputs.name }}@}" >> $GITHUB_OUTPUT
+
+      - name: Set NPM version
+        working-directory: ${{ inputs.working-directory}}
+        run: npm version ${{ steps.parse_version.outputs.VERSION }} --allow-same-version --no-commit-hooks --no-git-tag-version
+
+      - name: Build
+        working-directory: ${{ inputs.working-directory}}
+        run: yarn . build
+
+      - name: Publish
+        working-directory: ${{ inputs.working-directory}}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0
+        run: npm publish --access=public

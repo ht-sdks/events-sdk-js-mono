@@ -6,10 +6,10 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "sideEffects": [
-    "./dist/umd/analytics-onetrust.umd.js"
+    "./dist/umd/htevents-onetrust.umd.js"
   ],
-  "jsdeliver": "./dist/umd/analytics-onetrust.umd.js",
-  "unpkg": "./dist/umd/analytics-onetrust.umd.js",
+  "jsdeliver": "./dist/umd/htevents-onetrust.umd.js",
+  "unpkg": "./dist/umd/htevents-onetrust.umd.js",
   "files": [
     "LICENSE",
     "dist/",
@@ -19,7 +19,7 @@
     "!*.tsbuildinfo"
   ],
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-consent-wrapper-onetrust...",
+    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-consent-wrapper-onetrust",
     "test": "yarn jest",
     "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
     "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",

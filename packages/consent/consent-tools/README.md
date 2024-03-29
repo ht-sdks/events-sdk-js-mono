@@ -1,6 +1,8 @@
 # @ht-sdks/events-sdk-js-consent-tools
 
-## Quick Start
+This package provides a generic interface for integrating with a Consent Management Platform (CMP). We currently offer an implementation for [OneTrust](https://www.onetrust.com/) via the [`@ht-sdks/events-sdk-js-consent-wrapper-onetrust`](../consent-wrapper-onetrust) package. You can use this library for integrating with other CMPs.
+
+## Usage
 
 ```ts
 // wrapper.js
@@ -8,7 +10,7 @@ import { createWrapper, resolveWhen } from '@ht-sdks/events-sdk-js-consent-tools
 
 export const withCMP = createWrapper({
 
-  // Wrapper waits to load hightouch / get categories until this function returns / resolves
+  // Wrapper waits to load htevents / get categories until this function resolves
   shouldLoad: async (ctx) => {
     const CMP = await getCMP()
     await resolveWhen(
@@ -44,19 +46,17 @@ const getCMP = async () => {
 }
 ```
 
-## Wrapper Usage API
+## Installation
 
 ## `npm`
 
 ```js
-import { withCMP } from './wrapper'
 import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
+import { withCMP } from './cmp-wrapper'
 
 export const htevents = new HtEventsBrowser()
 
-withCMP(htevents).load({
-  writeKey: '<MY_WRITE_KEY'>
-})
+withCMP(htevents).load({ writeKey: 'WRITE_KEY' })
 
 ```
 
@@ -66,30 +66,26 @@ withCMP(htevents).load({
 1. Delete the `htevents.load()` line from the snippet
 
 ```diff
-- htevents.load("<MY_WRITE_KEY>");
+- htevents.load('WRITE_KEY');
 ```
 
 2. Import Analytics
 
 ```js
-import { withCMP } from './wrapper'
+import { withCMP } from './cmp-wrapper'
 
-withCMP(window.htevents).load('<MY_WRITE_KEY')
+withCMP(window.htevents).load('WRITE_KEY')
 ```
 
-## Wrapper Examples
+## Wrapper Implementations
 
-- [OneTrust](../consent-wrapper-onetrust) (beta)
+- [OneTrust](../consent-wrapper-onetrust)
 
-## Settings / Options / Configuration
+### Settings / Options / Configuration
 
 See the complete list of settings in the **[Settings interface](src/types/settings.ts)**
 
-## Special Requirements
-
-- For npm users, this library expects a version of `@ht-sdks/events-sdk-js-browser` >= **1.53.1**. Note: If your library depends on this library, you should have the appropriate peer dependency declaration. See our `package.json` for an example.
-
-## Development
+### Development
 
 1. Build this package + all dependencies
 

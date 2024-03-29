@@ -12,8 +12,8 @@ jobs:
       matrix:
         node-version: [16, 18]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
@@ -25,9 +25,5 @@ jobs:
           key: ${{ runner.os }}-turbo-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-
-      - run: yarn turbo run --filter='./packages/core*' lint
-      - run: yarn turbo run --filter='./packages/core*' test
-      - run: yarn turbo run --filter='./packages/node*' lint
-      - run: yarn turbo run --filter='./packages/node*' test
-      - run: yarn turbo run --filter='./packages/browser*' lint
-      - run: yarn turbo run --filter='./packages/browser*' test
+      - run: yarn turbo run lint --filter='@ht-sdks/events-sdk-js*'
+      - run: yarn turbo run test --filter='@ht-sdks/events-sdk-js*'

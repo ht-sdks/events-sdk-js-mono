@@ -7,10 +7,10 @@ const isProd = process.env.NODE_ENV === 'production'
  */
 module.exports = merge(common, {
   entry: {
-    'analytics-onetrust.umd': {
+    'htevents-onetrust.umd': {
       import: path.resolve(__dirname, 'src/index.umd.ts'),
       library: {
-        name: 'AnalyticsOneTrust',
+        name: 'HtEventsOneTrust',
         type: 'umd',
       },
     },
