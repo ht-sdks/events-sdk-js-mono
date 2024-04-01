@@ -20,19 +20,14 @@
     "node": ">=14"
   },
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-node",
-    "test": "yarn jest",
-    "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
-    "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",
-    "build:cjs": "yarn tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
+    "test": "jest",
+    "lint": "concurrently 'eslint .' 'tsc --noEmit'",
+    "build": "rm -rf dist && concurrently 'npm:build:*'",
+    "build:cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
+    "build:esm": "tsc -p tsconfig.build.json",
     "version": "sh scripts/version.sh",
-    "build:esm": "yarn tsc -p tsconfig.build.json",
-    "watch": "yarn build:esm --watch",
-    "watch:test": "yarn test --watch",
-    "tsc": "yarn run -T tsc",
-    "eslint": "yarn run -T eslint",
-    "concurrently": "yarn run -T concurrently",
-    "jest": "yarn run -T jest"
+    "watch:build": "npm run build:esm -- --watch",
+    "watch:test": "jest --watch"
   },
   "dependencies": {
     "@ht-sdks/events-sdk-js-core": "^1.1.0",
@@ -45,6 +40,5 @@
     "@internal/config": "0.0.0",
     "@types/node": "^16",
     "axios": "^1.4.0"
-  },
-  "packageManager": "yarn@3.4.1"
+  }
 }

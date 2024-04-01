@@ -9,6 +9,11 @@ on:
       working-directory:
         required: true
         type: string
+      tag:
+        required: false
+        type: string
+        default: ${{ github.event.release.tag_name || github.ref_name }}
+
     outputs:
       version:
         description: "The NPM package version"
@@ -16,7 +21,7 @@ on:
 
 jobs:
   deploy:
-    if: ${{ startsWith(github.ref_name, inputs.name) }}
+    if: ${{ startsWith(inputs.tag, inputs.name) }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.parse_version.outputs.VERSION }}
@@ -27,24 +32,24 @@ jobs:
         with:
           registry-url: https://registry.npmjs.org
           node-version-file: .nvmrc
-          cache: yarn
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci --no-audit --no-fund
 
       - name: Parse version
         id: parse_version
         env:
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ inputs.tag }}
         run: echo "VERSION=${TAG##${{ inputs.name }}@}" >> $GITHUB_OUTPUT
 
       - name: Set version
         working-directory: ${{ inputs.working-directory}}
-        run: yarn version ${{ steps.parse_version.outputs.VERSION }}
+        run: npm version ${{ steps.parse_version.outputs.VERSION }} --allow-same-version --no-commit-hooks --no-git-tag-version
 
       - name: Build
         working-directory: ${{ inputs.working-directory}}
-        run: yarn . build
+        run: npx turbo run build
 
       - name: Publish
         working-directory: ${{ inputs.working-directory}}

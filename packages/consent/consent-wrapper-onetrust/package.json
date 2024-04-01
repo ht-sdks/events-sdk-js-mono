@@ -19,21 +19,15 @@
     "!*.tsbuildinfo"
   ],
   "scripts": {
-    ".": "yarn run -T turbo run --filter=@ht-sdks/events-sdk-js-consent-wrapper-onetrust",
-    "test": "yarn jest",
-    "lint": "yarn concurrently 'yarn:eslint .' 'yarn:tsc --noEmit'",
-    "build": "rm -rf dist && yarn concurrently 'yarn:build:*'",
-    "build:esm": "yarn tsc -p tsconfig.build.json",
-    "build:cjs": "yarn tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
-    "build:bundle": "NODE_ENV=production yarn run webpack",
-    "build:bundle-dev": "NODE_ENV=development yarn run webpack",
-    "watch": "yarn concurrently 'yarn build:bundle-dev --watch' 'yarn build:esm --watch'",
-    "watch:test": "yarn test --watch",
-    "tsc": "yarn run -T tsc",
-    "eslint": "yarn run -T eslint",
-    "concurrently": "yarn run -T concurrently --raw",
-    "jest": "yarn run -T jest",
-    "webpack": "yarn run -T webpack"
+    "test": "jest",
+    "lint": "concurrently 'eslint .' 'tsc --noEmit'",
+    "build": "rm -rf dist && concurrently 'npm:build:*'",
+    "build:esm": "tsc -p tsconfig.build.json",
+    "build:cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
+    "build:bundle": "NODE_ENV=production webpack",
+    "build:bundle-dev": "NODE_ENV=development webpack",
+    "watch": "concurrently 'npm run build:bundle-dev -- --watch' 'npm run build:esm -- --watch'",
+    "watch:test": "jest --watch"
   },
   "dependencies": {
     "@ht-sdks/events-sdk-js-consent-tools": "0.2.1"
@@ -46,7 +40,6 @@
       "optional": true
     }
   },
-  "packageManager": "yarn@3.4.1",
   "license": "MIT",
   "repository": {
     "directory": "packages/consent/consent-wrapper-onetrust",
@@ -54,7 +47,7 @@
     "url": "https://github.com/ht-sdks/events-sdk-js-mono"
   },
   "devDependencies": {
-    "@internal/config-webpack": "workspace:^",
-    "@internal/test-helpers": "workspace:^"
+    "@internal/config-webpack": "*",
+    "@internal/test-helpers": "*"
   }
 }

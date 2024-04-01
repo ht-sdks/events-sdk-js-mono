@@ -8,21 +8,18 @@ env:
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
 jobs:
-  sdk-ci:
-    name: 'SDK CI'
+  ci:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16, 18]
+        node-version: [16, 18, 20]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'yarn'
-
-      - run: yarn install --immutable
+          cache: 'npm'
 
       - name: Turbo cache
         uses: actions/cache@v4
@@ -32,6 +29,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-
 
-      - run: yarn turbo run lint --filter='@ht-sdks/events-sdk-js*'
+      - run: npm ci --no-audit --no-fund
 
-      - run: yarn turbo run test --filter='@ht-sdks/events-sdk-js*'
+      - run: npm run build
+
+      - run: npm run lint
+
+      - run: npm run size-limit
+        working-directory: packages/browser
+
+      - run: npm run test
