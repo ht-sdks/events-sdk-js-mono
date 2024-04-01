@@ -170,8 +170,8 @@ $ git clone git@github.com:ht-sdks/events-sdk-js-mono.git
 $ cd events-sdk-js-mono
 $ nvm use  # installs correct version of node defined in .nvmrc.
 $ npm install
-$ turbo run build
-$ turbo run test
+$ npx turbo run build
+$ npx turbo run test
 ```
 
 > If you get "Cannot find module '@ht-sdks/events-sdk-js-browser' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
