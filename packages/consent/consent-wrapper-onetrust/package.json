@@ -1,6 +1,6 @@
 {
   "name": "@ht-sdks/events-sdk-js-consent-wrapper-onetrust",
-  "version": "0.3.1",
+  "version": "0.0.1",
   "keywords": [],
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -30,7 +30,7 @@
     "watch:test": "jest --watch"
   },
   "dependencies": {
-    "@ht-sdks/events-sdk-js-consent-tools": "0.2.1"
+    "@ht-sdks/events-sdk-js-consent-tools": "0.0.1"
   },
   "peerDependencies": {
     "@ht-sdks/events-sdk-js-browser": "^1.0.0"
