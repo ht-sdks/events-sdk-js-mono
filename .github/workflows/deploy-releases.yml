@@ -19,6 +19,7 @@ jobs:
     with:
       name: core
       working-directory: packages/core
+    secrets: inherit
 
   deploy-browser:
     if: "startsWith( github.ref_name, 'browser@' )"
@@ -89,15 +90,18 @@ jobs:
     with:
       name: node
       working-directory: packages/node
+    secrets: inherit
 
   deploy-consent-tools:
     uses: ./.github/workflows/deploy-npm.template.yml
     with:
       name: consent-tools
       working-directory: packages/consent/consent-tools
+    secrets: inherit
 
   deploy-consent-wrapper-onetrust:
     uses: ./.github/workflows/deploy-npm.template.yml
     with:
       name: consent-wrapper-onetrust
       working-directory: packages/consent/consent-wrapper-onetrust
+    secrets: inherit
