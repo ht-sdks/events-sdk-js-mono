@@ -220,9 +220,9 @@ For further examples check out our [existing plugins](/packages/browser/src/plug
 ## QA
 Feature work and bug fixes should include tests. Run all [Jest](https://jestjs.io) tests:
 ```
-$ turbo test
+$ npx turbo test
 ```
 Lint all with [ESLint](https://github.com/typescript-eslint/typescript-eslint/):
 ```
-$ turbo lint
+$ npx turbo lint
 ```
