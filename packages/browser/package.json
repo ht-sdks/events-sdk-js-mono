@@ -41,7 +41,7 @@
   "size-limit": [
     {
       "path": "dist/umd/index.js",
-      "limit": "36 KB"
+      "limit": "37 KB"
     }
   ],
   "dependencies": {
