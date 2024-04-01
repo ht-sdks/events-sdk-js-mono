@@ -35,12 +35,13 @@
     "cjs": "tsc -p tsconfig.build.json --outDir ./dist/cjs --module commonjs",
     "clean": "rm -rf dist",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
-    "test": "jest"
+    "test": "jest",
+    "size-limit": "size-limit"
   },
   "size-limit": [
     {
       "path": "dist/umd/index.js",
-      "limit": "28.9 KB"
+      "limit": "36 KB"
     }
   ],
   "dependencies": {

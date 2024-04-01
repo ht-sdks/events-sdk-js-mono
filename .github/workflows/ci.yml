@@ -35,4 +35,7 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm run size-limit
+        working-directory: packages/browser
+
       - run: npm run test
