@@ -13,7 +13,9 @@ on:
         required: false
         type: string
         default: ${{ github.event.release.tag_name || github.ref_name }}
-
+    secrets:
+      NPM_TOKEN:
+        required: true
     outputs:
       version:
         description: "The NPM package version"
