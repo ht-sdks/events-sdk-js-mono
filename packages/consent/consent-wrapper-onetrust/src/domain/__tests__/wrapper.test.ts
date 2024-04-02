@@ -43,27 +43,12 @@ const createWrapperSpyHelper = {
  * We should prefer unit tests for most functionality (see lib/__tests__)
  */
 describe('High level "integration" tests', () => {
-  let resolveResolveWhen = () => {}
   beforeEach(() => {
     jest
       .spyOn(OneTrustAPI, 'getOneTrustGlobal')
       .mockImplementation(() => OneTrustMockGlobal)
     getConsentedGroupIdsSpy.mockReset()
     Object.values(OneTrustMockGlobal).forEach((fn) => fn.mockReset())
-    /**
-     * Typically, resolveWhen triggers when a predicate is true. We can manually 'check' so we don't have to use timeouts.
-     */
-    jest.spyOn(ConsentTools, 'resolveWhen').mockImplementation(async (fn) => {
-      return new Promise((_resolve) => {
-        resolveResolveWhen = () => {
-          if (fn()) {
-            _resolve()
-          } else {
-            throw new Error('Refuse to resolve, resolveWhen condition is false')
-          }
-        }
-      })
-    })
   })
 
   describe('shouldLoad', () => {
@@ -83,7 +68,6 @@ describe('High level "integration" tests', () => {
       await sleep(0)
       expect(shouldLoadResolved).toBe(false)
       OneTrustMockGlobal.IsAlertBoxClosed.mockReturnValueOnce(true)
-      resolveResolveWhen()
       const result = await shouldLoadP
       expect(result).toBe(undefined)
     })
@@ -122,12 +106,11 @@ describe('High level "integration" tests', () => {
           grpFixture.Targeting,
         ],
       })
-      const onCategoriesChangedCb = jest.fn()
+      const setCategories = jest.fn()
 
-      createWrapperSpyHelper.registerOnConsentChanged(onCategoriesChangedCb)
-      onCategoriesChangedCb()
+      createWrapperSpyHelper.registerOnConsentChanged(setCategories)
+      setCategories()
 
-      resolveResolveWhen() // wait for OneTrust global to be available
       await sleep(0)
 
       const onConsentChangedArg =
@@ -141,7 +124,7 @@ describe('High level "integration" tests', () => {
         })
       )
       // expect to be normalized!
-      expect(onCategoriesChangedCb.mock.lastCall[0]).toEqual({
+      expect(setCategories.mock.lastCall[0]).toEqual({
         [grpFixture.StrictlyNeccessary.CustomGroupId]: true,
         [grpFixture.Performance.CustomGroupId]: true,
         [grpFixture.Targeting.CustomGroupId]: false,

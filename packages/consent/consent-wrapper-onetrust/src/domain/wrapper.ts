@@ -2,7 +2,6 @@ import {
   AnyAnalytics,
   createWrapper,
   CreateWrapperSettings,
-  RegisterOnConsentChangedFunction,
   resolveWhen,
 } from '@ht-sdks/events-sdk-js-consent-tools'
 
@@ -27,35 +26,33 @@ export const withOneTrust = <Analytics extends AnyAnalytics>(
   analyticsInstance: Analytics,
   settings: OneTrustSettings = {}
 ): Analytics => {
-  const registerOnConsentChanged: RegisterOnConsentChangedFunction = async (
-    onCategoriesChangedCb
-  ) => {
-    await resolveWhen(() => getOneTrustGlobal() !== undefined, 500)
-    getOneTrustGlobal()!.OnConsentChanged((event) => {
-      const normalizedCategories = getNormalizedCategoriesFromGroupIds(
-        event.detail
-      )
-      onCategoriesChangedCb(normalizedCategories)
-    })
-  }
   return createWrapper<Analytics>({
     shouldLoad: async () => {
-      await resolveWhen(() => {
-        const oneTrustGlobal = getOneTrustGlobal()
-        return (
-          oneTrustGlobal !== undefined &&
-          Boolean(getConsentedGroupIds().length) &&
-          oneTrustGlobal.IsAlertBoxClosed()
-        )
-      }, 500)
+      const oneTrust = await getOneTrust()
+      await resolveWhen(
+        () => getConsentedGroupIds().length > 0 && oneTrust.IsAlertBoxClosed()
+      )
     },
+
     getCategories: () => {
-      const results = getNormalizedCategoriesFromGroupData()
-      return results
+      return getNormalizedCategoriesFromGroupData()
     },
+
     registerOnConsentChanged: settings.disableConsentChangedEvent
       ? undefined
-      : registerOnConsentChanged,
+      : async (setCategories) => {
+          const oneTrust = await getOneTrust()
+          oneTrust.OnConsentChanged((event) => {
+            const categories = getNormalizedCategoriesFromGroupIds(event.detail)
+            setCategories(categories)
+          })
+        },
+
     integrationCategoryMappings: settings.integrationCategoryMappings,
   })(analyticsInstance)
+}
+
+const getOneTrust = async () => {
+  await resolveWhen(() => getOneTrustGlobal() != null)
+  return getOneTrustGlobal()!
 }
