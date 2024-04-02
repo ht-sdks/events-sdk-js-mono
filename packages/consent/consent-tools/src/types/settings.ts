@@ -6,7 +6,7 @@ import type {
 } from './wrapper'
 
 export type RegisterOnConsentChangedFunction = (
-  categoriesChangedCb: (categories: Categories) => void
+  setCategories: (categories: Categories) => void
 ) => void
 
 /**
@@ -37,9 +37,9 @@ export interface CreateWrapperSettings {
    * #### Note: The callback requires the categories to be in the shape of { "C0001": true, "C0002": false }, so some normalization may be needed.
    * @example
    * ```ts
-   * async (categoriesChangedCb) => {
+   * async (setCategories) => {
    *   await resolveWhen(() => window.MyCMP !== undefined, 500)
-   *   window.MyCMP.OnConsentChanged((event.detail) => categoriesChangedCb(normalizeCategories(event.detail))
+   *   window.MyCMP.OnConsentChanged((event.detail) => setCategories(normalizeCategories(event.detail))
    * }
    *
    * /* event payload

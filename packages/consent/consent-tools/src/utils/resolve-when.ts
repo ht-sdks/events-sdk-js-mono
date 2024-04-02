@@ -10,7 +10,7 @@
  */
 export async function resolveWhen(
   condition: () => boolean,
-  delayMs: number
+  delayMs = 500
 ): Promise<void> {
   return new Promise((resolve, _reject) => {
     if (condition()) {
