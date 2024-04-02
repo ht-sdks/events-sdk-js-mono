@@ -9,14 +9,10 @@ This package provides a generic interface for integrating with a Consent Managem
 import { createWrapper, resolveWhen } from '@ht-sdks/events-sdk-js-consent-tools'
 
 export const withCMP = createWrapper({
-
   // Wrapper waits to load htevents / get categories until this function resolves
   shouldLoad: async (ctx) => {
     const CMP = await getCMP()
-    await resolveWhen(
-      () => !CMP.popUpVisible(),
-      500
-    )
+    await resolveWhen(() => !CMP.popUpVisible())
 
     // Optional -- for granular control of initialization
     if (noConsentNeeded) {
@@ -39,9 +35,8 @@ export const withCMP = createWrapper({
   },
 })
 
-
 const getCMP = async () => {
- await resolveWhen(() => window.CMP !== undefined, 500)
+ await resolveWhen(() => window.CMP != null)
  return window.CMP
 }
 ```
@@ -57,7 +52,6 @@ import { withCMP } from './cmp-wrapper'
 export const htevents = new HtEventsBrowser()
 
 withCMP(htevents).load({ writeKey: 'WRITE_KEY' })
-
 ```
 
 ## Snippet users (window.htevents)
@@ -90,11 +84,11 @@ See the complete list of settings in the **[Settings interface](src/types/settin
 1. Build this package + all dependencies
 
 ```sh
-turbo build
+npx turbo build
 ```
 
 2. Run tests
 
-```
-turbo test
+```sh
+npx turbo test
 ```

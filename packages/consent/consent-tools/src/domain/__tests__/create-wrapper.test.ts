@@ -763,14 +763,14 @@ describe(createWrapper, () => {
       'sendConsentChangedEvent'
     )
 
-    let categoriesChangedCb: (categories: Categories) => void = () => {
+    let setCategories: (categories: Categories) => void = () => {
       throw new Error('Not implemented')
     }
 
     const registerOnConsentChanged = jest.fn(
       (consentChangedCb: (c: Categories) => void) => {
         // simulate a OneTrust.onConsentChanged event callback
-        categoriesChangedCb = jest.fn((categories: Categories) =>
+        setCategories = jest.fn((categories: Categories) =>
           consentChangedCb(categories)
         )
       }
@@ -783,7 +783,7 @@ describe(createWrapper, () => {
 
       expect(sendConsentChangedEventSpy).not.toBeCalled()
       expect(registerOnConsentChanged).toBeCalledTimes(1)
-      categoriesChangedCb({ C0001: true, C0002: false })
+      setCategories({ C0001: true, C0002: false })
       expect(registerOnConsentChanged).toBeCalledTimes(1)
       expect(sendConsentChangedEventSpy).toBeCalledTimes(1)
 
@@ -809,7 +809,7 @@ describe(createWrapper, () => {
 
       await analytics.load(DEFAULT_LOAD_SETTINGS)
       expect(consoleErrorSpy).not.toBeCalled()
-      categoriesChangedCb(['OOPS'] as any)
+      setCategories(['OOPS'] as any)
       expect(consoleErrorSpy).toBeCalledTimes(1)
       const err = consoleErrorSpy.mock.lastCall![0]
       expect(err.toString()).toMatch(/validation/i)
