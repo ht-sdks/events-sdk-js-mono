@@ -1,3 +1,4 @@
+import { HightouchEvent } from '../../core/events'
 import { ActionDestination } from '../remote-loader'
 import type { DestinationPluginFactory } from './types'
 
@@ -9,14 +10,39 @@ declare global {
 
 type GoogleTagManagerSettings = {
   measurementId: string | string[]
+  trackAllPages?: boolean
+  trackNamedPages?: boolean
+  trackCategorizedPages?: boolean
 }
 
-const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = (
-  settings
-) => {
-  const measurementIds = Array.isArray(settings.measurementId)
-    ? settings.measurementId
-    : [settings.measurementId]
+const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = ({
+  measurementId,
+  trackAllPages = false,
+  trackNamedPages = false,
+  trackCategorizedPages = false,
+}) => {
+  const measurementIds = Array.isArray(measurementId)
+    ? measurementId
+    : [measurementId]
+
+  const baseEvent = (event: HightouchEvent) => {
+    return {
+      ...(event.userId && {
+        user_id: event.userId,
+      }),
+      ...(event.anonymousId && {
+        hightouch_anonymous_id: event.anonymousId,
+      }),
+      ...(event.category && {
+        category: event.category,
+      }),
+      ...(event.name && {
+        name: event.name,
+      }),
+      ...event.properties,
+      send_to: measurementIds,
+    }
+  }
 
   return new ActionDestination('Google Tag Manager', {
     name: 'Google Tag Manager',
@@ -41,39 +67,23 @@ const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = (
     },
 
     page: (ctx) => {
-      console.log('[page]', ctx.event)
-      const name = 'page_view'
-
-      const payload = {
-        send_to: measurementIds,
-        ...(ctx.event.userId && {
-          user_id: ctx.event.userId,
-        }),
-        ...(ctx.event.anonymousId && {
-          hightouch_anonymous_id: ctx.event.anonymousId,
-        }),
+      if (
+        trackAllPages ||
+        (trackNamedPages && ctx.event.name) ||
+        (trackCategorizedPages && ctx.event.category)
+      ) {
+        window.gtag('event', 'page_view', {
+          ...baseEvent(ctx.event),
+        })
       }
-
-      window.gtag('event', name, payload)
 
       return ctx
     },
 
     track: (ctx) => {
-      const name = ctx.event.event
-
-      const payload = {
-        ...ctx.event.properties,
-        ...(ctx.event.userId && {
-          user_id: ctx.event.userId,
-        }),
-        ...(ctx.event.anonymousId && {
-          hightouch_anonymous_id: ctx.event.anonymousId,
-        }),
-        send_to: measurementIds,
-      }
-
-      window.gtag('event', name, payload)
+      window.gtag('event', ctx.event.event, {
+        ...baseEvent(ctx.event),
+      })
 
       return ctx
     },
