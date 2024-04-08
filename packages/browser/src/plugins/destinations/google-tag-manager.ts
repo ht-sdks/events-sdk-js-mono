@@ -15,11 +15,14 @@ type GoogleTagManagerSettings = {
   trackCategorizedPages?: boolean
 }
 
+/**
+ * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/google-tag-manager/lib/index.js
+ */
 const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = ({
   measurementId,
   trackAllPages = false,
-  trackNamedPages = false,
-  trackCategorizedPages = false,
+  trackNamedPages = true,
+  trackCategorizedPages = true,
 }) => {
   const measurementIds = Array.isArray(measurementId)
     ? measurementId
