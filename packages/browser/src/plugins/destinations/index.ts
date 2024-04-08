@@ -1,12 +1,13 @@
-import type { DestinationPluginSettings } from './types'
-import type { DestinationPlugin } from '../../core/plugin'
+import type { DestinationSettings } from './types'
+import type { Destination } from './destination'
 
-export type { DestinationPluginSettings } from './types'
+export { Destination } from './destination'
+export type { DestinationSettings } from './types'
 
-export async function createDestinationPlugin(
+export async function createDestination(
   name: string,
-  settings: DestinationPluginSettings
-): Promise<DestinationPlugin | undefined> {
+  settings: DestinationSettings
+): Promise<Destination | undefined> {
   switch (name) {
     case 'Google Tag Manager':
       return import(

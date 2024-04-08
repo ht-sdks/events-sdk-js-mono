@@ -1,5 +1,5 @@
 import type { HightouchEvent } from '../../core/events'
-import type { DestinationPluginFactory } from './types'
+import type { DestinationFactory } from './types'
 import { Destination } from './destination'
 
 declare global {
@@ -18,7 +18,7 @@ type GoogleTagManagerSettings = {
 /**
  * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/google-tag-manager/lib/index.js
  */
-const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = ({
+const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
   measurementId,
   trackAllPages = false,
   trackNamedPages = true,
