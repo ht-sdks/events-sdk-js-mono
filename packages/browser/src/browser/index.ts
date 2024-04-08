@@ -271,15 +271,17 @@ async function registerPlugins(
     )
   }
 
-  // register browser destination plugins
+  // destination plugins
   await Promise.allSettled(
     Object.entries(options.destinations ?? {}).map(async ([name, settings]) => {
       const plugin = await createDestinationPlugin(name, settings)
       if (plugin) {
         toRegister.push(plugin)
-        console.log('successfully loaded destination', name)
+        console.debug(
+          `loaded destination plugin: ${plugin.name} v${plugin.version}`
+        )
       } else {
-        console.warn('failed to load destination', name)
+        console.warn(`failed to load destination plugin: ${name}`)
       }
     })
   )
