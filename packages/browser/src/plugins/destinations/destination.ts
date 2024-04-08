@@ -5,6 +5,20 @@ import {
   DestinationMiddlewareFunction,
 } from '../middleware'
 
+// removes the return type from a function
+type NoReturn<T> = T extends (...args: any[]) => any
+  ? (...args: Parameters<T>) => void | Promise<void>
+  : T
+
+type PluginActions = Pick<
+  Plugin,
+  'alias' | 'group' | 'identify' | 'page' | 'screen' | 'track'
+>
+
+type DestinationActions = {
+  [K in keyof PluginActions]: NoReturn<PluginActions[K]>
+}
+
 export class Destination implements DestinationPlugin {
   readonly type = 'destination'
   readonly middleware: DestinationMiddlewareFunction[] = []
@@ -12,10 +26,7 @@ export class Destination implements DestinationPlugin {
   constructor(
     readonly name: string,
     readonly version: string,
-    readonly actions: Pick<
-      Plugin,
-      'alias' | 'group' | 'identify' | 'page' | 'screen' | 'track'
-    >
+    readonly actions: DestinationActions
   ) {}
 
   isLoaded() {
@@ -56,9 +67,7 @@ export class Destination implements DestinationPlugin {
     return new Context(modifiedEvent)
   }
 
-  private _createMethod(
-    action: 'track' | 'page' | 'identify' | 'alias' | 'group' | 'screen'
-  ) {
+  private _createMethod(action: keyof DestinationActions) {
     return async (ctx: Context): Promise<Context> => {
       if (!this.actions[action]) return ctx
 

@@ -1,8 +1,8 @@
 import type { DestinationSettings } from './types'
-import type { Destination } from './destination'
+import { Destination } from './destination'
 
-export { Destination } from './destination'
-export type { DestinationSettings } from './types'
+export { Destination }
+export type { DestinationSettings }
 
 export async function createDestination(
   name: string,

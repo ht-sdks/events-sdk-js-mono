@@ -50,8 +50,6 @@ const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
           })
         })
       }
-
-      return ctx
     },
 
     page: (ctx) => {
@@ -64,16 +62,12 @@ const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
           ...baseEvent(ctx.event),
         })
       }
-
-      return ctx
     },
 
     track: (ctx) => {
       window.gtag('event', ctx.event.event, {
         ...baseEvent(ctx.event),
       })
-
-      return ctx
     },
   })
 }

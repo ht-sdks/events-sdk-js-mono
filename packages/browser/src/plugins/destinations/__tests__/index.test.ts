@@ -23,7 +23,6 @@ describe('destination', () => {
     const destination = new Destination('Test', '0.0.0', {
       track(ctx) {
         spy(ctx.event)
-        return ctx
       },
     })
 
