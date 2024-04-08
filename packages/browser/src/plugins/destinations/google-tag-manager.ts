@@ -33,12 +33,6 @@ const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = ({
       ...(event.anonymousId && {
         hightouch_anonymous_id: event.anonymousId,
       }),
-      ...(event.category && {
-        category: event.category,
-      }),
-      ...(event.name && {
-        name: event.name,
-      }),
       ...event.properties,
       send_to: measurementIds,
     }
