@@ -1,6 +1,6 @@
-import { HightouchEvent } from '../../core/events'
-import { ActionDestination } from '../remote-loader'
+import type { HightouchEvent } from '../../core/events'
 import type { DestinationPluginFactory } from './types'
+import { Destination } from './destination'
 
 declare global {
   interface Window {
@@ -44,16 +44,7 @@ const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = ({
     }
   }
 
-  return new ActionDestination('Google Tag Manager', {
-    name: 'Google Tag Manager',
-    version: '0.0.1',
-    type: 'destination',
-    ready: () => Promise.resolve(),
-
-    isLoaded: () => true,
-    load: (_ctx, _instance, _config) => Promise.resolve(),
-    unload: (_ctx, _instance) => Promise.resolve(),
-
+  return new Destination('Google Tag Manager', '0.0.1', {
     identify: (ctx) => {
       if (ctx.event.userId) {
         measurementIds.forEach((measurementId) => {
