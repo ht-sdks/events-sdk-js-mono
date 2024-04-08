@@ -1,5 +1,5 @@
 import { ActionDestination } from '../remote-loader'
-import type { PluginFactory } from './types'
+import type { DestinationPluginFactory } from './types'
 
 declare global {
   interface Window {
@@ -11,7 +11,7 @@ type GoogleTagManagerSettings = {
   measurementId: string | string[]
 }
 
-const googleTagManager: PluginFactory<GoogleTagManagerSettings> = (
+const googleTagManager: DestinationPluginFactory<GoogleTagManagerSettings> = (
   settings
 ) => {
   const measurementIds = Array.isArray(settings.measurementId)
@@ -41,6 +41,7 @@ const googleTagManager: PluginFactory<GoogleTagManagerSettings> = (
     },
 
     page: (ctx) => {
+      console.log('[page]', ctx.event)
       const name = 'page_view'
 
       const payload = {

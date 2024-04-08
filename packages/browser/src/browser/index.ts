@@ -30,7 +30,7 @@ import {
 import { ClassicIntegrationSource } from '../plugins/ajs-destination/types'
 import { attachInspector } from '../core/inspector'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
-import { createPlugin } from '../plugins/browser-destinations'
+import { createDestinationPlugin } from '../plugins/destinations'
 
 export interface LegacyIntegrationConfiguration {
   /* @deprecated - This does not indicate browser types anymore */
@@ -273,13 +273,13 @@ async function registerPlugins(
 
   // register browser destination plugins
   await Promise.allSettled(
-    Object.entries(options.plugins ?? {}).map(async ([name, settings]) => {
-      const plugin = await createPlugin(name, settings)
+    Object.entries(options.destinations ?? {}).map(async ([name, settings]) => {
+      const plugin = await createDestinationPlugin(name, settings)
       if (plugin) {
         toRegister.push(plugin)
-        console.log('successfully loaded plugin', name)
+        console.log('successfully loaded destination', name)
       } else {
-        console.warn('failed to load plugin', name)
+        console.warn('failed to load destination', name)
       }
     })
   )
