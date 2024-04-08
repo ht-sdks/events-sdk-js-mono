@@ -1,5 +1,5 @@
-import { createDestination } from '..'
 import { HtEventsBrowser } from '../../../browser'
+import { createDestination } from '..'
 import { Destination } from '../destination'
 
 describe('createDestination', () => {
