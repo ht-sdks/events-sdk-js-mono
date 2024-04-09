@@ -51,7 +51,7 @@ export class HTTPCookieService {
     renewUrl: string
     clearUrl: string
   } {
-    const origin = options.origin ?? new URL(window.location.href).origin
+    const origin = options.origin ?? window.location.origin
     return {
       origin,
       renewUrl: new URL(options.renewUrl, origin).href,
