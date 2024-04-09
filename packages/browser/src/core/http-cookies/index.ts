@@ -5,6 +5,7 @@ type DeferredRequest = () => Promise<Response>
 export type HTTPCookieServiceOptions = {
   renewUrl: string
   clearUrl: string
+  origin?: string
   retries?: number
   backoff?: number
   flushInterval?: number
@@ -35,12 +36,27 @@ export class HTTPCookieService {
   private flushIntervalId?: NodeJS.Timer
 
   private constructor(options: HTTPCookieServiceOptions) {
-    this.renewUrl = options.renewUrl
-    this.clearUrl = options.clearUrl
+    const urls = HTTPCookieService.urlHelper(options)
+    this.renewUrl = urls.renewUrl
+    this.clearUrl = urls.clearUrl
+
     this.backoff = options.backoff ?? 300
     this.retries = options.retries ?? 3
     this.flushInterval = options.flushInterval ?? 1000
     this.queue = []
+  }
+
+  static urlHelper(options: HTTPCookieServiceOptions): {
+    origin: string
+    renewUrl: string
+    clearUrl: string
+  } {
+    const origin = options.origin ?? new URL(window.location.href).origin
+    return {
+      origin,
+      renewUrl: new URL(options.renewUrl, origin).href,
+      clearUrl: new URL(options.clearUrl, origin).href,
+    }
   }
 
   static async load(
@@ -50,7 +66,7 @@ export class HTTPCookieService {
 
     // renew any existing HTTPCookies already on the device
     // we want `load()` to block on this, so await directly instead of calling dispatch
-    const req = cookieService.sendHTTPCookies(options.renewUrl)
+    const req = cookieService.sendHTTPCookies(cookieService.renewUrl)
     await retry(req, cookieService.retries, cookieService.backoff).catch(
       console.error
     )
