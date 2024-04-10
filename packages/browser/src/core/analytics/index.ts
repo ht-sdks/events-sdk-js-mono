@@ -59,10 +59,7 @@ import type {
   HTTPCookieService,
   HTTPCookieServiceOptions,
 } from '../http-cookies'
-import type {
-  DestinationSettings,
-  Destination,
-} from '../../plugins/destinations'
+import type { DestinationSettings } from '../../plugins/destinations'
 
 const deprecationWarning =
   'This is being deprecated and will be not be available in future releases of Analytics JS'
@@ -139,9 +136,8 @@ export interface InitOptions {
 
   /**
    * Allows specifying plugins as configuration. Used to load plugins in `plugins/destinations/*`.
-   * If a plugin is specified here, it will be loaded with the corresponding settings.
    */
-  destinations?: Record<string, DestinationSettings | Destination>
+  destinations?: Record<string, DestinationSettings>
 
   /**
    * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created

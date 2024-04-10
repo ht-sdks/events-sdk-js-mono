@@ -19,6 +19,9 @@ type DestinationActions = {
   [K in keyof PluginActions]: NoReturn<PluginActions[K]>
 }
 
+/**
+ * Convenience class for writing 3rd party destination plugins
+ */
 export class Destination implements DestinationPlugin {
   readonly type = 'destination'
   readonly middleware: DestinationMiddlewareFunction[] = []
@@ -34,6 +37,7 @@ export class Destination implements DestinationPlugin {
   }
 
   load() {
+    console.debug(`loaded destination plugin: ${this.name} v${this.version}`)
     return Promise.resolve()
   }
 
