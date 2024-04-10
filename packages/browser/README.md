@@ -263,6 +263,27 @@ htevents.track('My Event', { prop: 'abc' })
 // gtag('event', 'My Event', { prop: 'abc', user_id: '123' })
 ```
 
+## Custom client-side destinations
+
+If you'd like to send events to a custom client-side destination that is not yet supported, you can do so using the `Destination` class as a template and implement the relevant tracking methods (`track`, `page`, etc).
+
+```ts
+import { HtEventsBrowser, Destination } from "@ht-sdks/events-sdk-js-browser";
+
+const htevents = new HtEventsBrowser();
+
+htevents.load({ writeKey: "WRITE_KEY" });
+
+// register custom client-side destination
+htevents.register(
+  new Destination("Console", "1.2.3", {
+    track: (ctx) => {
+      console.log("[console.track]", ctx.event);
+    },
+  })
+);
+```
+
 ## QA
 Feature work and bug fixes should include tests. Run all [Jest](https://jestjs.io) tests:
 ```
