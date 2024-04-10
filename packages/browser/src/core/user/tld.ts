@@ -1,4 +1,4 @@
-import cookie from 'js-cookie'
+import cookie, { CookieAttributes } from 'js-cookie'
 
 /**
  * Levels returns all levels of the given url.
@@ -54,6 +54,37 @@ export function tld(url: string): string | undefined {
     try {
       // cookie access throw an error if the library is ran inside a sandboxed environment (e.g. sandboxed iframe)
       cookie.set(cname, '1', opts)
+      if (cookie.get(cname)) {
+        cookie.remove(cname, opts)
+        return domain
+      }
+    } catch (_) {
+      return
+    }
+  }
+}
+
+export function topAllowableDomain(url: string): string | undefined {
+  const parsedUrl = parseUrl(url)
+  if (!parsedUrl) return
+
+  const lvls = levels(parsedUrl)
+
+  // Lookup the most top level domain that the browser will allow
+  for (let i = 0; i < lvls.length; ++i) {
+    const cname = 'htjs_test'
+    const domain = lvls[i]
+    const opts = {
+      domain: '.' + domain,
+      path: '/',
+      sameSite: 'Lax',
+    } as CookieAttributes
+
+    try {
+      // cookie access throw an error if the library is ran inside a sandboxed environment (e.g. sandboxed iframe)
+      cookie.set(cname, '1', opts)
+      console.error('domain', domain)
+      console.error('GOT COOKIE', cname, cookie.get(cname))
       if (cookie.get(cname)) {
         cookie.remove(cname, opts)
         return domain
