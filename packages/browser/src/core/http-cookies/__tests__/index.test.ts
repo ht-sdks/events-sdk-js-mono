@@ -13,55 +13,34 @@ describe('HTTPCookieService', () => {
     // if the user passes a slash prefix
     expect(
       HTTPCookieService.urlHelper({
-        origin: 'http://localhost:8080/',
-        renewUrl: '/renew',
-        clearUrl: '/clear',
-      }).renewUrl
-    ).toEqual('http://localhost:8080/renew')
-
-    // if the user passes no slash prefix
-    expect(
-      HTTPCookieService.urlHelper({
-        origin: 'http://localhost:8080/',
-        renewUrl: 'renew',
-        clearUrl: 'clear',
-      }).renewUrl
-    ).toEqual('http://localhost:8080/renew')
-
-    // if the user omits all slashes
-    expect(
-      HTTPCookieService.urlHelper({
-        origin: 'http://localhost:8080',
-        renewUrl: 'renew',
-        clearUrl: 'clear',
-      }).renewUrl
-    ).toEqual('http://localhost:8080/renew')
-
-    // if the user passes a full URL to the renewUrl, that will be used as the renewUrl
-    expect(
-      HTTPCookieService.urlHelper({
-        origin: 'http://localhost:8080/',
-        renewUrl: 'http://localhost:808/renew',
-        clearUrl: '/clear',
-      }).renewUrl
-    ).toEqual('http://localhost:808/renew')
-
-    // if the user omits origin
-    expect(
-      HTTPCookieService.urlHelper({
         renewUrl: '/renew',
         clearUrl: '/clear',
       }).renewUrl
     ).toEqual('http://localhost/renew')
 
-    // if the user passes an invalid origin (e.g. omits http scheme), throw error
-    expect(() => {
+    // if the user passes no slash prefix
+    expect(
       HTTPCookieService.urlHelper({
-        origin: 'localhost:8080/',
-        renewUrl: '/renew',
+        renewUrl: 'renew',
+        clearUrl: 'clear',
+      }).renewUrl
+    ).toEqual('http://localhost/renew')
+
+    // if the user omits all slashes
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: 'renew',
+        clearUrl: 'clear',
+      }).renewUrl
+    ).toEqual('http://localhost/renew')
+
+    // if the user passes a full URL to the renewUrl, that will be used as the renewUrl
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: 'http://localhost:808/renew',
         clearUrl: '/clear',
       }).renewUrl
-    }).toThrow('Invalid URL: /renew')
+    ).toEqual('http://localhost:808/renew')
   })
 
   it('renews cookie on load', async () => {
@@ -303,16 +282,14 @@ describe('Analytics - HTTPCookieService - Integration', () => {
   })
 
   it('does not stop normal functioning on wrong url', async () => {
-    // this will console.error the bad origin URL
-    // this will NOT throw an error
+    // this will not throw an error
     new Analytics(
       {
         writeKey: 'abc',
       },
       {
         httpCookieServiceOptions: {
-          origin: 'localhost:8080/',
-          renewUrl: 'ht/renewtest',
+          renewUrl: 'http::invalid://ht/renewtest',
           clearUrl: 'ht/cleartest',
         },
       }

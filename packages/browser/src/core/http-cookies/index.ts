@@ -5,7 +5,6 @@ type DeferredRequest = () => Promise<Response>
 export type HTTPCookieServiceOptions = {
   renewUrl: string
   clearUrl: string
-  origin?: string
   retries?: number
   backoff?: number
   flushInterval?: number
@@ -47,13 +46,11 @@ export class HTTPCookieService {
   }
 
   static urlHelper(options: HTTPCookieServiceOptions): {
-    origin: string
     renewUrl: string
     clearUrl: string
   } {
-    const origin = options.origin ?? window.location.origin
+    const origin = window.location.origin
     return {
-      origin,
       renewUrl: new URL(options.renewUrl, origin).href,
       clearUrl: new URL(options.clearUrl, origin).href,
     }
