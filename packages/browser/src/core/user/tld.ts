@@ -45,34 +45,9 @@ export function tld(url: string): string | undefined {
 
   const lvls = levels(parsedUrl)
 
-  // Lookup the real top level one.
+  // Test for the top most domain that the browser allows
   for (let i = 0; i < lvls.length; ++i) {
-    const cname = '__tld__'
-    const domain = lvls[i]
-    const opts = { domain: '.' + domain }
-
-    try {
-      // cookie access throw an error if the library is ran inside a sandboxed environment (e.g. sandboxed iframe)
-      cookie.set(cname, '1', opts)
-      if (cookie.get(cname)) {
-        cookie.remove(cname, opts)
-        return domain
-      }
-    } catch (_) {
-      return
-    }
-  }
-}
-
-export function topAllowableDomain(url: string): string | undefined {
-  const parsedUrl = parseUrl(url)
-  if (!parsedUrl) return
-
-  const lvls = levels(parsedUrl)
-
-  // Lookup the most top level domain that the browser will allow
-  for (let i = 0; i < lvls.length; ++i) {
-    const cname = (Math.random() * 10_000).toString()
+    const cname = Math.round(Math.random() * 10_000).toString()
     const domain = lvls[i]
     const opts = {
       domain: '.' + domain,
@@ -83,8 +58,6 @@ export function topAllowableDomain(url: string): string | undefined {
     try {
       // cookie access throw an error if the library is ran inside a sandboxed environment (e.g. sandboxed iframe)
       cookie.set(cname, '1', opts)
-      console.error('domain', domain)
-      console.error('GOT COOKIE', cname, cookie.get(cname))
       if (cookie.get(cname)) {
         cookie.remove(cname, opts)
         return domain

@@ -1,6 +1,6 @@
 import { Store, StorageObject } from './types'
 import jar from 'js-cookie'
-import { topAllowableDomain } from '../user/tld'
+import { tld } from '../user/tld'
 
 const ONE_YEAR = 365
 
@@ -21,7 +21,7 @@ export class CookieStorage<Data extends StorageObject = StorageObject>
   static get defaults(): CookieOptions {
     return {
       maxage: ONE_YEAR,
-      domain: topAllowableDomain(window.location.href),
+      domain: tld(window.location.href),
       path: '/',
       sameSite: 'Lax',
     }
