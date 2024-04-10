@@ -7,6 +7,42 @@ async function sleep(delayMS: number): Promise<void> {
 }
 
 describe('HTTPCookieService', () => {
+  it('handles different combinations of origin and url path', async () => {
+    // HTTPCookieService constructor uses `new URL(path, origin).href to normalize URLs
+
+    // if the user passes a slash prefix
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: '/renew',
+        clearUrl: '/clear',
+      }).renewUrl
+    ).toEqual('http://localhost/renew')
+
+    // if the user passes no slash prefix
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: 'renew',
+        clearUrl: 'clear',
+      }).renewUrl
+    ).toEqual('http://localhost/renew')
+
+    // if the user omits all slashes
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: 'renew',
+        clearUrl: 'clear',
+      }).renewUrl
+    ).toEqual('http://localhost/renew')
+
+    // if the user passes a full URL to the renewUrl, that will be used as the renewUrl
+    expect(
+      HTTPCookieService.urlHelper({
+        renewUrl: 'http://localhost:808/renew',
+        clearUrl: '/clear',
+      }).renewUrl
+    ).toEqual('http://localhost:808/renew')
+  })
+
   it('renews cookie on load', async () => {
     const spy = jest.spyOn(fetchLib, 'fetch')
     spy.mockImplementation(
@@ -18,7 +54,7 @@ describe('HTTPCookieService', () => {
       clearUrl: 'ht/cleartest',
     })
 
-    expect(spy).toHaveBeenCalledWith('ht/renewtest', {
+    expect(spy).toHaveBeenCalledWith('http://localhost/ht/renewtest', {
       body: expect.anything(),
       credentials: 'include',
       headers: {
@@ -44,9 +80,18 @@ describe('HTTPCookieService', () => {
     })
 
     expect(spy).toHaveBeenCalledTimes(3)
-    expect(spy.mock.calls[0]).toEqual(['ht/renewtest', expect.anything()])
-    expect(spy.mock.calls[1]).toEqual(['ht/renewtest', expect.anything()])
-    expect(spy.mock.calls[2]).toEqual(['ht/renewtest', expect.anything()])
+    expect(spy.mock.calls[0]).toEqual([
+      'http://localhost/ht/renewtest',
+      expect.anything(),
+    ])
+    expect(spy.mock.calls[1]).toEqual([
+      'http://localhost/ht/renewtest',
+      expect.anything(),
+    ])
+    expect(spy.mock.calls[2]).toEqual([
+      'http://localhost/ht/renewtest',
+      expect.anything(),
+    ])
     spy.mockRestore()
   })
 
@@ -65,7 +110,10 @@ describe('HTTPCookieService', () => {
     })
 
     expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy.mock.calls[0]).toEqual(['ht/renewtest', expect.anything()])
+    expect(spy.mock.calls[0]).toEqual([
+      'http://localhost/ht/renewtest',
+      expect.anything(),
+    ])
     spy.mockRestore()
   })
 
@@ -86,9 +134,15 @@ describe('HTTPCookieService', () => {
     await sleep(20).then(async () => {
       await expect(spy).toHaveBeenCalledTimes(2)
       // this one is from HTTPCookieService.load(...)
-      expect(spy.mock.calls[0]).toEqual(['ht/renewtest', expect.anything()])
+      expect(spy.mock.calls[0]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
       // this one is from the dispatch
-      expect(spy.mock.calls[1]).toEqual(['ht/renewtest', expect.anything()])
+      expect(spy.mock.calls[1]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
       spy.mockRestore()
     })
   })
@@ -117,16 +171,43 @@ describe('HTTPCookieService', () => {
     await sleep(20).then(async () => {
       await expect(spy).toHaveBeenCalledTimes(9)
       // this one is from HTTPCookieService.load(...)
-      expect(spy.mock.calls[0]).toEqual(['ht/renewtest', expect.anything()])
+      expect(spy.mock.calls[0]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
       // these are from the dispatch
-      expect(spy.mock.calls[1]).toEqual(['ht/renewtest', expect.anything()])
-      expect(spy.mock.calls[2]).toEqual(['ht/cleartest', expect.anything()])
-      expect(spy.mock.calls[3]).toEqual(['ht/cleartest', expect.anything()])
-      expect(spy.mock.calls[4]).toEqual(['ht/renewtest', expect.anything()])
-      expect(spy.mock.calls[5]).toEqual(['ht/renewtest', expect.anything()])
-      expect(spy.mock.calls[6]).toEqual(['ht/cleartest', expect.anything()])
-      expect(spy.mock.calls[7]).toEqual(['ht/renewtest', expect.anything()])
-      expect(spy.mock.calls[8]).toEqual(['ht/renewtest', expect.anything()])
+      expect(spy.mock.calls[1]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[2]).toEqual([
+        'http://localhost/ht/cleartest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[3]).toEqual([
+        'http://localhost/ht/cleartest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[4]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[5]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[6]).toEqual([
+        'http://localhost/ht/cleartest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[7]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
+      expect(spy.mock.calls[8]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
       spy.mockRestore()
     })
   })
@@ -152,7 +233,10 @@ describe('HTTPCookieService', () => {
     await sleep(20).then(async () => {
       // call from HTTPCookieService.load(...)
       expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy.mock.calls[0]).toEqual(['ht/renewtest', expect.anything()])
+      expect(spy.mock.calls[0]).toEqual([
+        'http://localhost/ht/renewtest',
+        expect.anything(),
+      ])
     })
 
     cookieService.startQueueConsumer()
@@ -160,7 +244,10 @@ describe('HTTPCookieService', () => {
     await sleep(20).then(async () => {
       // call from the queueConsumer
       expect(spy).toHaveBeenCalledTimes(2)
-      expect(spy.mock.calls[1]).toEqual(['ht/cleartest', expect.anything()])
+      expect(spy.mock.calls[1]).toEqual([
+        'http://localhost/ht/cleartest',
+        expect.anything(),
+      ])
       spy.mockRestore()
     })
   })
@@ -192,6 +279,21 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     )
     analytics.storage.clear('htjs_anonymous_id')
     analytics.storage.clear('htjs_user_id')
+  })
+
+  it('does not stop normal functioning on wrong url', async () => {
+    // this will not throw an error
+    new Analytics(
+      {
+        writeKey: 'abc',
+      },
+      {
+        httpCookieServiceOptions: {
+          renewUrl: 'http::invalid://ht/renewtest',
+          clearUrl: 'ht/cleartest',
+        },
+      }
+    )
   })
 
   it('calls dispatchCreate() when calling anonymousId() for the first time', async () => {
@@ -404,11 +506,11 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     await sleep(30).then(async () => {
       // these are our last two dispatch calls (ignore setup stuff)
       expect(fetchSpy.mock.calls[fetchSpy.mock.calls.length - 2]).toEqual([
-        'ht/cleartest',
+        'http://localhost/ht/cleartest',
         expect.anything(),
       ])
       expect(fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1]).toEqual([
-        'ht/renewtest',
+        'http://localhost/ht/renewtest',
         expect.anything(),
       ])
     })

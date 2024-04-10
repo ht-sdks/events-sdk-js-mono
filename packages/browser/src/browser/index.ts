@@ -363,7 +363,7 @@ async function loadAnalytics(
   if (!options.disableClientPersistence && options.httpCookieServiceOptions) {
     options.httpCookieService = await HTTPCookieService.load(
       options.httpCookieServiceOptions
-    )
+    ).catch((err): undefined => console.error(err) as undefined)
   }
 
   const opts: InitOptions = { retryQueue, ...options }
