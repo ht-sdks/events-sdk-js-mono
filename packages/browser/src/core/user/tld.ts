@@ -72,7 +72,7 @@ export function topAllowableDomain(url: string): string | undefined {
 
   // Lookup the most top level domain that the browser will allow
   for (let i = 0; i < lvls.length; ++i) {
-    const cname = 'htjs_test'
+    const cname = (Math.random() * 10_000).toString()
     const domain = lvls[i]
     const opts = {
       domain: '.' + domain,
