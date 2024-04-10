@@ -140,6 +140,14 @@ export class User {
       legacyUser.id && this.id(legacyUser.id)
       legacyUser.traits && this.traits(legacyUser.traits)
     }
+
+    // HTTPCookies require that localStorage values be synced to cookies
+    if (this.options.httpCookieService) {
+      this.identityStore.getAndSync(this.anonKey)
+      this.identityStore.getAndSync(this.idKey)
+      this.options.httpCookieService?.dispatchCreate()
+    }
+
     autoBind(this)
   }
 

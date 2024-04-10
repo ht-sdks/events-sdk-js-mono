@@ -1,4 +1,4 @@
-import cookie from 'js-cookie'
+import cookie, { CookieAttributes } from 'js-cookie'
 
 /**
  * Levels returns all levels of the given url.
@@ -45,11 +45,15 @@ export function tld(url: string): string | undefined {
 
   const lvls = levels(parsedUrl)
 
-  // Lookup the real top level one.
+  // Test for the top most domain that the browser allows
   for (let i = 0; i < lvls.length; ++i) {
-    const cname = '__tld__'
+    const cname = Math.round(Math.random() * 10_000).toString()
     const domain = lvls[i]
-    const opts = { domain: '.' + domain }
+    const opts = {
+      domain: '.' + domain,
+      path: '/',
+      sameSite: 'Lax',
+    } as CookieAttributes
 
     try {
       // cookie access throw an error if the library is ran inside a sandboxed environment (e.g. sandboxed iframe)
