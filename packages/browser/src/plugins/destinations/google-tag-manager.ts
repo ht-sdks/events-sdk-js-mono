@@ -1,4 +1,4 @@
-import type { HightouchEvent } from '../../core/events'
+import type { Context } from '../../core/context'
 import type { DestinationFactory } from './types'
 import { Destination } from './destination'
 
@@ -9,9 +9,24 @@ declare global {
 }
 
 type GoogleTagManagerSettings = {
-  measurementId: string | string[]
+  /**
+   * The Google measurement ID(s) to send events to (GA4, Ads)
+   */
+  measurementId?: string | string[]
+
+  /**
+   * If a `Viewed Page` event should be sent for all `htevents.page` calls
+   */
   trackAllPages?: boolean
+
+  /**
+   * If a `Viewed <name> Page` event should be sent for `htevents.page('Name')` calls
+   */
   trackNamedPages?: boolean
+
+  /**
+   * If a `Viewed <category> <name> Page` event should be sent for `htevents.page('Category', 'Name')` calls
+   */
   trackCategorizedPages?: boolean
 }
 
@@ -19,16 +34,16 @@ type GoogleTagManagerSettings = {
  * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/google-tag-manager/lib/index.js
  */
 const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
-  measurementId,
+  measurementId = [],
   trackAllPages = false,
   trackNamedPages = true,
   trackCategorizedPages = true,
 }) => {
-  const measurementIds = Array.isArray(measurementId)
-    ? measurementId
-    : [measurementId]
+  const measurementIds = (
+    Array.isArray(measurementId) ? measurementId : [measurementId]
+  ).filter(Boolean)
 
-  const baseEvent = (event: HightouchEvent) => {
+  const baseEvent = ({ event }: Context) => {
     return {
       ...(event.userId && {
         user_id: event.userId,
@@ -36,8 +51,10 @@ const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
       ...(event.anonymousId && {
         hightouch_anonymous_id: event.anonymousId,
       }),
+      ...(measurementIds.length > 0 && {
+        send_to: measurementIds,
+      }),
       ...event.properties,
-      send_to: measurementIds,
     }
   }
 
@@ -58,15 +75,19 @@ const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
         (trackNamedPages && ctx.event.name) ||
         (trackCategorizedPages && ctx.event.category)
       ) {
-        window.gtag('event', 'page_view', {
-          ...baseEvent(ctx.event),
+        const eventName = ['Viewed', ctx.event.category, ctx.event.name, 'Page']
+          .filter(Boolean)
+          .join(' ')
+
+        window.gtag('event', eventName, {
+          ...baseEvent(ctx),
         })
       }
     },
 
     track: (ctx) => {
       window.gtag('event', ctx.event.event, {
-        ...baseEvent(ctx.event),
+        ...baseEvent(ctx),
       })
     },
   })
