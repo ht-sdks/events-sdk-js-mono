@@ -32,14 +32,6 @@
   "dependencies": {
     "@ht-sdks/events-sdk-js-consent-tools": "^1.0.0"
   },
-  "peerDependencies": {
-    "@ht-sdks/events-sdk-js-browser": "^1.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@ht-sdks/events-sdk-js-browser": {
-      "optional": true
-    }
-  },
   "license": "MIT",
   "repository": {
     "directory": "packages/consent/consent-wrapper-onetrust",
