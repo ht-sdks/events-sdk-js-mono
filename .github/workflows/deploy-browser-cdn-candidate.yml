@@ -20,34 +20,33 @@ jobs:
     name: Deploy to CDN
     runs-on: ubuntu-latest
     steps:
-      - name: Get tag version
-        id: get_tag_version
-        env:
-          TAG: ${{ github.ref_name }}
-        run: echo "PATH_VERSION=${TAG##browser@}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'npm'
+
+      - uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_PROD_ACCOUNT_ID }}:role/${{ secrets.AWS_PROD_S3_SYNC_ROLE }}
           aws-region: us-east-1
 
-      - name: Checkout source branch
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
       - name: Install dependencies
-        run: |
-          npm ci --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+
+      - name: Parse version
+        id: parse_version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: echo "VERSION=${TAG##browser@}" >> $GITHUB_OUTPUT
+
+      - name: Set version
+        working-directory: packages/browser
+        run: npm version ${{ steps.parse_version.outputs.VERSION }} --allow-same-version --no-commit-hooks --no-git-tag-version
 
       - name: Release to CDN
-        env:
-          PATH_VERSION: '${{ steps.get_tag_version.outputs.PATH_VERSION }}'
         working-directory: packages/browser
-        run: |
-          npm run candidate:cdn
+        env:
+          PATH_VERSION: ${{ steps.parse_version.outputs.VERSION }}
+        run: npm run candidate:cdn
