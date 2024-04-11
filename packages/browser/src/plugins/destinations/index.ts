@@ -11,7 +11,7 @@ export async function createDestination(
   switch (name) {
     case 'Google Tag Manager':
       return import(
-        /* webpackChunkName: "destinations/google-tag-manager" */ './google-tag-manager'
+        /* webpackChunkName: "google-tag-manager" */ './google-tag-manager'
       ).then((mod) => mod.default(settings as any))
     default:
       return undefined
