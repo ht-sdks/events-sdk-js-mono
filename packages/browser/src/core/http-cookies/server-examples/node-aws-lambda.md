@@ -86,7 +86,7 @@ export const handler = async (event, context) => {
 };
 ```
 
-After creating the above Lambda Function, you'll need to setup an [API Gateway](https://aws.amazon.com/api-gateway/). Specifically, create a new `Route` and input the value of `/ht/{proxy}`. Then attach an `integration` for this route, and select your Lambda. Your HTTPCookieService lambda will now be callable over HTTP at `${ApiGatewayURL}.com/default/ht/renew`.
+After creating the above Lambda Function, you'll need to setup an [API Gateway](https://aws.amazon.com/api-gateway/). Specifically, create a new `Route` and input the value of `/ht/{proxy}`. Then attach an `integration` for this route, and select your Lambda. Be sure to select the "version 2" payload format. Your HTTPCookieService lambda will now be reachable via HTTP at `${ApiGatewayURL}.com/default/ht/renew`.
 
 However, the HTTPCookieService must live on the same domain and IP address as your website's HTML document.
 
