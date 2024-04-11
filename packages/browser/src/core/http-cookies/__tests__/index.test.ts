@@ -281,6 +281,11 @@ describe('Analytics - HTTPCookieService - Integration', () => {
     analytics.storage.clear('htjs_user_id')
   })
 
+  afterEach(async () => {
+    analytics.storage.clear('htjs_anonymous_id')
+    analytics.storage.clear('htjs_user_id')
+  })
+
   it('does not stop normal functioning on wrong url', async () => {
     // this will not throw an error
     new Analytics(
