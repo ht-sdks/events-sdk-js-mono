@@ -96,7 +96,7 @@ As one way to accomplish this, you could use a CDN to front both your HTML docum
 
 Alternatively, if you simply want a "Hello World" example for a fully functioning HTTPCookieService, you can create two lambdas (one for HTML and another for HTTPCookieService), and put them both on the same API Gateway. You can then test against the API Gateway domain.
 
-Example Lambda for HTML--to pair with the above Lambda. This only intended for testing and "Hello World" purposes:
+Example "Lambda for HTML". This is only intended for testing and "Hello World" purposes:
 
 ```Javascript
 const cdnDomain = "https://cdn.hightouch-events.com/browser/release/v1-latest/events.min.js";
