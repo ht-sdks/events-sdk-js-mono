@@ -59,6 +59,7 @@ import type {
   HTTPCookieService,
   HTTPCookieServiceOptions,
 } from '../http-cookies'
+import type { DestinationSettings } from '../../plugins/destinations'
 
 const deprecationWarning =
   'This is being deprecated and will be not be available in future releases of Analytics JS'
@@ -132,6 +133,11 @@ export interface InitOptions {
    * default: analytics
    */
   globalAnalyticsKey?: string
+
+  /**
+   * Allows specifying plugins as configuration. Used to load plugins in `plugins/destinations/*`.
+   */
+  destinations?: Record<string, DestinationSettings>
 
   /**
    * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created

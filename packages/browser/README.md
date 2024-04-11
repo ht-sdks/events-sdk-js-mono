@@ -217,6 +217,73 @@ htevents.register(lowercase)
 
 For further examples check out our [existing plugins](/packages/browser/src/plugins).
 
+# Client-side destinations
+
+The Browser SDK supports sending events directly from the client to destinations which is useful in situations where the destination requires a client-side context in order to fully enrich and attribute events.
+
+## Google Analytics 4
+
+Google Analytics 4 (GA4) offers tracking via Google Tag Manager (GTM) which may benefit from a client-side integration.
+
+### Installation
+
+Make sure your GA4 setup scripts are configured on your website. Our implementation expects the `gtag` function to be available in the global scope.
+
+```html
+<!-- example GA4 setup using Google Tag Manager -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXX');
+</script>
+```
+
+You can then configure the Browser SDK to send events directly to GA4 by enabling the `Google Tag Manager` destination:
+
+```js
+htevents.load("WRITE_KEY", {
+  destinations: {
+    "Google Tag Manager": {
+      measurementId: "G-XXXXXXXX"
+    }
+  }
+})
+```
+
+View the complete plugin documentation in [`google-tag-manager.ts`](src/plugins/destinations/google-tag-manager.ts#L11)
+
+### Usage
+
+Once the destination is configured, all applicable `identify`, `track`, and `page` events will be sent. The integration also automatically populates the `user_id` and `hightouch_anonymous_id` fields.
+
+```js
+htevents.track('My Event', { prop: 'abc' })
+// gtag('event', 'My Event', { prop: 'abc', user_id: '123' })
+```
+
+## Custom client-side destinations
+
+If you'd like to send events to a custom client-side destination that is not yet supported, you can do so using the `Destination` class as a template and implement the relevant tracking methods (`track`, `page`, etc).
+
+```ts
+import { HtEventsBrowser, Destination } from "@ht-sdks/events-sdk-js-browser";
+
+const htevents = new HtEventsBrowser();
+
+htevents.load({ writeKey: "WRITE_KEY" });
+
+// register custom client-side destination
+htevents.register(
+  new Destination("Console", "1.2.3", {
+    track: (ctx) => {
+      console.log("[console.track]", ctx.event);
+    },
+  })
+);
+```
+
 ## QA
 Feature work and bug fixes should include tests. Run all [Jest](https://jestjs.io) tests:
 ```
