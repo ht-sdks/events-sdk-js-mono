@@ -1,15 +1,19 @@
 import type { Context } from '../../core/context'
-import type { HightouchEvent } from '../../core/events/interfaces'
 import type { DestinationFactory } from './types'
 import { Destination } from './destination'
 
 declare global {
   interface Window {
-    dataLayer: Array<any>
+    gtag: Function
   }
 }
 
-type GoogleTagManagerSettings = {
+type GtagSettings = {
+  /**
+   * The Google measurement ID(s) to send events to (GA4, Ads)
+   */
+  measurementId?: string | string[]
+
   /**
    * If a `Viewed Page` event should be sent for all `htevents.page` calls
    */
@@ -26,29 +30,43 @@ type GoogleTagManagerSettings = {
   trackCategorizedPages?: boolean
 }
 
-/**
- * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/google-tag-manager/lib/index.js
- */
-const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
+const gtag: DestinationFactory<GtagSettings> = ({
+  measurementId = [],
   trackAllPages = false,
   trackNamedPages = true,
   trackCategorizedPages = true,
 }) => {
-  const pushEvent = (event: HightouchEvent) => {
-    window.dataLayer.push({
+  const measurementIds = (
+    Array.isArray(measurementId) ? measurementId : [measurementId]
+  ).filter(Boolean)
+
+  const baseEvent = ({ event }: Context) => {
+    return {
       ...(event.userId && {
-        userId: event.userId,
+        user_id: event.userId,
       }),
       ...(event.anonymousId && {
-        hightouchAnonymousId: event.anonymousId,
+        hightouch_anonymous_id: event.anonymousId,
       }),
-      event: event.event,
+      ...(measurementIds.length > 0 && {
+        send_to: measurementIds,
+      }),
       ...event.properties,
-    })
+    }
   }
 
-  return new Destination('Google Tag Manager', '0.0.1', {
-    page: (ctx: Context) => {
+  return new Destination('gtag', '0.0.1', {
+    identify: (ctx) => {
+      if (ctx.event.userId) {
+        measurementIds.forEach((measurementId) => {
+          window.gtag('config', measurementId, {
+            user_id: ctx.event.userId,
+          })
+        })
+      }
+    },
+
+    page: (ctx) => {
       if (
         trackAllPages ||
         (trackNamedPages && ctx.event.name) ||
@@ -58,18 +76,18 @@ const googleTagManager: DestinationFactory<GoogleTagManagerSettings> = ({
           .filter(Boolean)
           .join(' ')
 
-        pushEvent({
-          ...ctx.event,
-          type: 'track',
-          event: eventName,
+        window.gtag('event', eventName, {
+          ...baseEvent(ctx),
         })
       }
     },
 
-    track: (ctx: Context) => {
-      pushEvent(ctx.event)
+    track: (ctx) => {
+      window.gtag('event', ctx.event.event, {
+        ...baseEvent(ctx),
+      })
     },
   })
 }
 
-export default googleTagManager
+export default gtag
