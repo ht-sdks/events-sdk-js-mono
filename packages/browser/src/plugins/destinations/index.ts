@@ -9,6 +9,10 @@ export async function createDestination(
   settings: DestinationSettings
 ): Promise<Destination | undefined> {
   switch (name) {
+    case 'gtag':
+      return import(/* webpackChunkName: "gtag" */ './gtag').then((mod) =>
+        mod.default(settings as any)
+      )
     case 'Google Tag Manager':
       return import(
         /* webpackChunkName: "google-tag-manager" */ './google-tag-manager'

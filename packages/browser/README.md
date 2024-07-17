@@ -221,38 +221,82 @@ For further examples check out our [existing plugins](/packages/browser/src/plug
 
 The Browser SDK supports sending events directly from the client to destinations which is useful in situations where the destination requires a client-side context in order to fully enrich and attribute events.
 
-## Google Analytics 4
+## Google Tag Manager
 
-Google Analytics 4 (GA4) offers tracking via Google Tag Manager (GTM) which may benefit from a client-side integration.
+The Google Tag Manager integration pushes events directly to [Google Tag Manager](https://support.google.com/tagmanager/answer/6102821?hl=en). This tag in turn can forward to a variety of other tools.
 
 ### Installation
 
-Make sure your GA4 setup scripts are configured on your website. Our implementation expects the `gtag` function to be available in the global scope.
+Make sure your Google Tag Manager setup scripts are configured on your website. Our implementation expects `window.dataLayer` to be available in the global scope.
 
 ```html
-<!-- example GA4 setup using Google Tag Manager -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag() { dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXX');
-</script>
+<!-- example Google Tag Manager script -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-XXXXXXXX');</script>
 ```
 
-You can then configure the Browser SDK to send events directly to GA4 by enabling the `Google Tag Manager` destination:
+You can then configure the Browser SDK to send events directly to Google Tag Manager by enabling the `Google Tag Manager` destination:
 
 ```js
-htevents.load("WRITE_KEY", {
+htevents.load('WRITE_KEY', {
   destinations: {
-    "Google Tag Manager": {
-      measurementId: "G-XXXXXXXX"
-    }
-  }
+    'Google Tag Manager': {},
+  },
 })
 ```
 
-View the complete plugin documentation in [`google-tag-manager.ts`](src/plugins/destinations/google-tag-manager.ts#L11)
+View the complete plugin documentation in [`google-tag-manager.ts`](src/plugins/destinations/google-tag-manager.ts#L12)
+
+### Usage
+
+Once the destination is configured, all applicable `identify`, `track`, and `page` events will be sent. The integration also automatically populates the `userId` and `hightouchAnonymousId` fields.
+
+```js
+htevents.track('My Event', { prop: 'abc' })
+// This results in the following Google Tag Manager event.
+// window.dataLayer.push({ event: 'My Event', prop: 'abc', user_id: '123', hightouch_anonymous_id: '456' })
+```
+
+## gtag.js
+
+The Google Tag (gtag.js) integration pushes events directly to [gtag.js](https://developers.google.com/tag-platform/gtagjs). This tag in turn can forward to a variety of Google products, including Google Ads, Google Analytics, Campaign Manager, Display & Video 360, and Search Ads 360.
+
+### Installation
+
+Make sure your gtag.js setup scripts are configured on your website. Our implementation expects the `gtag` function to be available in the global scope.
+
+```html
+<!-- example GA4 setup using gtag.js -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXX" ></script>
+<script>
+  window.dataLayer = window.dataLayer || []
+  function gtag() {
+    dataLayer.push(arguments)
+  }
+  gtag('js', new Date())
+  gtag('config', 'G-XXXXXXXX')
+</script>
+```
+
+You can then configure the Browser SDK to send events directly to gtag.js by enabling the `gtag` destination:
+
+```js
+htevents.load('WRITE_KEY', {
+  destinations: {
+    gtag: {
+      // Events are only forwarded to the configured measurement IDs.
+      // For example, if you'd like to forward to GA4, you should include
+      // your GA4 measurement ID here.
+      measurementId: 'G-XXXXXXXX',
+    },
+  },
+})
+```
+
+View the complete plugin documentation in [`gtag.ts`](src/plugins/destinations/gtag.ts#L11)
 
 ### Usage
 
@@ -260,7 +304,8 @@ Once the destination is configured, all applicable `identify`, `track`, and `pag
 
 ```js
 htevents.track('My Event', { prop: 'abc' })
-// gtag('event', 'My Event', { prop: 'abc', user_id: '123' })
+// This results in the following gtag call.
+// gtag('event', 'My Event', { prop: 'abc', user_id: '123', hightouchAnonymousId: '456'  })
 ```
 
 ## Custom client-side destinations
