@@ -217,6 +217,21 @@ htevents.register(lowercase)
 
 For further examples check out our [existing plugins](/packages/browser/src/plugins).
 
+## Source Middleware
+
+Source middleware allows for defining a function to manipulate the event payload and filter events on a per source basis. It's a specialized `before` [`Plugin`](#plugins) that makes it easy to do things like enriching the event `context` with custom fields.
+
+```ts
+htevents.addSourceMiddleware(({ payload, next }) => {
+  const event = payload.obj;
+  event.context = {
+    ...event.context,
+    customField: "123",
+  };
+  next(payload);
+});
+```
+
 # Client-side destinations
 
 The Browser SDK supports sending events directly from the client to destinations which is useful in situations where the destination requires a client-side context in order to fully enrich and attribute events.
