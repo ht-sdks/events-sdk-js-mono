@@ -11,6 +11,8 @@ function clear(): void {
   localStorage.clear()
 }
 
+const now = Date.now()
+
 let store: LocalStorage
 beforeEach(function () {
   store = new LocalStorage()
@@ -18,6 +20,13 @@ beforeEach(function () {
   // Restore any cookie, localstorage disable
   jest.restoreAllMocks()
   jest.spyOn(console, 'warn').mockImplementation(() => {}) // silence console spam.
+
+  // mock system time
+  jest.useFakeTimers().setSystemTime(now)
+})
+
+afterEach(() => {
+  jest.useRealTimers()
 })
 
 const seshKey = 'htjs_sesh'
@@ -35,6 +44,17 @@ describe('user anonymousId migration', () => {
       expect(sesh.autoTrack).toBeTruthy()
     })
 
+    it('should refresh expiration on session update', () => {
+      const user = new User()
+      user.getAndUpdateSession()
+      const sesh = store.get(seshKey) as unknown as SessionInfo
+      expect(sesh.expiresAt).toEqual(now + sesh.timeout!)
+      // subsequent calls should refresh the expiration relative to `now`
+      user.getAndUpdateSession()
+      const updatedSesh = store.get(seshKey) as unknown as SessionInfo
+      expect(updatedSesh.expiresAt).toEqual(now + sesh.timeout!)
+    })
+
     it('should update an existing session', () => {
       const user = new User()
       const session = user.getAndUpdateSession()
@@ -46,7 +66,7 @@ describe('user anonymousId migration', () => {
       const updatedSesh = store.get(seshKey) as unknown as SessionInfo
       expect(updated?.sessionStart).toEqual(undefined)
       expect(updated?.sessionId).toEqual(session?.sessionId)
-      expect(updatedSesh.expiresAt).toEqual(sesh.expiresAt! + sesh.timeout!)
+      expect(updatedSesh.expiresAt).toEqual(now + sesh.timeout!)
     })
 
     it('should not create a session if autoTrack is disabled', () => {

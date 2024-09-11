@@ -101,7 +101,8 @@ export const generateManualTrackingSession = (id?: number): SessionInfo => {
 export const updateSessionExpiration = (session: SessionInfo): SessionInfo => {
   session.sessionStart = false
   if (session.autoTrack) {
-    session.expiresAt = session.expiresAt! + session.timeout!
+    // extend session by `timeout`
+    session.expiresAt = Date.now() + session.timeout!
   }
   return session
 }
