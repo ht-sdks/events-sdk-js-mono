@@ -11,6 +11,8 @@ function clear(): void {
   localStorage.clear()
 }
 
+const now = Date.now()
+
 let store: LocalStorage
 beforeEach(function () {
   store = new LocalStorage()
@@ -18,6 +20,13 @@ beforeEach(function () {
   // Restore any cookie, localstorage disable
   jest.restoreAllMocks()
   jest.spyOn(console, 'warn').mockImplementation(() => {}) // silence console spam.
+
+  // mock system time
+  jest.useFakeTimers().setSystemTime(now)
+})
+
+afterEach(() => {
+  jest.useRealTimers()
 })
 
 const seshKey = 'htjs_sesh'
@@ -46,7 +55,7 @@ describe('user anonymousId migration', () => {
       const updatedSesh = store.get(seshKey) as unknown as SessionInfo
       expect(updated?.sessionStart).toEqual(undefined)
       expect(updated?.sessionId).toEqual(session?.sessionId)
-      expect(updatedSesh.expiresAt).toEqual(sesh.expiresAt! + sesh.timeout!)
+      expect(updatedSesh.expiresAt).toEqual(now + sesh.timeout!)
     })
 
     it('should not create a session if autoTrack is disabled', () => {

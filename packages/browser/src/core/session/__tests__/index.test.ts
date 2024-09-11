@@ -5,6 +5,16 @@ import {
 } from '..'
 
 describe('()', () => {
+  const now = Date.now()
+
+  beforeEach(() => {
+    jest.useFakeTimers().setSystemTime(now)
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('hasSessionExpired', () => {
     const past = Date.now() - 10000
     expect(hasSessionExpired(past)).toEqual(true)
@@ -27,13 +37,13 @@ describe('()', () => {
     expect(
       updateSessionExpiration({
         autoTrack: true,
-        expiresAt: 10,
+        expiresAt: now,
         timeout: 15,
         sessionStart: false,
       })
     ).toEqual({
       autoTrack: true,
-      expiresAt: 25,
+      expiresAt: now + 15,
       timeout: 15,
       sessionStart: false,
     })
