@@ -359,7 +359,7 @@ async function loadAnalytics(
             deliveryStrategy: {
               strategy: 'batching',
               config: { timeout: 1000, size: 10 }, // 1 second or 10 items
-            } as HightouchioSettings["deliveryStrategy"],
+            } as HightouchioSettings['deliveryStrategy'],
           }
         : {}),
     }
