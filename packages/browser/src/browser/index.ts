@@ -316,8 +316,7 @@ const defaultHightouchIntegration: HightouchioSettings = {
   addBundledMetadata: false,
   maybeBundledConfigIds: {},
   deliveryStrategy: {
-    strategy: 'batching',
-    config: { timeout: 1000, size: 10 }, // 1 second or 10 items
+    strategy: 'standard',
   },
 }
 
@@ -353,13 +352,14 @@ async function loadAnalytics(
       ...(settings.writeKey ? { apiKey: settings.writeKey } : {}),
       ...(options.apiHost ? { apiHost: options.apiHost } : {}),
       ...(options.protocol ? { protocol: options.protocol } : {}),
-      // defaultHightouchIntegration defaults to 'batching'
-      // allow the options override to turn it off
-      ...(options.batching == false
+      // defaultHightouchIntegration defaults to 'standard'
+      // allow a simple options override to turn on 'batching'
+      ...(options.batching == true
         ? {
             deliveryStrategy: {
-              strategy: 'standard',
-            },
+              strategy: 'batching',
+              config: { timeout: 1000, size: 10 }, // 1 second or 10 items
+            } as HightouchioSettings["deliveryStrategy"],
           }
         : {}),
     }
