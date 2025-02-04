@@ -1,15 +1,14 @@
-import * as tsub from '@segment/tsub'
-import { Matcher, Rule } from '@segment/tsub/dist/store'
+import * as tsub from '../../lib/tsub'
 import { DestinationMiddlewareFunction } from '../middleware'
 
 // TODO: update tsub definition
-type RoutingRuleMatcher = Matcher & {
+type RoutingRuleMatcher = tsub.Matcher & {
   config?: {
     expr: string
   }
 }
 
-export type RoutingRule = Rule & {
+export type RoutingRule = tsub.Rule & {
   matchers: RoutingRuleMatcher[]
 }
 
