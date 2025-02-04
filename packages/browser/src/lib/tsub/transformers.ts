@@ -276,6 +276,7 @@ function consumeDigest(digest: number[], arr: number[]) {
   }
 }
 
+// Simplified implementation of https://github.com/stdlib-js/math-base-special-ldexp
 function ldexp(x: number, exp: number) {
   return x * Math.pow(2, exp)
 }
