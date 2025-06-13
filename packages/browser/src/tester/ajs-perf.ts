@@ -26,5 +26,5 @@ export async function globalSetup(): Promise<void> {
 }
 
 export async function globalTeardown(): Promise<void> {
-  await teardown()
+  await teardown([])
 }
