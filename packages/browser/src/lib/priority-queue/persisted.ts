@@ -1,4 +1,4 @@
-import { PriorityQueue } from '.'
+import { PriorityQueue } from '@ht-sdks/events-sdk-js-core'
 import { Context, SerializedContext } from '../../core/context'
 import { isBrowser } from '../../core/environment'
 
