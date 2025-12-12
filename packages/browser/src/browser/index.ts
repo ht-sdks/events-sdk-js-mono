@@ -280,16 +280,17 @@ async function registerPlugins(
           : [pluginOrPlugins]
         return plugins
       } catch (error) {
-        console.warn(`failed to load plugin factory: ${factory.pluginName}`, error)
+        console.warn(
+          `failed to load plugin factory: ${factory.pluginName}`,
+          error
+        )
         return []
       }
     })
   )
 
   const resolvedFactoryPlugins = loadedFactoryPlugins
-    .flatMap((result) =>
-      result.status === 'fulfilled' ? result.value : []
-    )
+    .flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
     .filter((plugin): plugin is Plugin => plugin !== null)
 
   const toRegister = [
