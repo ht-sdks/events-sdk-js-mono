@@ -83,7 +83,7 @@ function createDefaultQueue(
 export interface AnalyticsSettings {
   writeKey: string
   timeout?: number
-  plugins?: (Plugin | PluginFactory)[]
+  plugins?: (Plugin | PluginFactory | string)[]
   classicIntegrations?: ClassicIntegrationSource[]
 }
 
