@@ -270,35 +270,11 @@ async function registerPlugins(
     .map((result) => (result.status === 'fulfilled' ? result.value : null))
     .filter((plugin): plugin is Plugin => plugin !== null)
 
-  // Load factory plugins passed directly to load()
-  const loadedFactoryPlugins = await Promise.allSettled(
-    pluginSources.map(async (factory) => {
-      try {
-        const pluginOrPlugins = await factory({})
-        const plugins = Array.isArray(pluginOrPlugins)
-          ? pluginOrPlugins
-          : [pluginOrPlugins]
-        return plugins
-      } catch (error) {
-        console.warn(
-          `failed to load plugin factory: ${factory.pluginName}`,
-          error
-        )
-        return []
-      }
-    })
-  )
-
-  const resolvedFactoryPlugins = loadedFactoryPlugins
-    .flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
-    .filter((plugin): plugin is Plugin => plugin !== null)
-
   const toRegister = [
     validation,
     envEnrichment,
     ...plugins,
     ...resolvedStringPlugins,
-    ...resolvedFactoryPlugins,
     ...legacyDestinations,
     ...remotePlugins,
   ]
