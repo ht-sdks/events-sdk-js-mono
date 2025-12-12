@@ -412,7 +412,14 @@ async function loadAnalytics(
 
   attachInspector(analytics)
 
-  const plugins = settings.plugins ?? []
+  // Merge plugins from both settings and options
+  // This allows plugins to be specified in either place:
+  // - settings.plugins (when using HtEventsBrowser.load({ writeKey, plugins: [...] }))
+  // - options.plugins (when using snippet pattern: htevents.load(writeKey, { plugins: [...] }))
+  const plugins = [
+    ...(settings.plugins ?? []),
+    ...(options.plugins ?? []),
+  ]
 
   const classicIntegrations = settings.classicIntegrations ?? []
 
