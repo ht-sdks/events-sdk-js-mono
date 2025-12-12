@@ -111,8 +111,6 @@ class FacebookParamsPlugin implements Plugin {
 
     try {
       const evtCtx = ctx.event.context
-      // TODO test adding to properties instead?
-      // const evtProps = ctx.event.properties
       if (!evtCtx) {
         return ctx
       }
