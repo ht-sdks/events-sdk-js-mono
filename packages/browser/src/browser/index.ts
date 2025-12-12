@@ -31,6 +31,7 @@ import { ClassicIntegrationSource } from '../plugins/ajs-destination/types'
 import { attachInspector } from '../core/inspector'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
 import { createDestination } from '../plugins/destinations'
+import { createPlugin } from '../plugins'
 
 export interface LegacyIntegrationConfiguration {
   /* @deprecated - This does not indicate browser types anymore */
@@ -180,13 +181,20 @@ async function registerPlugins(
   analytics: Analytics,
   opts: InitOptions,
   options: InitOptions,
-  pluginLikes: (Plugin | PluginFactory)[] = [],
+  pluginLikes: (Plugin | PluginFactory | string)[] = [],
   legacyIntegrationSources: ClassicIntegrationSource[]
 ): Promise<Context> {
+  // Filter string-based plugin names
+  const stringPluginNames = pluginLikes?.filter(
+    (pluginLike) => typeof pluginLike === 'string'
+  ) as string[]
+
+  // Filter plugin objects
   const plugins = pluginLikes?.filter(
     (pluginLike) => typeof pluginLike === 'object'
   ) as Plugin[]
 
+  // Filter plugin factories
   const pluginSources = pluginLikes?.filter(
     (pluginLike) =>
       typeof pluginLike === 'function' &&
@@ -245,10 +253,28 @@ async function registerPlugins(
     pluginSources
   ).catch(() => [])
 
+  // Load string-based plugins
+  const loadedStringPlugins = await Promise.allSettled(
+    stringPluginNames.map(async (name) => {
+      const plugin = await createPlugin(name)
+      if (plugin) {
+        return plugin
+      } else {
+        console.warn(`failed to load plugin: ${name}`)
+        return null
+      }
+    })
+  )
+
+  const resolvedStringPlugins = loadedStringPlugins
+    .map((result) => (result.status === 'fulfilled' ? result.value : null))
+    .filter((plugin): plugin is Plugin => plugin !== null)
+
   const toRegister = [
     validation,
     envEnrichment,
     ...plugins,
+    ...resolvedStringPlugins,
     ...legacyDestinations,
     ...remotePlugins,
   ]
@@ -384,7 +410,11 @@ async function loadAnalytics(
 
   attachInspector(analytics)
 
-  const plugins = settings.plugins ?? []
+  // Merge plugins from both settings and options
+  // This allows plugins to be specified in either place:
+  // - settings.plugins (when using HtEventsBrowser.load({ writeKey, plugins: [...] }))
+  // - options.plugins (when using snippet pattern: htevents.load(writeKey, { plugins: [...] }))
+  const plugins = [...(settings.plugins ?? []), ...(options.plugins ?? [])]
 
   const classicIntegrations = settings.classicIntegrations ?? []
 

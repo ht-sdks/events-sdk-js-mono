@@ -83,7 +83,7 @@ function createDefaultQueue(
 export interface AnalyticsSettings {
   writeKey: string
   timeout?: number
-  plugins?: (Plugin | PluginFactory)[]
+  plugins?: (Plugin | PluginFactory | string)[]
   classicIntegrations?: ClassicIntegrationSource[]
 }
 
@@ -138,6 +138,12 @@ export interface InitOptions {
    * Allows specifying plugins as configuration. Used to load plugins in `plugins/destinations/*`.
    */
   destinations?: Record<string, DestinationSettings>
+
+  /**
+   * Array of plugins to load. Can be plugin instances, plugin factories, or string names.
+   * String names are resolved via createPlugin() for code-split loading.
+   */
+  plugins?: (Plugin | PluginFactory | string)[]
 
   /**
    * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created
