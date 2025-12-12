@@ -140,6 +140,12 @@ export interface InitOptions {
   destinations?: Record<string, DestinationSettings>
 
   /**
+   * Array of plugins to load. Can be plugin instances, plugin factories, or string names.
+   * String names are resolved via createPlugin() for code-split loading.
+   */
+  plugins?: (Plugin | PluginFactory | string)[]
+
+  /**
    * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created
    */
   httpCookieServiceOptions?: HTTPCookieServiceOptions
