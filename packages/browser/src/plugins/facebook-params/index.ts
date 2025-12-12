@@ -66,38 +66,42 @@ class FacebookParamsPlugin implements Plugin {
       return Promise.resolve()
     }
 
-    try {
-      // Load Facebook Parameter Builder SDK
-      await loadScript(this.sdkUrl)
+    // Mark this plugin as critical so events wait for it to load
+    // This ensures fbc/fbp are included in events from the start
+    await _instance.queue.criticalTasks.run(async () => {
+      try {
+        // Load Facebook Parameter Builder SDK
+        await loadScript(this.sdkUrl)
 
-      // The SDK is exposed as clientParamBuilder on window
-      // Reference: https://developers.facebook.com/docs/marketing-api/conversions-api/parameter-builder-feature-library/client-side-onboarding
-      const clientParamBuilder = (window as any).clientParamBuilder
+        // The SDK is exposed as clientParamBuilder on window
+        // Reference: https://developers.facebook.com/docs/marketing-api/conversions-api/parameter-builder-feature-library/client-side-onboarding
+        const clientParamBuilder = (window as any).clientParamBuilder
 
-      if (
-        clientParamBuilder &&
-        typeof clientParamBuilder.processAndCollectAllParams === 'function' &&
-        typeof clientParamBuilder.getFbc === 'function' &&
-        typeof clientParamBuilder.getFbp === 'function'
-      ) {
-        this.clientParamBuilder = clientParamBuilder as ClientParamBuilder
+        if (
+          clientParamBuilder &&
+          typeof clientParamBuilder.processAndCollectAllParams === 'function' &&
+          typeof clientParamBuilder.getFbc === 'function' &&
+          typeof clientParamBuilder.getFbp === 'function'
+        ) {
+          this.clientParamBuilder = clientParamBuilder as ClientParamBuilder
 
-        // Call processAndCollectAllParams() first as required by Meta's API
-        // This processes the URL, extracts fbclid if present, and saves cookies
-        // We don't provide getIpFn since we're only interested in fbc/fbp, not client_ip_address
-        await this.clientParamBuilder.processAndCollectAllParams()
+          // Call processAndCollectAllParams() first as required by Meta's API
+          // This processes the URL, extracts fbclid if present, and saves cookies
+          // We don't provide getIpFn since we're only interested in fbc/fbp, not client_ip_address
+          await this.clientParamBuilder.processAndCollectAllParams()
 
-        this.sdkReady = true
-      } else {
-        // SDK loaded but doesn't have expected interface
-        console.warn(
-          'Facebook Parameter Builder SDK loaded but clientParamBuilder is not available or does not expose expected interface'
-        )
+          this.sdkReady = true
+        } else {
+          // SDK loaded but doesn't have expected interface
+          console.warn(
+            'Facebook Parameter Builder SDK loaded but clientParamBuilder is not available or does not expose expected interface'
+          )
+        }
+      } catch (error) {
+        // Graceful degradation - plugin will simply not enrich events
+        console.warn('Failed to load Facebook Parameter Builder SDK:', error)
       }
-    } catch (error) {
-      // Graceful degradation - plugin will simply not enrich events
-      console.warn('Failed to load Facebook Parameter Builder SDK:', error)
-    }
+    })
   }
 
   private enrich = (ctx: Context): Context => {
