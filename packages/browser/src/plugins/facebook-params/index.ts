@@ -163,4 +163,3 @@ export function createFacebookParamsPlugin(
 ): Plugin {
   return new FacebookParamsPlugin(settings)
 }
-

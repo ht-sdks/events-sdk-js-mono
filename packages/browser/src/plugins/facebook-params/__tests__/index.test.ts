@@ -1,7 +1,4 @@
-import {
-  facebookParams,
-  createFacebookParamsPlugin,
-} from '../index'
+import { facebookParams, createFacebookParamsPlugin } from '../index'
 import { Context } from '../../../core/context'
 import { Analytics } from '../../../core/analytics'
 import * as loadScriptModule from '../../../lib/load-script'
@@ -55,7 +52,6 @@ describe('FacebookParamsPlugin', () => {
     jest
       .spyOn(loadScriptModule, 'loadScript')
       .mockResolvedValue(document.createElement('script'))
-
     ;(window as any).clientParamBuilder = mockSDK
 
     const ctx = Context.system()
@@ -107,7 +103,6 @@ describe('FacebookParamsPlugin', () => {
     jest
       .spyOn(loadScriptModule, 'loadScript')
       .mockResolvedValue(document.createElement('script'))
-
     ;(window as any).clientParamBuilder = mockSDK
 
     const ctx = Context.system()
@@ -194,10 +189,11 @@ describe('FacebookParamsPlugin', () => {
 
       await plugin.load(ctx, analytics)
 
-      expect(loadScriptSpy).toHaveBeenCalledWith('https://custom.example.com/sdk.js')
+      expect(loadScriptSpy).toHaveBeenCalledWith(
+        'https://custom.example.com/sdk.js'
+      )
 
       jest.restoreAllMocks()
     })
   })
 })
-

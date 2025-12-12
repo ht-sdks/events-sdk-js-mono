@@ -267,9 +267,7 @@ async function registerPlugins(
   )
 
   const resolvedStringPlugins = loadedStringPlugins
-    .map((result) =>
-      result.status === 'fulfilled' ? result.value : null
-    )
+    .map((result) => (result.status === 'fulfilled' ? result.value : null))
     .filter((plugin): plugin is Plugin => plugin !== null)
 
   const toRegister = [
@@ -416,10 +414,7 @@ async function loadAnalytics(
   // This allows plugins to be specified in either place:
   // - settings.plugins (when using HtEventsBrowser.load({ writeKey, plugins: [...] }))
   // - options.plugins (when using snippet pattern: htevents.load(writeKey, { plugins: [...] }))
-  const plugins = [
-    ...(settings.plugins ?? []),
-    ...(options.plugins ?? []),
-  ]
+  const plugins = [...(settings.plugins ?? []), ...(options.plugins ?? [])]
 
   const classicIntegrations = settings.classicIntegrations ?? []
 
