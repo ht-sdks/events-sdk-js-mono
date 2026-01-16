@@ -401,6 +401,8 @@ npm install -D <package> --workspace=@ht-sdks/events-sdk-js-browser
 | Update within semver | `npm update` |
 | Check bundle size | `cd packages/browser && npm run size-limit` |
 | Watch mode | `npm run watch` |
+| Build for local testing | `cd packages/browser && npm run build:dev` |
+| Test in browser | `cd packages/browser && npm run serve` |
 
 ---
 
@@ -417,6 +419,42 @@ npm run watch
 # Watch specific package
 cd packages/browser && npm run watch
 ```
+
+### Testing Browser SDK Locally
+
+To manually test the browser SDK in an actual browser:
+
+```bash
+# First, build the browser package for LOCAL testing (important!)
+cd packages/browser && npm run build:dev
+
+# Start the local dev server
+npm run serve
+```
+
+**⚠️ Important:** Use `build:dev`, not `build`. The production build (`build`) hardcodes the CDN URL for loading chunks, which won't work locally.
+
+Then open http://localhost:9900 in your browser. The page includes:
+- Buttons to trigger identify/track/page/group/reset events
+- The SDK loaded from your local `dist/umd/index.js`
+- A configurable write key and API host
+
+**Options:**
+```bash
+# Use a real write key
+npm run serve -- --writeKey=your_actual_write_key
+
+# Change API host
+npm run serve -- --apiHost=us-east-1.hightouch-events.com
+
+# Change port
+npm run serve -- --port=8080
+```
+
+**Tips:**
+- Open DevTools → Network tab to see requests to the Events API
+- Open DevTools → Console for SDK debug logs
+- Use `window.htevents` in console for direct SDK access
 
 ### Testing Single File
 

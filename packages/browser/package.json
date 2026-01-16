@@ -36,7 +36,9 @@
     "clean": "rm -rf dist",
     "lint": "concurrently 'eslint .' 'tsc --noEmit'",
     "test": "jest",
-    "size-limit": "size-limit"
+    "size-limit": "size-limit",
+    "serve": "node src/tester/dev-server.js",
+    "build:dev": "npm run clean && npm run build-prep && concurrently 'npm run umd' 'npm:pkg' 'npm:cjs'"
   },
   "size-limit": [
     {
