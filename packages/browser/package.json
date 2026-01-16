@@ -87,6 +87,7 @@
     "jquery": "^3.5.1",
     "jsdom": "^20.0.0",
     "lighthouse": "^9.6.3",
+    "liquidjs": "^10.24.0",
     "log-update": "^4.0.0",
     "micro-memoize": "^4.0.9",
     "mime": "^2.4.6",
