@@ -308,6 +308,31 @@ If updating TypeScript:
 2. Run `npm run lint` which includes `tsc --noEmit`
 3. Fix any new type errors (TypeScript gets stricter over time)
 
+### ⚠️ Known Issue: `keyofStringsOnly` (Technical Debt)
+
+The browser package uses the deprecated `keyofStringsOnly: true` option in `packages/browser/tsconfig.json`. This option will be **removed in TypeScript 5.5**.
+
+**Why it exists:** The storage layer (`cookieStorage.ts`, `localStorage.ts`, `memoryStorage.ts`, `universalStorage.ts`) assumes `keyof` always returns `string`. Without this option, TypeScript correctly infers `keyof` as `string | number | symbol`, causing ~18 type errors.
+
+**Before upgrading to TypeScript 5.5+**, you must fix the storage types:
+
+```typescript
+// Current (relies on keyofStringsOnly):
+get<K extends keyof Data>(key: K): Data[K] | null
+
+// Fixed (explicit string constraint):
+get<K extends Extract<keyof Data, string>>(key: K): Data[K] | null
+```
+
+Files to update:
+- `packages/browser/src/core/storage/types.ts`
+- `packages/browser/src/core/storage/cookieStorage.ts`
+- `packages/browser/src/core/storage/localStorage.ts`
+- `packages/browser/src/core/storage/memoryStorage.ts`
+- `packages/browser/src/core/storage/universalStorage.ts`
+
+After fixing, remove `keyofStringsOnly` from `packages/browser/tsconfig.json`.
+
 ### ESLint/Prettier Updates
 
 New versions may introduce new rules. After updating:
