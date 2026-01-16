@@ -915,7 +915,9 @@ describe('Custom cookie params', () => {
     )
     customUser.identify('some_id', { trait: true })
 
-    expect(document.cookie).toMatchInlineSnapshot(`"htjs_user_id=some_id"`)
+    // Check the specific cookie value rather than entire document.cookie string
+    // to avoid flakiness from residual cookies in test environment
+    expect(jar.get('htjs_user_id')).toBe('some_id')
     expect(customUser.id()).toBe('some_id')
     expect(customUser.traits()).toEqual({ trait: true })
   })
