@@ -234,7 +234,7 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(filePath)) {
       res.writeHead(200, {
         'Content-Type': 'application/javascript',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
       })
       fs.createReadStream(filePath).pipe(res)
       return
@@ -248,7 +248,7 @@ const server = http.createServer((req, res) => {
     if (fs.existsSync(filePath)) {
       res.writeHead(200, {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
       })
       fs.createReadStream(filePath).pipe(res)
       return
@@ -282,4 +282,3 @@ server.listen(PORT, () => {
 └─────────────────────────────────────────────────────────────┘
 `)
 })
-

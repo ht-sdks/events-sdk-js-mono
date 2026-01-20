@@ -12,8 +12,7 @@ export const fetch: typeof globalThis.fetch = (
 ): Promise<Response> => {
   const g = getGlobal()
   const fetchFn =
-    (g && g.fetch) ||
-    (unfetch as unknown as typeof globalThis.fetch)
+    (g && g.fetch) || (unfetch as unknown as typeof globalThis.fetch)
   // Only pass init if defined to maintain backwards compatibility with tests
   return init !== undefined ? fetchFn(input, init) : fetchFn(input)
 }
