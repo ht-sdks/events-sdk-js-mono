@@ -333,6 +333,23 @@ Files to update:
 
 After fixing, remove `keyofStringsOnly` from `packages/browser/tsconfig.json`.
 
+### ⚠️ CRITICAL: Prettier Formatting
+
+**Before upgrading any dependencies that touch Prettier or ESLint:**
+
+1. **Lock Prettier settings first** - The `.prettierrc` must have `"trailingComma": "es5"` explicitly set. Prettier 3.x changed the default from `"es5"` to `"all"`, which will add trailing commas everywhere and create massive diffs.
+
+2. **Never run Prettier on the entire codebase** - Only format files you actually changed:
+   ```bash
+   # WRONG - formats everything including previously unformatted files
+   npx prettier --write "**/*.ts"
+   
+   # RIGHT - only format specific changed files
+   npx prettier --write packages/browser/src/path/to/changed-file.ts
+   ```
+
+3. **The `qa/` directory is intentionally unformatted** - Files in `packages/browser/qa/` have lines > 80 chars and were never run through Prettier. Do not format them.
+
 ### ESLint/Prettier Updates
 
 New versions may introduce new rules. After updating:
