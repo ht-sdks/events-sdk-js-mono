@@ -5,6 +5,7 @@ import { Analytics } from '../../../core/analytics'
 import { Plugin } from '../../../core/plugin'
 import { envEnrichment } from '../../env-enrichment'
 import cookie from 'js-cookie'
+import { createSuccess } from '../../../test-helpers/factories'
 
 jest.mock('unfetch', () => {
   return jest.fn()
@@ -28,9 +29,9 @@ describe('Hightouch.io', () => {
 
     window.localStorage.clear()
 
-    spyMock = jest.mocked(unfetch).mockResolvedValue({
-      ok: true,
-    } as Response)
+    spyMock = jest
+      .mocked(unfetch)
+      .mockImplementation(() => createSuccess({ success: true }))
   })
 
   function resetCookies(): void {

@@ -124,10 +124,7 @@ describe('standalone bundle', () => {
   })
 
   it('derives the CDN from scripts on the page', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     await loadLegacySettings(hightouchDotCom)
 
@@ -137,10 +134,7 @@ describe('standalone bundle', () => {
   })
 
   it('is capable of having the CDN overridden', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
     const mockCdn = 'http://my-overridden-cdn.com'
 
     getGlobalAnalytics()!._cdn = mockCdn
@@ -150,10 +144,7 @@ describe('standalone bundle', () => {
   })
 
   it('runs any buffered operations after load', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     await install()
 
@@ -178,10 +169,7 @@ describe('standalone bundle', () => {
   })
 
   it('adds buffered source middleware before other buffered operations', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     const operations: string[] = []
 
@@ -204,10 +192,7 @@ describe('standalone bundle', () => {
   })
 
   it('sets buffered anonymousId before loading destinations', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     const operations: string[] = []
 
@@ -233,9 +218,7 @@ describe('standalone bundle', () => {
     ])
   })
   it('sets buffered event emitters before loading destinations', async () => {
-    jest
-      .mocked(unfetch)
-      .mockImplementation(() => fetchSettings as Promise<Response>)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     const operations: string[] = []
 
@@ -264,10 +247,7 @@ describe('standalone bundle', () => {
   })
 
   it('runs any buffered operations created after preFlush after load', async () => {
-    jest
-      .mocked(unfetch)
-      // @ts-ignore ignore Response required fields
-      .mockImplementation((): Promise<Response> => fetchSettings)
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings)
 
     // register is called after flushPreBuffer in `loadAnalytics`
     register.mockImplementationOnce(() =>

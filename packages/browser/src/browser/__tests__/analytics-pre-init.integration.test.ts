@@ -3,6 +3,7 @@ import unfetch from 'unfetch'
 import { Analytics } from '../../core/analytics'
 import { Context } from '../../core/context'
 import * as Factory from '../../test-helpers/factories'
+import { UnfetchResponse } from '../../test-helpers/factories'
 import { sleep } from '../../lib/sleep'
 import { setGlobalCDNUrl } from '../../lib/parse-cdn'
 import { User } from '../../core/user'
@@ -16,7 +17,9 @@ const mockFetchSettingsSuccessResponse = () => {
     .mockImplementation(() => Factory.createSuccess({ integrations: {} }))
 }
 
-const mockFetchSettingsErrorResponse = (response?: Partial<Response>) => {
+const mockFetchSettingsErrorResponse = (
+  response?: Partial<UnfetchResponse>
+) => {
   jest.mocked(unfetch).mockImplementation(() => Factory.createError(response))
 }
 

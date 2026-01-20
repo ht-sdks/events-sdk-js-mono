@@ -30,10 +30,10 @@ let fetchCalls: ReturnType<typeof parseFetchCall>[] = []
 jest.mock('unfetch', () => {
   return {
     __esModule: true,
-    default: (url: RequestInfo, body?: RequestInit) => {
-      const call = parseFetchCall([url, body])
+    default: (url: string) => {
+      const call = parseFetchCall([url, undefined])
       fetchCalls.push(call)
-      return createMockFetchImplementation(cdnSettingsKitchenSink)(url, body)
+      return createMockFetchImplementation(cdnSettingsKitchenSink)(url)
     },
   }
 })
