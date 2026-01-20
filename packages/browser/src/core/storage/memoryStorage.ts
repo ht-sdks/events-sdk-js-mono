@@ -3,9 +3,9 @@ import { Store, StorageObject } from './types'
 /**
  * Data Storage using in memory object
  */
-export class MemoryStorage<Data extends StorageObject = StorageObject>
-  implements Store<Data>
-{
+export class MemoryStorage<
+  Data extends StorageObject = StorageObject,
+> implements Store<Data> {
   private cache: Record<string, unknown> = {}
 
   get<K extends keyof Data>(key: K): Data[K] | null {

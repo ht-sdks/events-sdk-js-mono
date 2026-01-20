@@ -15,7 +15,7 @@ export type NodeEmitterEvents = CoreEmitterContract<Context> & {
       method: string
       headers: Record<string, string>
       body: Record<string, any>
-    }
+    },
   ]
   drained: []
 }

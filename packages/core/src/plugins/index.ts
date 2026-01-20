@@ -19,7 +19,7 @@ export type PluginType =
 
 export interface CorePlugin<
   Ctx extends CoreContext = CoreContext,
-  Analytics extends CoreAnalytics = any
+  Analytics extends CoreAnalytics = any,
 > {
   name: string
   alternativeNames?: string[]

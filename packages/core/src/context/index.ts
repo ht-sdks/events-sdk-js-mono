@@ -35,7 +35,7 @@ export class ContextCancelation {
 }
 
 export abstract class CoreContext<
-  Event extends CoreHightouchEvent = CoreHightouchEvent
+  Event extends CoreHightouchEvent = CoreHightouchEvent,
 > {
   event: Event
   logger: CoreLogger

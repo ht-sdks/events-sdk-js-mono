@@ -20,7 +20,7 @@ export type EventQueueEmitterContract<Ctx extends CoreContext> = {
 
 export abstract class CoreEventQueue<
   Ctx extends CoreContext = CoreContext,
-  Plugin extends CorePlugin<Ctx> = CorePlugin<Ctx>
+  Plugin extends CorePlugin<Ctx> = CorePlugin<Ctx>,
 > extends Emitter<EventQueueEmitterContract<Ctx>> {
   /**
    * All event deliveries get suspended until all the tasks in this task group are complete.

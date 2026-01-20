@@ -32,7 +32,7 @@ const analyticsLoadSpy: jest.MockedFn<AnyAnalytics['load']> = jest.fn()
 const addSourceMiddlewareSpy = jest.fn()
 let analyticsOnSpy: jest.MockedFn<AnyAnalytics['on']>
 const analyticsTrackSpy: jest.MockedFn<AnyAnalytics['track']> = jest.fn()
-let consoleErrorSpy: jest.SpiedFunction<typeof console['error']>
+let consoleErrorSpy: jest.SpiedFunction<(typeof console)['error']>
 
 const getAnalyticsLoadLastCall = () => {
   const [arg1, arg2] = analyticsLoadSpy.mock.lastCall!
@@ -551,7 +551,7 @@ describe(createWrapper, () => {
       getCategories: () =>
         ({
           invalidCategory: 'hello',
-        } as any),
+        }) as any,
       returnVal: 'Categories',
     },
     {

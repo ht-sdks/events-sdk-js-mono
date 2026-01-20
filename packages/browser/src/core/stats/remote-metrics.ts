@@ -29,11 +29,14 @@ const createRemoteMetric = (
   tags: string[],
   versionType: 'web' | 'npm'
 ): RemoteMetric => {
-  const formattedTags = tags.reduce((acc, t) => {
-    const [k, v] = t.split(':')
-    acc[k] = v
-    return acc
-  }, {} as Record<string, string>)
+  const formattedTags = tags.reduce(
+    (acc, t) => {
+      const [k, v] = t.split(':')
+      acc[k] = v
+      return acc
+    },
+    {} as Record<string, string>
+  )
 
   return {
     type: 'Counter',

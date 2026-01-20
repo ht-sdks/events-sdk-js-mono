@@ -27,12 +27,15 @@ function persistItems(key: string, items: Context[]): void {
   const existing = persisted(key)
   const all = [...items, ...existing]
 
-  const merged = all.reduce((acc, item) => {
-    return {
-      ...acc,
-      [item.id]: item,
-    }
-  }, {} as Record<string, Context>)
+  const merged = all.reduce(
+    (acc, item) => {
+      return {
+        ...acc,
+        [item.id]: item,
+      }
+    },
+    {} as Record<string, Context>
+  )
 
   loc.setItem(key, JSON.stringify(Object.values(merged)))
 }

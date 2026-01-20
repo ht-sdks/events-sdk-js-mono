@@ -4,15 +4,18 @@
  */
 export const pick = <
   Obj extends Record<string, unknown>,
-  Key extends keyof Obj
+  Key extends keyof Obj,
 >(
   obj: Obj,
   keys: Key[]
 ): Pick<Obj, Key> => {
-  return keys.reduce((acc, k) => {
-    if (k in obj) {
-      acc[k] = obj[k]
-    }
-    return acc
-  }, {} as Pick<Obj, Key>)
+  return keys.reduce(
+    (acc, k) => {
+      if (k in obj) {
+        acc[k] = obj[k]
+      }
+      return acc
+    },
+    {} as Pick<Obj, Key>
+  )
 }

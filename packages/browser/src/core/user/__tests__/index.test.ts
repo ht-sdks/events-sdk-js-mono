@@ -25,7 +25,7 @@ const ignoreProbeCookieWrites = (
     [
       name: string,
       value: string | object,
-      options?: jar.CookieAttributes | undefined
+      options?: jar.CookieAttributes | undefined,
     ]
   >
 ) => fn.mock.calls.filter((c) => c[0] !== 'ajs_cookies_check')

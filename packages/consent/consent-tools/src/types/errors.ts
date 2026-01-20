@@ -8,7 +8,10 @@ export abstract class AnalyticsConsentError extends Error {
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends#using_extends
    * @param message - Error message
    */
-  constructor(public name: string, message: string) {
+  constructor(
+    public name: string,
+    message: string
+  ) {
     super(message)
   }
 }

@@ -15,9 +15,9 @@ export interface CookieOptions {
 /**
  * Data storage using browser cookies
  */
-export class CookieStorage<Data extends StorageObject = StorageObject>
-  implements Store<Data>
-{
+export class CookieStorage<
+  Data extends StorageObject = StorageObject,
+> implements Store<Data> {
   static get defaults(): CookieOptions {
     return {
       maxage: ONE_YEAR,

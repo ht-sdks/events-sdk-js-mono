@@ -9,7 +9,7 @@ type JestMockedFn<Fn> = Fn extends (...args: infer Args) => infer ReturnT
   : never
 
 const invokeCallback: JestMockedFn<
-  typeof import('../../callback')['invokeCallback']
+  (typeof import('../../callback'))['invokeCallback']
 > = jest.fn()
 jest.mock('../../callback', () => ({
   invokeCallback: invokeCallback,
