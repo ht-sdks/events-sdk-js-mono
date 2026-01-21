@@ -6,7 +6,10 @@ import { HightouchEvent } from '../../core/events'
 import { Campaign, PluginType } from '@ht-sdks/events-sdk-js-core'
 import { getVersionType } from '../../lib/version-type'
 import { tld } from '../../core/user/tld'
-import { gracefulDecodeURIComponent } from '../../core/query-string/gracefulDecodeURIComponent'
+import {
+  gracefulDecodeURIComponent,
+  fullyDecodeURIComponent,
+} from '../../core/query-string/gracefulDecodeURIComponent'
 import { CookieStorage, UniversalStorage } from '../../core/storage'
 import { Analytics } from '../../core/analytics'
 import { clientHints } from '../../lib/client-hints'
@@ -62,14 +65,24 @@ export function utm(query: string): Campaign {
   }
   query = query.replace(/\?/g, '&')
 
+  // Handle &amp; HTML entity as separator (common in malformed URLs from email clients)
+  // This handles both literal &amp; and URL-encoded variants like %26amp%3B
+  query = query.replace(/&amp;/gi, '&')
+  query = gracefulDecodeURIComponent(query).replace(/&amp;/gi, '&')
+
   return query.split('&').reduce((acc, str) => {
-    const [k, v = ''] = str.split('=')
-    if (k.includes('utm_') && k.length > 4) {
-      let utmParam = k.slice(4) as keyof Campaign
+    const [rawKey, rawValue = ''] = str.split('=')
+    // Fully decode key and value to handle remaining multi-encoded parts
+    const key = fullyDecodeURIComponent(rawKey)
+    const value = fullyDecodeURIComponent(rawValue)
+
+    // Only match keys that START with utm_ (not just contain it somewhere)
+    if (key.startsWith('utm_') && key.length > 4) {
+      let utmParam = key.slice(4) as keyof Campaign
       if (utmParam === 'campaign') {
         utmParam = 'name'
       }
-      acc[utmParam] = gracefulDecodeURIComponent(v)
+      acc[utmParam] = value
     }
     return acc
   }, {} as Campaign)

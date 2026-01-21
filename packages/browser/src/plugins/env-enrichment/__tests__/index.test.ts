@@ -220,6 +220,114 @@ describe('Other visitor metadata', () => {
     assert.deepStrictEqual(ctx.event.context.campaign, {})
   })
 
+  it('should decode double-encoded utm values', async () => {
+    // %2526 is double-encoded &, which decodes to %26 then to &
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams('?utm_source=%2526special'),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    assert(ctx.event.context.campaign.source === '&special')
+  })
+
+  it('should decode multi-encoded utm keys', async () => {
+    // utm_source that has been double-encoded: utm_source -> utm_source (no change for letters)
+    // but the key %75tm_source (%75 = 'u') should decode to utm_source
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams('?%2575tm_source=value'),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    assert(ctx.event.context.campaign.source === 'value')
+  })
+
+  it('should ignore utm_ embedded in the middle of garbage keys', async () => {
+    // Simulates the bug where encoded ampersands create keys containing utm_ in the middle
+    // e.g., ?garbage%26utm_source=value should NOT extract utm_source from the garbage key
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams('?garbage%26utm_source=badvalue&utm_source=goodvalue'),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    // Should only get the real utm_source, not the one embedded in the garbage key
+    assert(ctx.event.context.campaign.source === 'goodvalue')
+  })
+
+  it('should handle heavily encoded URLs from redirect chains', async () => {
+    // Simulate a URL that went through multiple redirect chains that each encoded it
+    // %25252525email -> %252525email -> %2525email -> %25email -> %email
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams('?utm_source=%25252525email'),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    // Should fully decode through all layers
+    assert(ctx.event.context.campaign.source === '%email')
+  })
+
+  it('should handle &amp; HTML entity as parameter separator', async () => {
+    // Common case: email clients or CMSes encode & as &amp; in URLs
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams(
+          '?utm_source=email&amp;utm_medium=newsletter&amp;utm_campaign=spring'
+        ),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    assert(ctx.event.context.campaign.source === 'email')
+    assert(ctx.event.context.campaign.medium === 'newsletter')
+    assert(ctx.event.context.campaign.name === 'spring')
+  })
+
+  it('should handle URL-encoded &amp; as parameter separator', async () => {
+    // Case where &amp; HTML entity was URL-encoded: %26amp%3B
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams(
+          '?utm_source=email%26amp%3Butm_medium=newsletter'
+        ),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    assert(ctx.event.context.campaign.source === 'email')
+    assert(ctx.event.context.campaign.medium === 'newsletter')
+  })
+
   it('should allow override of .campaign', async () => {
     const ctx = await analytics.track(
       'test',
