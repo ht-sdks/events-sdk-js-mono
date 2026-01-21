@@ -220,6 +220,26 @@ describe('Other visitor metadata', () => {
     assert.deepStrictEqual(ctx.event.context.campaign, {})
   })
 
+  it('should ignore utm_ embedded in the middle of garbage keys', async () => {
+    // Simulates the bug where encoded ampersands create keys containing utm_ in the middle
+    // e.g., ?garbage%26utm_term=value should NOT extract utm_term from the garbage key
+    const ctx = await analytics.track(
+      'test',
+      {},
+      {
+        context: amendSearchParams(
+          '?garbage%26utm_term=badvalue&utm_source=goodvalue'
+        ),
+      }
+    )
+
+    assert(ctx.event)
+    assert(ctx.event.context)
+    assert(ctx.event.context.campaign)
+    assert(!ctx.event.context.campaign.term)
+    assert(ctx.event.context.campaign.source === 'goodvalue')
+  })
+
   it('should allow override of .campaign', async () => {
     const ctx = await analytics.track(
       'test',
