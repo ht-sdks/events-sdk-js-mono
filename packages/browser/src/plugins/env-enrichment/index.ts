@@ -64,7 +64,7 @@ export function utm(query: string): Campaign {
 
   return query.split('&').reduce((acc, str) => {
     const [k, v = ''] = str.split('=')
-    if (k.includes('utm_') && k.length > 4) {
+    if (k.startsWith('utm_') && k.length > 4) {
       let utmParam = k.slice(4) as keyof Campaign
       if (utmParam === 'campaign') {
         utmParam = 'name'
