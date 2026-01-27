@@ -176,6 +176,44 @@ $ npx turbo run test
 
 > If you get "Cannot find module '@ht-sdks/events-sdk-js-browser' or its corresponding type declarations.ts(2307)" (in VSCode), you may have to "cmd+shift+p -> "TypeScript: Restart TS server"
 
+### Testing in a Browser
+
+To manually test the SDK in an actual browser:
+
+```sh
+# Build for local development (important: don't use `npm run build`)
+$ cd packages/browser
+$ npm run build:dev
+
+# Start the local dev server
+$ npm run serve
+```
+
+Then open http://localhost:9900 in your browser. The test page includes:
+- Buttons to trigger `identify`, `track`, `page`, `group`, and `reset` events
+- The SDK loaded from your local build
+- Event logging on the page
+
+**Options:**
+
+```sh
+# Use a real write key
+$ npm run serve -- --writeKey=your_write_key
+
+# Change API host
+$ npm run serve -- --apiHost=us-east-1.hightouch-events.com
+
+# Change port
+$ npm run serve -- --port=8080
+```
+
+**Tips:**
+- Open DevTools → Network tab to see requests to the Events API
+- Open DevTools → Console for SDK debug logs
+- Use `window.htevents` in console for direct SDK access
+
+> ⚠️ **Important:** Use `build:dev`, not `build`. The production build hardcodes the CDN URL for loading chunks, which won't work with the local dev server.
+
 # Plugins
 
 When developing against Events SDK JS you will likely be writing plugins, which can augment functionality and enrich data. Plugins are isolated chunks which you can build, test, version, and deploy independently of the rest of the codebase. Plugins are bounded by Events SDK JS which handles things such as observability, retries, and error management.
