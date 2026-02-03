@@ -6,7 +6,6 @@ let br: Browser
 export async function browser(): Promise<Browser> {
   if (!br) {
     br = await playwright.chromium.launch({
-      devtools: true,
       headless: !debug,
       args: [
         '--no-sandbox',
