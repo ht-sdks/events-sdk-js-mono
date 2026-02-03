@@ -31,25 +31,28 @@ export class CoreLogger implements GenericLogger {
 
   public flush(): void {
     if (this.logs.length > 1) {
-      const formatted = this._logs.reduce((logs, log) => {
-        const line = {
-          ...log,
-          json: JSON.stringify(log.extras, null, ' '),
-          extras: log.extras,
-        }
+      const formatted = this._logs.reduce(
+        (logs, log) => {
+          const line = {
+            ...log,
+            json: JSON.stringify(log.extras, null, ' '),
+            extras: log.extras,
+          }
 
-        delete line['time']
+          delete line['time']
 
-        let key = log.time?.toISOString() ?? ''
-        if (logs[key]) {
-          key = `${key}-${Math.random()}`
-        }
+          let key = log.time?.toISOString() ?? ''
+          if (logs[key]) {
+            key = `${key}-${Math.random()}`
+          }
 
-        return {
-          ...logs,
-          [key]: line,
-        }
-      }, {} as Record<string, LogMessage>)
+          return {
+            ...logs,
+            [key]: line,
+          }
+        },
+        {} as Record<string, LogMessage>
+      )
 
       // ie doesn't like console.table
       if (console.table) {

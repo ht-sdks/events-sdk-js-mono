@@ -1,6 +1,6 @@
 export default function bindAll<
   ObjType extends { [key: string]: any },
-  KeyType extends keyof ObjType
+  KeyType extends keyof ObjType,
 >(obj: ObjType): ObjType {
   const proto = obj.constructor.prototype
   for (const key of Object.getOwnPropertyNames(proto)) {

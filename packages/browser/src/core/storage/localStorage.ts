@@ -3,9 +3,9 @@ import { StorageObject, Store } from './types'
 /**
  * Data storage using browser's localStorage
  */
-export class LocalStorage<Data extends StorageObject = StorageObject>
-  implements Store<Data>
-{
+export class LocalStorage<
+  Data extends StorageObject = StorageObject,
+> implements Store<Data> {
   private localStorageWarning(key: keyof Data, state: 'full' | 'unavailable') {
     console.warn(`Unable to access ${key}, localStorage may be ${state}`)
   }

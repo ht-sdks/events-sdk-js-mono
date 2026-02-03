@@ -638,31 +638,34 @@ export class Analytics
     console.warn(deprecationWarning)
     const integrations = this.queue.plugins
       .filter((plugin) => plugin.type === 'destination')
-      .reduce((acc, plugin) => {
-        const name = `${plugin.name
-          .toLowerCase()
-          .replace('.', '')
-          .split(' ')
-          .join('-')}Integration`
+      .reduce(
+        (acc, plugin) => {
+          const name = `${plugin.name
+            .toLowerCase()
+            .replace('.', '')
+            .split(' ')
+            .join('-')}Integration`
 
-        // @ts-expect-error
-        const integration = window[name] as
-          | (LegacyIntegration & { Integration?: LegacyIntegration })
-          | undefined
+          // @ts-expect-error
+          const integration = window[name] as
+            | (LegacyIntegration & { Integration?: LegacyIntegration })
+            | undefined
 
-        if (!integration) {
+          if (!integration) {
+            return acc
+          }
+
+          const nested = integration.Integration // hack - Google Analytics function resides in the "Integration" field
+          if (nested) {
+            acc[plugin.name] = nested
+            return acc
+          }
+
+          acc[plugin.name] = integration as LegacyIntegration
           return acc
-        }
-
-        const nested = integration.Integration // hack - Google Analytics function resides in the "Integration" field
-        if (nested) {
-          acc[plugin.name] = nested
-          return acc
-        }
-
-        acc[plugin.name] = integration as LegacyIntegration
-        return acc
-      }, {} as Record<string, LegacyIntegration>)
+        },
+        {} as Record<string, LegacyIntegration>
+      )
 
     return integrations
   }

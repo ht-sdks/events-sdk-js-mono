@@ -34,10 +34,10 @@ export function resolveArguments(
   }
 
   const data = isPlainObject(eventName)
-    ? eventName.properties ?? {}
+    ? (eventName.properties ?? {})
     : isPlainObject(properties)
-    ? properties
-    : {}
+      ? properties
+      : {}
 
   let opts: Options = {}
   if (!isFunction(options)) {
@@ -66,7 +66,7 @@ export function resolvePageArguments(
   string | null,
   EventProperties,
   Options,
-  Callback | undefined
+  Callback | undefined,
 ] {
   let resolvedCategory: string | undefined | null = null
   let resolvedName: string | undefined | null = null

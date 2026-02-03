@@ -17,7 +17,7 @@ export interface CoreEmittedError<Ctx extends CoreContext> {
 
 export type CoreEmitterContract<
   Ctx extends CoreContext,
-  Err extends CoreEmittedError<Ctx> = CoreEmittedError<Ctx>
+  Err extends CoreEmittedError<Ctx> = CoreEmittedError<Ctx>,
 > = {
   alias: [ctx: Ctx]
   track: [ctx: Ctx]

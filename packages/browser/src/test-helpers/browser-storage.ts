@@ -28,7 +28,7 @@ export const clearAjsBrowserStorage = () => {
 
 export function getBrowserStorage<
   CookieNames extends string,
-  LSKeys extends string
+  LSKeys extends string,
 >({
   cookieNames,
   localStorageKeys,

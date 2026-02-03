@@ -166,7 +166,7 @@ describe('Pre-initialization', () => {
 
       it('.then should pass to the next .then', async () => {
         const ajsBrowser = HtEventsBrowser.load({ writeKey: 'abc' })
-        const obj = ajsBrowser.then(() => ({ foo: 123 } as const))
+        const obj = ajsBrowser.then(() => ({ foo: 123 }) as const)
         expect(obj).toBeInstanceOf(Promise)
         await obj.then((el) => expect(el.foo).toBe(123))
       })

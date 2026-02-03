@@ -106,7 +106,7 @@ export const hasBufferedPageContextAsLastArg = (
  *  Represents a buffered method call that occurred before initialization.
  */
 export class PreInitMethodCall<
-  MethodName extends PreInitMethodName = PreInitMethodName
+  MethodName extends PreInitMethodName = PreInitMethodName,
 > {
   method: MethodName
   args: PreInitMethodParams<MethodName>
@@ -143,7 +143,7 @@ type ReturnTypeUnwrap<Fn> = Fn extends (...args: any[]) => infer ReturnT
 type MethodCallMap = Partial<Record<PreInitMethodName, PreInitMethodCall[]>>
 
 type SnippetWindowBufferedMethodCall<
-  MethodName extends PreInitMethodName = PreInitMethodName
+  MethodName extends PreInitMethodName = PreInitMethodName,
 > = [MethodName, ...PreInitMethodParams<MethodName>]
 
 /**
@@ -290,7 +290,7 @@ export class AnalyticsBuffered
         | ((instance: [Analytics, Context]) => T1 | PromiseLike<T1>)
         | null
         | undefined,
-      onrejected?: (reason: unknown) => T2 | PromiseLike<T2>
+      onrejected?: (reason: unknown) => T2 | PromiseLike<T2>,
     ]
   ) {
     return this._promise.then(...args)
@@ -301,7 +301,7 @@ export class AnalyticsBuffered
       onrejected?:
         | ((reason: any) => TResult | PromiseLike<TResult>)
         | undefined
-        | null
+        | null,
     ]
   ) {
     return this._promise.catch(...args)

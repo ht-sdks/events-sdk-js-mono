@@ -26,7 +26,7 @@ export const getDelay = (startTimeInEpochMS: number, timeoutInMS?: number) => {
  */
 export async function dispatch<
   Ctx extends CoreContext,
-  EQ extends CoreEventQueue<Ctx>
+  EQ extends CoreEventQueue<Ctx>,
 >(
   ctx: Ctx,
   queue: EQ,
