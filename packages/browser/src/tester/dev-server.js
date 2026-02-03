@@ -6,6 +6,8 @@
  *   npm run serve
  *   npm run serve -- --port=8080
  *   npm run serve -- --writeKey=your_key --apiHost=us-east-1.hightouch-events.com
+ *   npm run serve -- --cdn=candidate/1.5.4    (test CDN candidate build)
+ *   npm run serve -- --cdn=release/1.5.1      (test CDN release build)
  *
  * Then open http://localhost:9900 in your browser.
  * Open DevTools Network tab to see requests being made.
@@ -26,14 +28,43 @@ const PORT = parseInt(args.port || process.env.PORT || '9900', 10)
 const WRITE_KEY = args.writeKey || 'test_write_key_for_local_dev'
 const API_HOST = args.apiHost || 'us-east-1.hightouch-events.com'
 
+// CDN mode: --cdn=candidate/1.5.4 or --cdn=release/1.5.1 or --cdn=1.5.4 (defaults to candidate)
+const CDN_BASE = 'https://cdn.hightouch-events.com/browser'
+let SDK_URL = null
+let CDN_VERSION = null
+
+if (args.cdn) {
+  const cdnArg = args.cdn === true ? '' : args.cdn
+  if (cdnArg.startsWith('release/')) {
+    CDN_VERSION = cdnArg.replace('release/', '')
+    SDK_URL = `${CDN_BASE}/release/${CDN_VERSION}/events.min.js`
+  } else if (cdnArg.startsWith('candidate/')) {
+    CDN_VERSION = cdnArg.replace('candidate/', '')
+    SDK_URL = `${CDN_BASE}/candidate/${CDN_VERSION}/events.min.js`
+  } else if (cdnArg) {
+    // Default to candidate if just version provided
+    CDN_VERSION = cdnArg
+    SDK_URL = `${CDN_BASE}/candidate/${CDN_VERSION}/events.min.js`
+  } else {
+    console.error(
+      '\n❌ --cdn requires a version, e.g. --cdn=1.5.4 or --cdn=candidate/1.5.4\n'
+    )
+    process.exit(1)
+  }
+}
+
 const DIST_DIR = path.join(__dirname, '../../dist/umd')
 
-// Check if the build exists
-if (!fs.existsSync(path.join(DIST_DIR, 'index.js'))) {
+// Check if the build exists (only required when not using CDN)
+if (!SDK_URL && !fs.existsSync(path.join(DIST_DIR, 'index.js'))) {
   console.error('\n❌ Build not found at packages/browser/dist/umd/')
-  console.error('   Run "npm run build" first from the repo root.\n')
+  console.error('   Run "npm run build" first from the repo root.')
+  console.error('   Or use --cdn=VERSION to test a CDN build.\n')
   process.exit(1)
 }
+
+// Determine SDK URL for HTML template
+const EFFECTIVE_SDK_URL = SDK_URL || `http://localhost:${PORT}/events.min.js`
 
 const HTML_TEMPLATE = `<!DOCTYPE html>
 <html>
@@ -77,7 +108,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
     <strong>Configuration:</strong><br>
     <code>writeKey: "${WRITE_KEY}"</code><br>
     <code>apiHost: "${API_HOST}"</code><br>
-    <code>SDK: http://localhost:${PORT}/events.min.js</code>
+    <code>SDK: ${EFFECTIVE_SDK_URL}</code>
   </div>
 
   <div class="events">
@@ -147,7 +178,7 @@ const HTML_TEMPLATE = `<!DOCTYPE html>
             var o = document.createElement("script");
             (o.type = "text/javascript"),
               (o.async = !0),
-              (o.src = "http://localhost:${PORT}/events.min.js");
+              (o.src = "${EFFECTIVE_SDK_URL}");
             var r = document.getElementsByTagName("script")[0];
             r.parentNode.insertBefore(o, r),
               (e._loadOptions = n),
@@ -261,13 +292,20 @@ const server = http.createServer((req, res) => {
 })
 
 server.listen(PORT, () => {
+  const sdkSource = SDK_URL ? `CDN (${CDN_VERSION})` : 'Local build'
+  const sdkUrlDisplay =
+    EFFECTIVE_SDK_URL.length > 45
+      ? EFFECTIVE_SDK_URL.substring(0, 42) + '...'
+      : EFFECTIVE_SDK_URL
+
   console.log(`
 ┌─────────────────────────────────────────────────────────────┐
 │  🧪 HtEvents Browser SDK - Local Dev Server                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Test page:  http://localhost:${PORT.toString().padEnd(27)}│
-│  SDK URL:    http://localhost:${PORT}/events.min.js${' '.repeat(14)}│
+│  SDK:        ${sdkUrlDisplay.padEnd(45)}│
+│  Source:     ${sdkSource.padEnd(45)}│
 │                                                             │
 │  Write Key:  ${WRITE_KEY.substring(0, 40).padEnd(40)}│
 │  API Host:   ${API_HOST.padEnd(40)}│
@@ -277,6 +315,9 @@ server.listen(PORT, () => {
 │    --port=NUMBER      Change port (default: 9900)           │
 │    --writeKey=KEY     Use a real write key                  │
 │    --apiHost=HOST     Change API host                       │
+│    --cdn=VERSION      Use CDN build instead of local        │
+│                       e.g. --cdn=1.5.4 (candidate)          │
+│                            --cdn=release/1.5.1              │
 │                                                             │
 │  Press Ctrl+C to stop                                       │
 └─────────────────────────────────────────────────────────────┘
