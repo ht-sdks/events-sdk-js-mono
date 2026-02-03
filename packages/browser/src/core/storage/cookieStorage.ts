@@ -46,7 +46,7 @@ export class CookieStorage<
     }
   }
 
-  get<K extends keyof Data>(key: K): Data[K] | null {
+  get<K extends keyof Data & string>(key: K): Data[K] | null {
     try {
       const value = jar.get(key)
 
@@ -64,7 +64,7 @@ export class CookieStorage<
     }
   }
 
-  set<K extends keyof Data>(key: K, value: Data[K] | null): void {
+  set<K extends keyof Data & string>(key: K, value: Data[K] | null): void {
     if (typeof value === 'string') {
       jar.set(key, value, this.opts())
     } else if (value === null) {
@@ -74,7 +74,7 @@ export class CookieStorage<
     }
   }
 
-  remove<K extends keyof Data>(key: K): void {
+  remove<K extends keyof Data & string>(key: K): void {
     return jar.remove(key, this.opts())
   }
 }

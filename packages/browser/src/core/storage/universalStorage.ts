@@ -22,7 +22,7 @@ export class UniversalStorage<Data extends StorageObject = StorageObject> {
     this.stores = stores
   }
 
-  get<K extends keyof Data>(key: K): Data[K] | null {
+  get<K extends keyof Data & string>(key: K): Data[K] | null {
     let val: Data[K] | null = null
 
     for (const store of this.stores) {
@@ -38,7 +38,7 @@ export class UniversalStorage<Data extends StorageObject = StorageObject> {
     return null
   }
 
-  set<K extends keyof Data>(key: K, value: Data[K] | null): void {
+  set<K extends keyof Data & string>(key: K, value: Data[K] | null): void {
     this.stores.forEach((store) => {
       try {
         store.set(key, value)
@@ -48,7 +48,7 @@ export class UniversalStorage<Data extends StorageObject = StorageObject> {
     })
   }
 
-  clear<K extends keyof Data>(key: K): void {
+  clear<K extends keyof Data & string>(key: K): void {
     this.stores.forEach((store) => {
       try {
         store.remove(key)
@@ -63,7 +63,7 @@ export class UniversalStorage<Data extends StorageObject = StorageObject> {
     - value exist in one of the stores ( as a result of other stores being cleared from browser ) and we want to resync them
     - read values in AJS 1.0 format ( for customers after 1.0 --> 2.0 migration ) and then re-write them in AJS 2.0 format
   */
-  getAndSync<K extends keyof Data>(key: K): Data[K] | null {
+  getAndSync<K extends keyof Data & string>(key: K): Data[K] | null {
     const val = this.get(key)
 
     // legacy behavior, getAndSync can change the type of a value from number to string (AJS 1.0 stores numerical values as a number)
