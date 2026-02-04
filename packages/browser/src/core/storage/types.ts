@@ -24,7 +24,7 @@ export interface Store<Data extends StorageObject = StorageObject> {
    * @param key key for the value to be retrieved
    * @returns value for the key or null if not found
    */
-  get<K extends keyof Data>(key: K): Data[K] | null
+  get<K extends keyof Data & string>(key: K): Data[K] | null
 
   /**
    * it will set the value for the key in all the stores
@@ -32,13 +32,13 @@ export interface Store<Data extends StorageObject = StorageObject> {
    * @param value value to be stored
    * @returns value that was stored
    */
-  set<K extends keyof Data>(key: K, value: Data[K] | null): void
+  set<K extends keyof Data & string>(key: K, value: Data[K] | null): void
   /**
    * remove the value for the key from all the stores
    * @param key key for the value to be removed
    * @param storeTypes optional array of store types to be used for removing the value
    */
-  remove<K extends keyof Data>(key: K): void
+  remove<K extends keyof Data & string>(key: K): void
 }
 
 export interface StoreTypeWithSettings<T extends StoreType = StoreType> {

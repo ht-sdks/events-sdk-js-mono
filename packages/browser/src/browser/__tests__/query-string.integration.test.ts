@@ -42,11 +42,11 @@ describe('queryString', () => {
     const originalQueryString = Analytics.prototype.queryString
     const mockQueryString = jest.fn().mockImplementation(async function (
       this: Analytics,
-      ...args
+      query: string
     ) {
       // simulate network latency when retrieving the bundle
       await new Promise((r) => setTimeout(r, 500))
-      return originalQueryString.apply(this, args).then((result) => {
+      return originalQueryString.call(this, query).then((result) => {
         // ensure analytics has not finished initializing before querystring completes
         analyticsInitializedBeforeQs = this.initialized
         return result

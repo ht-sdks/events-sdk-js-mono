@@ -6,11 +6,14 @@ import { StorageObject, Store } from './types'
 export class LocalStorage<
   Data extends StorageObject = StorageObject,
 > implements Store<Data> {
-  private localStorageWarning(key: keyof Data, state: 'full' | 'unavailable') {
+  private localStorageWarning(
+    key: keyof Data & string,
+    state: 'full' | 'unavailable'
+  ) {
     console.warn(`Unable to access ${key}, localStorage may be ${state}`)
   }
 
-  get<K extends keyof Data>(key: K): Data[K] | null {
+  get<K extends keyof Data & string>(key: K): Data[K] | null {
     try {
       const val = localStorage.getItem(key)
       if (val === null) {
@@ -27,7 +30,7 @@ export class LocalStorage<
     }
   }
 
-  set<K extends keyof Data>(key: K, value: Data[K] | null): void {
+  set<K extends keyof Data & string>(key: K, value: Data[K] | null): void {
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch {
@@ -35,7 +38,7 @@ export class LocalStorage<
     }
   }
 
-  remove<K extends keyof Data>(key: K): void {
+  remove<K extends keyof Data & string>(key: K): void {
     try {
       return localStorage.removeItem(key)
     } catch (err) {

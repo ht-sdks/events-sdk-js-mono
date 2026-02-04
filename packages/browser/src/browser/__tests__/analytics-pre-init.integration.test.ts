@@ -31,7 +31,7 @@ describe('Pre-initialization', () => {
   const identifySpy = jest.spyOn(Analytics.prototype, 'identify')
   const onSpy = jest.spyOn(Analytics.prototype, 'on')
   const getOnSpyCalls = (event: string) =>
-    onSpy.mock.calls.filter(([arg1]) => arg1 === event)
+    onSpy.mock.calls.filter(([arg1]: [string]) => arg1 === event)
 
   const readySpy = jest.spyOn(Analytics.prototype, 'ready')
   const browserLoadSpy = jest.spyOn(HtEventsBrowser, 'load')

@@ -42,11 +42,13 @@ describe('Persisted Priority Queue', () => {
 
     jest
       .spyOn(window, 'addEventListener')
-      .mockImplementation((evt, handler) => {
-        if (evt === 'pagehide') {
-          onUnload = handler
+      .mockImplementation(
+        (evt: string, handler: EventListenerOrEventListenerObject | null) => {
+          if (evt === 'pagehide') {
+            onUnload = handler
+          }
         }
-      })
+      )
 
     const ctx = new Context(
       {
@@ -103,11 +105,13 @@ describe('Persisted Priority Queue', () => {
 
       jest
         .spyOn(window, 'addEventListener')
-        .mockImplementation((evt, handler) => {
-          if (evt === 'pagehide') {
-            onUnload = handler
+        .mockImplementation(
+          (evt: string, handler: EventListenerOrEventListenerObject | null) => {
+            if (evt === 'pagehide') {
+              onUnload = handler
+            }
           }
-        })
+        )
 
       const ctx = new Context(
         {
@@ -201,11 +205,13 @@ describe('Persisted Priority Queue', () => {
 
       jest
         .spyOn(window, 'addEventListener')
-        .mockImplementation((evt, handler) => {
-          if (evt === 'pagehide') {
-            onUnloadFunctions.push(handler)
+        .mockImplementation(
+          (evt: string, handler: EventListenerOrEventListenerObject | null) => {
+            if (evt === 'pagehide') {
+              onUnloadFunctions.push(handler)
+            }
           }
-        })
+        )
 
       const firstTabQueue = new PersistedPriorityQueue(3, key)
       const secondTabQueue = new PersistedPriorityQueue(3, key)
