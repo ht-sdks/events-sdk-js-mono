@@ -5,7 +5,7 @@ import { createSuccess } from '../../../test-helpers/factories'
 jest.mock('unfetch')
 jest
   .mocked(unfetch)
-  .mockImplementation((() => createSuccess({ integrations: {} })) as any)
+  .mockImplementation(() => createSuccess({ integrations: {} }))
 
 // @ts-ignore
 delete window.location

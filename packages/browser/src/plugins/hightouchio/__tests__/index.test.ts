@@ -4,6 +4,7 @@ import { hightouchio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 import { Plugin } from '../../../core/plugin'
 import { envEnrichment } from '../../env-enrichment'
+import { UnfetchResponse } from '../../../test-helpers/factories'
 import cookie from 'js-cookie'
 
 jest.mock('unfetch', () => {
@@ -30,7 +31,7 @@ describe('Hightouch.io', () => {
 
     spyMock = jest.mocked(unfetch).mockResolvedValue({
       ok: true,
-    } as any)
+    } as UnfetchResponse)
   })
 
   function resetCookies(): void {

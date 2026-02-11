@@ -11,7 +11,7 @@ const helpers = {
   mockFetchSettingsSuccessResponse: () => {
     return jest
       .mocked(unfetch)
-      .mockImplementation((() => createSuccess({ integrations: {} })) as any)
+      .mockImplementation(() => createSuccess({ integrations: {} }))
   },
   loadAnalytics() {
     return HtEventsBrowser.load({ writeKey: 'foo' })

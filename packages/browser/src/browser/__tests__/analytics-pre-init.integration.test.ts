@@ -13,14 +13,13 @@ jest.mock('unfetch')
 const mockFetchSettingsSuccessResponse = () => {
   jest
     .mocked(unfetch)
-    .mockImplementation((() =>
-      Factory.createSuccess({ integrations: {} })) as any)
+    .mockImplementation(() => Factory.createSuccess({ integrations: {} }))
 }
 
-const mockFetchSettingsErrorResponse = (response?: Partial<Response>) => {
-  jest
-    .mocked(unfetch)
-    .mockImplementation((() => Factory.createError(response)) as any)
+const mockFetchSettingsErrorResponse = (
+  response?: Partial<Factory.UnfetchResponse>
+) => {
+  jest.mocked(unfetch).mockImplementation(() => Factory.createError(response))
 }
 
 const writeKey = 'foo'
