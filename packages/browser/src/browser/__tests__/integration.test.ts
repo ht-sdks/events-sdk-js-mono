@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import unfetch from 'unfetch'
 import { cdnSettingsKitchenSink } from '../../test-helpers/fixtures/cdn-settings'
 import { createMockFetchImplementation } from '../../test-helpers/fixtures/create-fetch-method'
 import { Context } from '../../core/context'
@@ -30,8 +31,8 @@ let fetchCalls: ReturnType<typeof parseFetchCall>[] = []
 jest.mock('unfetch', () => {
   return {
     __esModule: true,
-    default: (url: RequestInfo, body?: RequestInit) => {
-      const call = parseFetchCall([url, body])
+    default: (url: string, body?: Parameters<typeof unfetch>[1]) => {
+      const call = parseFetchCall([url, body as RequestInit])
       fetchCalls.push(call)
       return createMockFetchImplementation(cdnSettingsKitchenSink)(url, body)
     },
