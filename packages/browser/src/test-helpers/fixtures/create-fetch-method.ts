@@ -1,18 +1,19 @@
+import unfetch from 'unfetch'
 import { LegacySettings } from '../..'
 import { createSuccess } from '../factories'
 import { cdnSettingsMinimal } from './cdn-settings'
 
 export const createMockFetchImplementation = (
   cdnSettings: Partial<LegacySettings> = cdnSettingsMinimal
-) => {
-  return (...[url, req]: Parameters<typeof fetch>) => {
+): ((...args: Parameters<typeof unfetch>) => ReturnType<typeof unfetch>) => {
+  return (...[url, req]: Parameters<typeof unfetch>) => {
     const reqUrl = url.toString()
     if (
       !req ||
       (req.method === 'get' && reqUrl.includes('cdn.hightouch-events.com'))
     ) {
       // GET https://cdn.hightouch-events.com/v1/projects/{writeKey}
-      return createSuccess({ ...cdnSettingsMinimal, ...cdnSettings })
+      return createSuccess({ ...cdnSettingsMinimal, ...cdnSettings }) as any
     }
 
     if (
@@ -20,7 +21,7 @@ export const createMockFetchImplementation = (
       reqUrl.includes('us-east-1.hightouch-events.com')
     ) {
       // POST https://us-east-1.hightouch-events.com/v1/{event.type}
-      return createSuccess({ success: true }, { status: 201 })
+      return createSuccess({ success: true }, { status: 201 }) as any
     }
 
     throw new Error(

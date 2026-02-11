@@ -30,7 +30,7 @@ describe('Hightouch.io', () => {
 
     spyMock = jest.mocked(unfetch).mockResolvedValue({
       ok: true,
-    } as Response)
+    } as any)
   })
 
   function resetCookies(): void {

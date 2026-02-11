@@ -233,9 +233,7 @@ describe('standalone bundle', () => {
     ])
   })
   it('sets buffered event emitters before loading destinations', async () => {
-    jest
-      .mocked(unfetch)
-      .mockImplementation(() => fetchSettings as Promise<Response>)
+    jest.mocked(unfetch).mockImplementation((() => fetchSettings) as any)
 
     const operations: string[] = []
 

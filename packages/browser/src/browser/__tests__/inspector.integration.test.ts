@@ -5,7 +5,7 @@ import unfetch from 'unfetch'
 jest.mock('unfetch')
 jest
   .mocked(unfetch)
-  .mockImplementation(() => createSuccess({ integrations: {} }))
+  .mockImplementation((() => createSuccess({ integrations: {} })) as any)
 
 const writeKey = 'foo'
 

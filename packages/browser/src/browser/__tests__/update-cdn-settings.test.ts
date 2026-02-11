@@ -16,7 +16,7 @@ const cdnSettings = {
 const mockFetchSettingsSuccessResponse = (cdnSettings: any) => {
   return jest
     .mocked(unfetch)
-    .mockImplementation(() => createSuccess(cdnSettings))
+    .mockImplementation((() => createSuccess(cdnSettings)) as any)
 }
 
 jest.mock('../../plugins/remote-loader')

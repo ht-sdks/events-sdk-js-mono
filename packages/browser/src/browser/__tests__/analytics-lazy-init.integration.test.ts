@@ -10,7 +10,7 @@ jest.mock('unfetch')
 const mockFetchSettingsSuccessResponse = () => {
   return jest
     .mocked(unfetch)
-    .mockImplementation(() => createSuccess({ integrations: {} }))
+    .mockImplementation((() => createSuccess({ integrations: {} })) as any)
 }
 
 describe('Lazy initialization', () => {

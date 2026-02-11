@@ -3,7 +3,7 @@ import { getGlobal } from '../get-global'
 import unfetch from 'unfetch'
 
 jest.mock('unfetch')
-const unfetchMock = jest.mocked(unfetch).mockResolvedValue({} as Response)
+const unfetchMock = jest.mocked(unfetch).mockResolvedValue({} as any)
 
 jest.mock('../get-global')
 const getGlobalMock = jest.mocked(getGlobal)
