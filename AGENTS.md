@@ -5,7 +5,7 @@ This file provides instructions for AI agents working on this TypeScript/JavaScr
 ## Project Overview
 
 - **Language**: TypeScript
-- **Runtime**: Node.js (v16.16+ required, see `.nvmrc`)
+- **Runtime**: Node.js (v18+ required, see `.nvmrc`)
 - **Package Manager**: npm with workspaces
 - **Monorepo Orchestration**: Turborepo
 - **Testing**: Jest
@@ -43,7 +43,7 @@ consent-wrapper-onetrust ──► consent-tools
 ### 1. Pre-flight Checks
 
 ```bash
-# Check Node.js version matches .nvmrc (currently 16.16)
+# Check Node.js version matches .nvmrc (currently 18)
 node --version
 
 # If using nvm:
@@ -161,12 +161,13 @@ Compare test results to baseline. Fix any failures before proceeding.
 
 ### 7. Verify CI Would Pass
 
-The CI runs on Node 16, 18, and 20. If you have nvm, test on multiple versions:
+The CI runs on Node 18, 20, 22, and 24. If you have nvm, test on multiple versions:
 
 ```bash
 nvm use 18 && npm run build && npm run test
 nvm use 20 && npm run build && npm run test
-nvm use 16 && npm run build && npm run test  # Return to default
+nvm use 22 && npm run build && npm run test
+nvm use 24 && npm run build && npm run test
 ```
 
 ---
@@ -265,7 +266,7 @@ This triggers a candidate build to CDN without publishing to NPM.
 ## CI/CD
 
 - CI config: `.github/workflows/ci.yml`
-- Runs on Node 16, 18, and 20
+- Runs on Node 18, 20, 22, and 24
 - Steps: `npm ci`, `npm run build`, `npm run lint`, `npm run size-limit`, `npm run test`
 
 ### CI Failures After Dependency Updates
@@ -307,31 +308,6 @@ If updating TypeScript:
 1. Check `tsconfig.json` options are still valid
 2. Run `npm run lint` which includes `tsc --noEmit`
 3. Fix any new type errors (TypeScript gets stricter over time)
-
-### ⚠️ Known Issue: `keyofStringsOnly` (Technical Debt)
-
-The browser package uses the deprecated `keyofStringsOnly: true` option in `packages/browser/tsconfig.json`. This option will be **removed in TypeScript 5.5**.
-
-**Why it exists:** The storage layer (`cookieStorage.ts`, `localStorage.ts`, `memoryStorage.ts`, `universalStorage.ts`) assumes `keyof` always returns `string`. Without this option, TypeScript correctly infers `keyof` as `string | number | symbol`, causing ~18 type errors.
-
-**Before upgrading to TypeScript 5.5+**, you must fix the storage types:
-
-```typescript
-// Current (relies on keyofStringsOnly):
-get<K extends keyof Data>(key: K): Data[K] | null
-
-// Fixed (explicit string constraint):
-get<K extends Extract<keyof Data, string>>(key: K): Data[K] | null
-```
-
-Files to update:
-- `packages/browser/src/core/storage/types.ts`
-- `packages/browser/src/core/storage/cookieStorage.ts`
-- `packages/browser/src/core/storage/localStorage.ts`
-- `packages/browser/src/core/storage/memoryStorage.ts`
-- `packages/browser/src/core/storage/universalStorage.ts`
-
-After fixing, remove `keyofStringsOnly` from `packages/browser/tsconfig.json`.
 
 ### ⚠️ CRITICAL: Prettier Formatting
 
