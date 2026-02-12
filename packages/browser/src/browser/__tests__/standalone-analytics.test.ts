@@ -131,7 +131,7 @@ describe('standalone bundle', () => {
 
     await loadLegacySettings(hightouchDotCom)
 
-    expect(unfetch).toHaveBeenCalledWith(
+    expect(jest.mocked(unfetch).mock.calls[0][0]).toBe(
       'https://cdn.foo.com/v1/projects/foo/settings'
     )
   })
@@ -146,7 +146,7 @@ describe('standalone bundle', () => {
     getGlobalAnalytics()!._cdn = mockCdn
     await loadLegacySettings(hightouchDotCom)
 
-    expect(unfetch).toHaveBeenCalledWith(expect.stringContaining(mockCdn))
+    expect(jest.mocked(unfetch).mock.calls[0][0]).toContain(mockCdn)
   })
 
   it('runs any buffered operations after load', async () => {
@@ -233,9 +233,8 @@ describe('standalone bundle', () => {
     ])
   })
   it('sets buffered event emitters before loading destinations', async () => {
-    jest
-      .mocked(unfetch)
-      .mockImplementation(() => fetchSettings as Promise<Response>)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    jest.mocked(unfetch).mockImplementation(() => fetchSettings as Promise<any>)
 
     const operations: string[] = []
 

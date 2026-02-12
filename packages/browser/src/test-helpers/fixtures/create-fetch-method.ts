@@ -2,10 +2,13 @@ import { LegacySettings } from '../..'
 import { createSuccess } from '../factories'
 import { cdnSettingsMinimal } from './cdn-settings'
 
+// Using a more generic type signature to be compatible with unfetch mock
 export const createMockFetchImplementation = (
   cdnSettings: Partial<LegacySettings> = cdnSettingsMinimal
-) => {
-  return (...[url, req]: Parameters<typeof fetch>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): ((...args: any[]) => Promise<any>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (url: any, req?: any) => {
     const reqUrl = url.toString()
     if (
       !req ||

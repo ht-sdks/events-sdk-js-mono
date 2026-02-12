@@ -28,9 +28,10 @@ describe('Hightouch.io', () => {
 
     window.localStorage.clear()
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     spyMock = jest.mocked(unfetch).mockResolvedValue({
       ok: true,
-    } as Response)
+    } as any)
   })
 
   function resetCookies(): void {
