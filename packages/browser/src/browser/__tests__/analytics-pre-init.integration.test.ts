@@ -16,7 +16,9 @@ const mockFetchSettingsSuccessResponse = () => {
     .mockImplementation(() => Factory.createSuccess({ integrations: {} }))
 }
 
-const mockFetchSettingsErrorResponse = (response?: Partial<Response>) => {
+const mockFetchSettingsErrorResponse = (
+  response?: Partial<Factory.UnfetchResponse>
+) => {
   jest.mocked(unfetch).mockImplementation(() => Factory.createError(response))
 }
 

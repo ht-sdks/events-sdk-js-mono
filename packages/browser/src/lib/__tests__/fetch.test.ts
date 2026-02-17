@@ -1,9 +1,12 @@
 import { fetch } from '../fetch'
 import { getGlobal } from '../get-global'
 import unfetch from 'unfetch'
+import { UnfetchResponse } from '../../test-helpers/factories'
 
 jest.mock('unfetch')
-const unfetchMock = jest.mocked(unfetch).mockResolvedValue({} as Response)
+const unfetchMock = jest
+  .mocked(unfetch)
+  .mockResolvedValue({} as UnfetchResponse)
 
 jest.mock('../get-global')
 const getGlobalMock = jest.mocked(getGlobal)

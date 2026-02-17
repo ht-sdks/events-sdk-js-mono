@@ -1,11 +1,12 @@
+import unfetch from 'unfetch'
 import { LegacySettings } from '../..'
 import { createSuccess } from '../factories'
 import { cdnSettingsMinimal } from './cdn-settings'
 
 export const createMockFetchImplementation = (
   cdnSettings: Partial<LegacySettings> = cdnSettingsMinimal
-) => {
-  return (...[url, req]: Parameters<typeof fetch>) => {
+): ((...args: Parameters<typeof unfetch>) => ReturnType<typeof unfetch>) => {
+  return (...[url, req]: Parameters<typeof unfetch>) => {
     const reqUrl = url.toString()
     if (
       !req ||
