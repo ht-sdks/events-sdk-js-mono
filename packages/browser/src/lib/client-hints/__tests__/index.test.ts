@@ -63,4 +63,29 @@ describe('Client Hints API', () => {
       bitness: '64',
     })
   })
+
+  it('normalizes Pascal-cased `Brand`/`Version` on `brands` to spec lowercase keys', async () => {
+    const pascalCasedBrands = {
+      brands: [
+        { Brand: 'Microsoft Edge', Version: '143' },
+        { Brand: 'Chromium', Version: '143' },
+        { brand: 'Not A(Brand', Version: '99' },
+      ],
+      mobile: false,
+      platform: 'Windows',
+    }
+
+    ;(window.navigator as any).userAgentData = {
+      ...pascalCasedBrands,
+      getHighEntropyValues: jest.fn(() => Promise.resolve(pascalCasedBrands)),
+      toJSON: jest.fn(() => pascalCasedBrands),
+    }
+
+    const lowEntropy = await clientHints()
+    expect(lowEntropy?.brands).toEqual([
+      { brand: 'Microsoft Edge', version: '143' },
+      { brand: 'Chromium', version: '143' },
+      { brand: 'Not A(Brand', version: '99' },
+    ])
+  })
 })
