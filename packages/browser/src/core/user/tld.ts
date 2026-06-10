@@ -47,7 +47,7 @@ export function tld(url: string): string | undefined {
 
   // Test for the top most domain that the browser allows
   for (let i = 0; i < lvls.length; ++i) {
-    const cname = Math.round(Math.random() * 10_000).toString()
+    const cname = '__tld__'
     const domain = lvls[i]
     const opts = {
       domain: '.' + domain,
