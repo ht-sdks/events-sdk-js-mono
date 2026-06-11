@@ -2,61 +2,16 @@ import type { Context } from '../../core/context'
 import type { Plugin } from '../../core/plugin'
 import { PluginType } from '@ht-sdks/events-sdk-js-core'
 import { Analytics } from '../../core/analytics'
-import { loadScript } from '../../lib/load-script'
 import { isServer } from '../../core/environment'
-
-// Facebook Parameter Builder SDK types (clientParamBuilder)
-// Based on Meta's official API: https://developers.facebook.com/docs/marketing-api/conversions-api/parameter-builder-feature-library/client-side-onboarding
-interface ClientParamBuilder {
-  /**
-   * Processes and collects all parameters (fbc, fbp, client_ip_address).
-   * Must be called before getFbc(), getFbp(), or getClientIpAddress().
-   * @param url - Optional. The full URL to collect clickID from. If not provided, uses window.location.href
-   * @param getIpFn - Optional. Function to retrieve client IPv6 address (fallback to IPv4 if unavailable)
-   * @returns Promise that resolves to updated cookie object with _fbc, _fbp, and _fbi keys
-   */
-  processAndCollectAllParams(
-    url?: string,
-    getIpFn?: () => Promise<string>
-  ): Promise<{ _fbc?: string; _fbp?: string; _fbi?: string }>
-  /**
-   * Returns the fbc value from cookie. Returns empty string if cookie does not exist.
-   */
-  getFbc(): string
-  /**
-   * Returns the fbp value from cookie. Returns empty string if cookie does not exist.
-   */
-  getFbp(): string
-  /**
-   * Returns the client_ip_address value from cookie. Returns empty string if cookie does not exist.
-   */
-  getClientIpAddress(): string
-}
-
-export interface FacebookParamsSettings {
-  /**
-   * Custom URL for the Facebook Parameter Builder SDK (clientParamBuilder).
-   * If not provided, defaults to Meta's official S3-hosted bundle.
-   */
-  sdkUrl?: string
-}
-
-// Yes, the official Meta docs say to use this S3 URL.
-const DEFAULT_SDK_URL =
-  'https://capi-automation.s3.us-east-2.amazonaws.com/public/client_js/capiParamBuilder/clientParamBuilder.bundle.js'
+import type { ClientParamBuilder } from 'meta-capi-param-builder-clientjs'
 
 class FacebookParamsPlugin implements Plugin {
   private clientParamBuilder: ClientParamBuilder | null = null
   private sdkReady = false
-  private sdkUrl: string
 
   name = 'Facebook Parameters'
   type: PluginType = 'enrichment'
   version = '0.1.0'
-
-  constructor(settings?: FacebookParamsSettings) {
-    this.sdkUrl = settings?.sdkUrl ?? DEFAULT_SDK_URL
-  }
 
   isLoaded = () => this.sdkReady
 
@@ -70,12 +25,11 @@ class FacebookParamsPlugin implements Plugin {
     // This ensures fbc/fbp are included in events from the start
     await _instance.queue.criticalTasks.run(async () => {
       try {
-        // Load Facebook Parameter Builder SDK
-        await loadScript(this.sdkUrl)
-
-        // The SDK is exposed as clientParamBuilder on window
-        // Reference: https://developers.facebook.com/docs/marketing-api/conversions-api/parameter-builder-feature-library/client-side-onboarding
-        const clientParamBuilder = (window as any).clientParamBuilder
+        const paramBuilderModule = await import(
+          /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
+        )
+        const clientParamBuilder = (paramBuilderModule.default ??
+          paramBuilderModule) as ClientParamBuilder
 
         if (
           clientParamBuilder &&
@@ -83,7 +37,7 @@ class FacebookParamsPlugin implements Plugin {
           typeof clientParamBuilder.getFbc === 'function' &&
           typeof clientParamBuilder.getFbp === 'function'
         ) {
-          this.clientParamBuilder = clientParamBuilder as ClientParamBuilder
+          this.clientParamBuilder = clientParamBuilder
 
           // Call processAndCollectAllParams() first as required by Meta's API
           // This processes the URL, extracts fbclid if present, and saves cookies
@@ -144,24 +98,19 @@ class FacebookParamsPlugin implements Plugin {
 }
 
 /**
- * Default plugin instance (uses default SDK URL from Meta's official S3 bucket).
+ * Default plugin instance using Meta's official ParamBuilder SDK.
  * Used when plugin is loaded via string name: plugins: ["facebook-params"]
  */
 export const facebookParams = new FacebookParamsPlugin()
 
 /**
- * Factory function to create a FacebookParamsPlugin with custom settings.
- * Used with PluginFactory pattern to allow custom SDK URLs.
+ * Factory function to create a FacebookParamsPlugin instance.
  *
  * @example
  * ```javascript
- * const factory = (settings) => createFacebookParamsPlugin(settings);
- * factory.pluginName = 'facebook-params';
- * htevents.load("KEY", { plugins: [factory] });
+ * htevents.load("KEY", { plugins: [createFacebookParamsPlugin()] });
  * ```
  */
-export function createFacebookParamsPlugin(
-  settings?: FacebookParamsSettings
-): Plugin {
-  return new FacebookParamsPlugin(settings)
+export function createFacebookParamsPlugin(): Plugin {
+  return new FacebookParamsPlugin()
 }
