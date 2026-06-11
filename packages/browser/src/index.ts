@@ -10,5 +10,9 @@ export * from './core/user'
 export type { HtEventsSnippet } from './browser/standalone-interface'
 export type { MiddlewareFunction } from './plugins/middleware'
 export { Destination } from './plugins/destinations'
+export {
+  facebookParams,
+  createFacebookParamsPlugin,
+} from './plugins/facebook-params'
 export { getGlobalAnalytics } from './lib/global-analytics-helper'
 export { UniversalStorage, Store, StorageObject } from './core/storage'
