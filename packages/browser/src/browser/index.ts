@@ -268,7 +268,16 @@ async function registerPlugins(
   )
 
   const resolvedStringPlugins = loadedStringPlugins
-    .map((result) => (result.status === 'fulfilled' ? result.value : null))
+    .map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      }
+      console.error(
+        `failed to load plugin: ${stringPluginNames[index]}`,
+        result.reason
+      )
+      return null
+    })
     .filter((plugin): plugin is Plugin => plugin !== null)
 
   const toRegister = [
