@@ -3,9 +3,8 @@ import { Context } from '../../../core/context'
 import { Analytics } from '../../../core/analytics'
 
 const mockSDK = {
-  processAndCollectAllParams: jest.fn<
-    () => Promise<{ _fbc?: string; _fbp?: string }>
-  >(),
+  processAndCollectAllParams:
+    jest.fn<() => Promise<{ _fbc?: string; _fbp?: string }>>(),
   getFbc: jest.fn<() => string>(),
   getFbp: jest.fn<() => string>(),
   getClientIpAddress: jest.fn<() => string>(),
