@@ -91,6 +91,32 @@ describe('FacebookParamsPlugin', () => {
     expect(facebookParams.isLoaded()).toBe(false)
   })
 
+  it('should handle SDK load timeouts gracefully', async () => {
+    jest.useFakeTimers()
+    mockSDK.processAndCollectAllParams.mockImplementation(
+      () => new Promise(() => {})
+    )
+
+    const ctx = Context.system()
+    const analytics = new Analytics({ writeKey: 'test' })
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+
+    const loadPromise = facebookParams.load(ctx, analytics)
+    jest.advanceTimersByTime(2000)
+    await loadPromise
+
+    expect(facebookParams.isLoaded()).toBe(false)
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Failed to load Facebook Parameter Builder SDK:',
+      expect.objectContaining({
+        message: 'Facebook Parameter Builder SDK load timed out',
+      })
+    )
+
+    warnSpy.mockRestore()
+    jest.useRealTimers()
+  })
+
   it('should handle SDK methods that return empty strings', async () => {
     mockSDK.processAndCollectAllParams.mockResolvedValue({})
     mockSDK.getFbc.mockReturnValue('')

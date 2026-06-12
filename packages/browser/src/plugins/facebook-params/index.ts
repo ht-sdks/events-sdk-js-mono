@@ -5,6 +5,16 @@ import { Analytics } from '../../core/analytics'
 import { isServer } from '../../core/environment'
 import type { ClientParamBuilder } from 'meta-capi-param-builder-clientjs'
 
+const SDK_LOAD_TIMEOUT_MS = 2000
+
+function sdkLoadTimeout(): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Facebook Parameter Builder SDK load timed out'))
+    }, SDK_LOAD_TIMEOUT_MS)
+  })
+}
+
 class FacebookParamsPlugin implements Plugin {
   private clientParamBuilder: ClientParamBuilder | null = null
   private sdkReady = false
@@ -25,9 +35,12 @@ class FacebookParamsPlugin implements Plugin {
     // This ensures fbc/fbp are included in events from the start
     await _instance.queue.criticalTasks.run(async () => {
       try {
-        const paramBuilderModule = await import(
-          /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
-        )
+        const paramBuilderModule = await Promise.race([
+          import(
+            /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
+          ),
+          sdkLoadTimeout(),
+        ])
         const clientParamBuilder = (paramBuilderModule.default ??
           paramBuilderModule) as ClientParamBuilder
 
@@ -37,13 +50,12 @@ class FacebookParamsPlugin implements Plugin {
           typeof clientParamBuilder.getFbc === 'function' &&
           typeof clientParamBuilder.getFbp === 'function'
         ) {
+          await Promise.race([
+            clientParamBuilder.processAndCollectAllParams(),
+            sdkLoadTimeout(),
+          ])
+
           this.clientParamBuilder = clientParamBuilder
-
-          // Call processAndCollectAllParams() first as required by Meta's API
-          // This processes the URL, extracts fbclid if present, and saves cookies
-          // We don't provide getIpFn since we're only interested in fbc/fbp, not client_ip_address
-          await this.clientParamBuilder.processAndCollectAllParams()
-
           this.sdkReady = true
         } else {
           // SDK loaded but doesn't have expected interface
