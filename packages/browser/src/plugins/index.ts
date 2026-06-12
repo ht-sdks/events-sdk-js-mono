@@ -1,4 +1,5 @@
 import type { Plugin } from '../core/plugin'
+import type { BuiltInPluginName } from './built-in-plugins'
 
 /**
  * Creates a plugin instance from a string name.
@@ -7,7 +8,9 @@ import type { Plugin } from '../core/plugin'
  * @param name - The name of the plugin to load
  * @returns A promise that resolves to the plugin instance, or undefined if not found
  */
-export async function createPlugin(name: string): Promise<Plugin | undefined> {
+export async function createPlugin(
+  name: BuiltInPluginName
+): Promise<Plugin | undefined> {
   switch (name) {
     case 'facebook-params':
       return import(

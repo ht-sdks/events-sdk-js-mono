@@ -102,15 +102,3 @@ class FacebookParamsPlugin implements Plugin {
  * Used when plugin is loaded via string name: plugins: ["facebook-params"]
  */
 export const facebookParams = new FacebookParamsPlugin()
-
-/**
- * Factory function to create a FacebookParamsPlugin instance.
- *
- * @example
- * ```javascript
- * htevents.load("KEY", { plugins: [createFacebookParamsPlugin()] });
- * ```
- */
-export function createFacebookParamsPlugin(): Plugin {
-  return new FacebookParamsPlugin()
-}

@@ -243,28 +243,11 @@ htevents.load("<WRITE_KEY>", {
 **NPM:**
 
 ```ts
-import {
-  HtEventsBrowser,
-  facebookParams,
-} from '@ht-sdks/events-sdk-js-browser'
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
 
 const htevents = HtEventsBrowser.load({
   writeKey: '<YOUR_WRITE_KEY>',
-  plugins: [facebookParams],
-})
-```
-
-You can also pass the plugin factory if you prefer:
-
-```ts
-import {
-  HtEventsBrowser,
-  createFacebookParamsPlugin,
-} from '@ht-sdks/events-sdk-js-browser'
-
-const htevents = HtEventsBrowser.load({
-  writeKey: '<YOUR_WRITE_KEY>',
-  plugins: [createFacebookParamsPlugin()],
+  plugins: ['facebook-params'],
 })
 ```
 

@@ -32,6 +32,7 @@ import { attachInspector } from '../core/inspector'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
 import { createDestination } from '../plugins/destinations'
 import { createPlugin } from '../plugins'
+import { BUILT_IN_PLUGINS, type BuiltInPluginName } from '../plugins/built-in-plugins'
 
 export interface LegacyIntegrationConfiguration {
   /* @deprecated - This does not indicate browser types anymore */
@@ -181,13 +182,13 @@ async function registerPlugins(
   analytics: Analytics,
   opts: InitOptions,
   options: InitOptions,
-  pluginLikes: (Plugin | PluginFactory | string)[] = [],
+  pluginLikes: (Plugin | PluginFactory | BuiltInPluginName)[] = [],
   legacyIntegrationSources: ClassicIntegrationSource[]
 ): Promise<Context> {
   // Filter string-based plugin names
   const stringPluginNames = pluginLikes?.filter(
-    (pluginLike) => typeof pluginLike === 'string'
-  ) as string[]
+    (pluginLike) => typeof pluginLike === 'string' && BUILT_IN_PLUGINS.includes(pluginLike )
+  ) as BuiltInPluginName[]
 
   // Filter plugin objects
   const plugins = pluginLikes?.filter(

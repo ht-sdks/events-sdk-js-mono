@@ -15,7 +15,7 @@ jest.mock('meta-capi-param-builder-clientjs', () => ({
   default: mockSDK,
 }))
 
-import { facebookParams, createFacebookParamsPlugin } from '../index'
+import { facebookParams } from '../index'
 
 describe('FacebookParamsPlugin', () => {
   beforeEach(() => {
@@ -113,13 +113,5 @@ describe('FacebookParamsPlugin', () => {
     // Empty strings should not be added to context
     expect(enriched.event.context?.fbc).toBeUndefined()
     expect(enriched.event.context?.fbp).toBeUndefined()
-  })
-
-  describe('createFacebookParamsPlugin factory', () => {
-    it('should create a plugin instance', () => {
-      const plugin = createFacebookParamsPlugin()
-      expect(plugin.name).toBe('Facebook Parameters')
-      expect(plugin.type).toBe('enrichment')
-    })
   })
 })
