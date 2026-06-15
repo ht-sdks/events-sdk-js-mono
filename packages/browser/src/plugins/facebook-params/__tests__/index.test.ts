@@ -91,6 +91,26 @@ describe('FacebookParamsPlugin', () => {
     expect(facebookParams.isLoaded()).toBe(false)
   })
 
+  it('should clear load timeout when SDK loads successfully', async () => {
+    jest.useFakeTimers()
+    mockSDK.processAndCollectAllParams.mockResolvedValue({})
+    mockSDK.getFbc.mockReturnValue('')
+    mockSDK.getFbp.mockReturnValue('')
+
+    const ctx = Context.system()
+    const analytics = new Analytics({ writeKey: 'test' })
+    const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout')
+
+    await facebookParams.load(ctx, analytics)
+
+    expect(facebookParams.isLoaded()).toBe(true)
+    // withTimeout clears one timer per race (import + processAndCollectAllParams)
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(2)
+
+    clearTimeoutSpy.mockRestore()
+    jest.useRealTimers()
+  })
+
   it('should handle SDK load timeouts gracefully', async () => {
     jest.useFakeTimers()
     mockSDK.processAndCollectAllParams.mockImplementation(

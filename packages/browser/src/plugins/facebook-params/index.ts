@@ -6,12 +6,22 @@ import { isServer } from '../../core/environment'
 import type { ClientParamBuilder } from 'meta-capi-param-builder-clientjs'
 
 const SDK_LOAD_TIMEOUT_MS = 2000
+const SDK_LOAD_TIMEOUT_MESSAGE =
+  'Facebook Parameter Builder SDK load timed out'
 
-function sdkLoadTimeout(): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error('Facebook Parameter Builder SDK load timed out'))
-    }, SDK_LOAD_TIMEOUT_MS)
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>
+
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms)
+  })
+
+  return Promise.race([promise, timeout]).finally(() => {
+    clearTimeout(timer)
   })
 }
 
@@ -35,12 +45,13 @@ class FacebookParamsPlugin implements Plugin {
     // This ensures fbc/fbp are included in events from the start
     await _instance.queue.criticalTasks.run(async () => {
       try {
-        const paramBuilderModule = await Promise.race([
+        const paramBuilderModule = await withTimeout(
           import(
             /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
           ),
-          sdkLoadTimeout(),
-        ])
+          SDK_LOAD_TIMEOUT_MS,
+          SDK_LOAD_TIMEOUT_MESSAGE
+        )
         const clientParamBuilder = (paramBuilderModule.default ??
           paramBuilderModule) as ClientParamBuilder
 
@@ -50,10 +61,11 @@ class FacebookParamsPlugin implements Plugin {
           typeof clientParamBuilder.getFbc === 'function' &&
           typeof clientParamBuilder.getFbp === 'function'
         ) {
-          await Promise.race([
+          await withTimeout(
             clientParamBuilder.processAndCollectAllParams(),
-            sdkLoadTimeout(),
-          ])
+            SDK_LOAD_TIMEOUT_MS,
+            SDK_LOAD_TIMEOUT_MESSAGE
+          )
 
           this.clientParamBuilder = clientParamBuilder
           this.sdkReady = true
