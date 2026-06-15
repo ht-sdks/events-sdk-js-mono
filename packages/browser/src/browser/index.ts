@@ -189,10 +189,16 @@ async function registerPlugins(
   legacyIntegrationSources: ClassicIntegrationSource[]
 ): Promise<Context> {
   // Filter string-based plugin names
-  const stringPluginNames = pluginLikes?.filter(
-    (pluginLike) =>
-      typeof pluginLike === 'string' && BUILT_IN_PLUGINS.includes(pluginLike)
-  ) as BuiltInPluginName[]
+  const stringPluginNames: BuiltInPluginName[] = []
+  for (const pluginLike of pluginLikes) {
+    if (typeof pluginLike === 'string') {
+      if (BUILT_IN_PLUGINS.includes(pluginLike)) {
+        stringPluginNames.push(pluginLike)
+      } else {
+        console.warn(`failed to load plugin: ${pluginLike}`)
+      }
+    } else continue
+  }
 
   // Filter plugin objects
   const plugins = pluginLikes?.filter(
