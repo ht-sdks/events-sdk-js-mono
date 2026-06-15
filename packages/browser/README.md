@@ -224,6 +224,8 @@ The Facebook Parameters plugin uses [Meta's official client-side ParamBuilder SD
 
 The plugin is **opt-in** — it is not enabled by default.
 
+> **Cookies:** Meta's ParamBuilder writes `_fbc`, `_fbp`, or `_fbi` as first-party cookies when the plugin initializes at SDK `load()` time. If your site requires consent before setting tracking cookies, keep this in mind when enabling the plugin.
+
 **Context fields added:**
 
 | Field | Description |
