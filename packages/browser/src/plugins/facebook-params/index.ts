@@ -6,8 +6,7 @@ import { isServer } from '../../core/environment'
 import type { ClientParamBuilder } from 'meta-capi-param-builder-clientjs'
 
 const SDK_LOAD_TIMEOUT_MS = 2000
-const SDK_LOAD_TIMEOUT_MESSAGE =
-  'Facebook Parameter Builder SDK load timed out'
+const SDK_LOAD_TIMEOUT_MESSAGE = 'Facebook Parameter Builder SDK load timed out'
 
 function withTimeout<T>(
   promise: Promise<T>,
@@ -41,45 +40,39 @@ class FacebookParamsPlugin implements Plugin {
       return Promise.resolve()
     }
 
-    // Mark this plugin as critical so events wait for it to load
-    // This ensures fbc/fbp are included in events from the start
-    await _instance.queue.criticalTasks.run(async () => {
-      try {
-        const paramBuilderModule = await withTimeout(
-          import(
-            /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
-          ),
-          SDK_LOAD_TIMEOUT_MS,
-          SDK_LOAD_TIMEOUT_MESSAGE
+    // Runs to completion on its own, even if the race below gives up waiting
+    const init = (async () => {
+      const paramBuilderModule = await import(
+        /* webpackChunkName: "meta-param-builder" */ 'meta-capi-param-builder-clientjs'
+      )
+      const clientParamBuilder = (paramBuilderModule.default ??
+        paramBuilderModule) as ClientParamBuilder
+
+      if (
+        !clientParamBuilder ||
+        typeof clientParamBuilder.processAndCollectAllParams !== 'function' ||
+        typeof clientParamBuilder.getFbc !== 'function' ||
+        typeof clientParamBuilder.getFbp !== 'function'
+      ) {
+        console.warn(
+          'Facebook Parameter Builder SDK loaded but clientParamBuilder is not available or does not expose expected interface'
         )
-        const clientParamBuilder = (paramBuilderModule.default ??
-          paramBuilderModule) as ClientParamBuilder
-
-        if (
-          clientParamBuilder &&
-          typeof clientParamBuilder.processAndCollectAllParams === 'function' &&
-          typeof clientParamBuilder.getFbc === 'function' &&
-          typeof clientParamBuilder.getFbp === 'function'
-        ) {
-          await withTimeout(
-            clientParamBuilder.processAndCollectAllParams(),
-            SDK_LOAD_TIMEOUT_MS,
-            SDK_LOAD_TIMEOUT_MESSAGE
-          )
-
-          this.clientParamBuilder = clientParamBuilder
-          this.sdkReady = true
-        } else {
-          // SDK loaded but doesn't have expected interface
-          console.warn(
-            'Facebook Parameter Builder SDK loaded but clientParamBuilder is not available or does not expose expected interface'
-          )
-        }
-      } catch (error) {
-        // Graceful degradation - plugin will simply not enrich events
-        console.warn('Failed to load Facebook Parameter Builder SDK:', error)
+        return
       }
+
+      await clientParamBuilder.processAndCollectAllParams()
+      this.clientParamBuilder = clientParamBuilder
+      this.sdkReady = true
+    })().catch((error) => {
+      console.warn('Failed to load Facebook Parameter Builder SDK:', error)
     })
+
+    // Timeout only bounds how long the event queue waits — it doesn't cancel init
+    await _instance.queue.criticalTasks.run(() =>
+      withTimeout(init, SDK_LOAD_TIMEOUT_MS, SDK_LOAD_TIMEOUT_MESSAGE).catch(
+        () => {}
+      )
+    )
   }
 
   private enrich = (ctx: Context): Context => {

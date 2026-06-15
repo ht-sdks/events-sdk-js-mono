@@ -104,14 +104,13 @@ describe('FacebookParamsPlugin', () => {
     await facebookParams.load(ctx, analytics)
 
     expect(facebookParams.isLoaded()).toBe(true)
-    // withTimeout clears one timer per race (import + processAndCollectAllParams)
-    expect(clearTimeoutSpy).toHaveBeenCalledTimes(2)
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1)
 
     clearTimeoutSpy.mockRestore()
     jest.useRealTimers()
   })
 
-  it('should handle SDK load timeouts gracefully', async () => {
+  it('should unblock the event queue when SDK load times out', async () => {
     jest.useFakeTimers()
     mockSDK.processAndCollectAllParams.mockImplementation(
       () => new Promise(() => {})
@@ -126,14 +125,56 @@ describe('FacebookParamsPlugin', () => {
     await loadPromise
 
     expect(facebookParams.isLoaded()).toBe(false)
-    expect(warnSpy).toHaveBeenCalledWith(
-      'Failed to load Facebook Parameter Builder SDK:',
-      expect.objectContaining({
-        message: 'Facebook Parameter Builder SDK load timed out',
-      })
-    )
+    expect(warnSpy).not.toHaveBeenCalled()
 
     warnSpy.mockRestore()
+    jest.useRealTimers()
+  })
+
+  it('should enrich later events when SDK finishes loading after the timeout', async () => {
+    jest.useFakeTimers()
+    let resolveProcess!: (value: { _fbc?: string; _fbp?: string }) => void
+    mockSDK.processAndCollectAllParams.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveProcess = resolve
+        })
+    )
+    mockSDK.getFbc.mockReturnValue('fb.1.1234567890.AbCdEf')
+    mockSDK.getFbp.mockReturnValue('fb.1.1234567890.GhIjKl')
+
+    const ctx = Context.system()
+    const analytics = new Analytics({ writeKey: 'test' })
+
+    const loadPromise = facebookParams.load(ctx, analytics)
+    jest.advanceTimersByTime(2000)
+    await loadPromise
+
+    expect(facebookParams.isLoaded()).toBe(false)
+
+    ctx.event = {
+      type: 'track',
+      event: 'early',
+      properties: {},
+      context: {},
+    }
+    expect(facebookParams.track(ctx).event.context?.fbc).toBeUndefined()
+
+    resolveProcess({ _fbc: 'fb.1.1234567890.AbCdEf' })
+    await Promise.resolve()
+
+    expect(facebookParams.isLoaded()).toBe(true)
+
+    ctx.event = {
+      type: 'track',
+      event: 'late',
+      properties: {},
+      context: {},
+    }
+    const enriched = facebookParams.track(ctx)
+    expect(enriched.event.context?.fbc).toBe('fb.1.1234567890.AbCdEf')
+    expect(enriched.event.context?.fbp).toBe('fb.1.1234567890.GhIjKl')
+
     jest.useRealTimers()
   })
 
