@@ -216,6 +216,47 @@ $ npm run serve -- --port=8080
 
 # Plugins
 
+## Built-in plugins
+
+### Facebook Parameters (`facebook-params`)
+
+The Facebook Parameters plugin uses [Meta's official client-side ParamBuilder SDK](https://developers.facebook.com/docs/marketing-api/conversions-api/parameter-builder-feature-library/client-side-onboarding) to collect `fbc` and `fbp` values and attach them to every event's `context`. These fields improve match quality when forwarding events to Meta's Conversions API.
+
+The plugin is **opt-in** — it is not enabled by default.
+
+> **Cookies:** Meta's ParamBuilder writes `_fbc`, `_fbp`, or `_fbi` as first-party cookies when the plugin initializes at SDK `load()` time. If your site requires consent before setting tracking cookies, keep this in mind when enabling the plugin.
+
+**Context fields added:**
+
+| Field | Description |
+| --- | --- |
+| `context.fbc` | Facebook click ID (from `fbclid` in the URL, stored in the `_fbc` cookie) |
+| `context.fbp` | Facebook browser ID (stored in the `_fbp` cookie) |
+
+**Snippet (CDN):**
+
+```javascript
+htevents.load("<WRITE_KEY>", {
+  apiHost: "<DATA_PLANE_URL>",
+  plugins: ["facebook-params"],
+});
+```
+
+**NPM:**
+
+```ts
+import { HtEventsBrowser } from '@ht-sdks/events-sdk-js-browser'
+
+const htevents = HtEventsBrowser.load({
+  writeKey: '<YOUR_WRITE_KEY>',
+  plugins: ['facebook-params'],
+})
+```
+
+The plugin loads as a critical enrichment plugin, so the SDK waits for ParamBuilder to initialize before sending the first events. If ParamBuilder fails to load, events are still sent without `fbc`/`fbp`.
+
+---
+
 When developing against Events SDK JS you will likely be writing plugins, which can augment functionality and enrich data. Plugins are isolated chunks which you can build, test, version, and deploy independently of the rest of the codebase. Plugins are bounded by Events SDK JS which handles things such as observability, retries, and error management.
 
 Plugins can be of two different priorities:

@@ -60,6 +60,7 @@ import type {
   HTTPCookieServiceOptions,
 } from '../http-cookies'
 import type { DestinationSettings } from '../../plugins/destinations'
+import type { BuiltInPluginName } from '../../plugins/built-in-plugins'
 
 const deprecationWarning =
   'This is being deprecated and will be not be available in future releases of Analytics JS'
@@ -83,7 +84,7 @@ function createDefaultQueue(
 export interface AnalyticsSettings {
   writeKey: string
   timeout?: number
-  plugins?: (Plugin | PluginFactory)[]
+  plugins?: (Plugin | PluginFactory | BuiltInPluginName)[]
   classicIntegrations?: ClassicIntegrationSource[]
 }
 
@@ -138,6 +139,12 @@ export interface InitOptions {
    * Allows specifying plugins as configuration. Used to load plugins in `plugins/destinations/*`.
    */
   destinations?: Record<string, DestinationSettings>
+
+  /**
+   * Array of plugins to load. Can be plugin instances, plugin factories, or built-in plugin names.
+   * Built-in names are resolved via createPlugin() for code-split loading.
+   */
+  plugins?: (Plugin | PluginFactory | BuiltInPluginName)[]
 
   /**
    * When setting httpCookieServiceOptions, an HTTPCookieService is automatically created

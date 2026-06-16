@@ -148,7 +148,7 @@ describe('Initialization', () => {
     const ready = jest.fn()
 
     const lazyPlugin1: Plugin = {
-      name: 'Test 2',
+      name: 'Test 1',
       type: 'destination',
       version: '1.0',
 

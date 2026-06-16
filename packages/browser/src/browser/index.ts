@@ -31,6 +31,16 @@ import { ClassicIntegrationSource } from '../plugins/ajs-destination/types'
 import { attachInspector } from '../core/inspector'
 import { setGlobalAnalyticsKey } from '../lib/global-analytics-helper'
 import { createDestination } from '../plugins/destinations'
+import { createPlugin } from '../plugins'
+import {
+  BUILT_IN_PLUGINS,
+  type BuiltInPluginName,
+} from '../plugins/built-in-plugins'
+import {
+  dedupePluginFactories,
+  dedupePlugins,
+  dedupeStringPluginNames,
+} from './dedupe-plugin-likes'
 
 export interface LegacyIntegrationConfiguration {
   /* @deprecated - This does not indicate browser types anymore */
@@ -180,18 +190,36 @@ async function registerPlugins(
   analytics: Analytics,
   opts: InitOptions,
   options: InitOptions,
-  pluginLikes: (Plugin | PluginFactory)[] = [],
+  pluginLikes: (Plugin | PluginFactory | BuiltInPluginName)[] = [],
   legacyIntegrationSources: ClassicIntegrationSource[]
 ): Promise<Context> {
-  const plugins = pluginLikes?.filter(
-    (pluginLike) => typeof pluginLike === 'object'
-  ) as Plugin[]
+  const stringPluginNames: BuiltInPluginName[] = []
+  const plugins: Plugin[] = []
+  const pluginSources: PluginFactory[] = []
 
-  const pluginSources = pluginLikes?.filter(
-    (pluginLike) =>
+  for (const pluginLike of pluginLikes) {
+    if (typeof pluginLike === 'string') {
+      if (BUILT_IN_PLUGINS.includes(pluginLike)) {
+        stringPluginNames.push(pluginLike)
+      } else {
+        console.warn(`failed to load plugin: ${pluginLike}`)
+      }
+    } else if (typeof pluginLike === 'object' && pluginLike !== null) {
+      plugins.push(pluginLike)
+    } else if (
       typeof pluginLike === 'function' &&
       typeof pluginLike.pluginName === 'string'
-  ) as PluginFactory[]
+    ) {
+      pluginSources.push(pluginLike)
+    } else {
+      console.warn(`failed to load plugin: ${pluginLike}`)
+      continue
+    }
+  }
+
+  const uniqueStringPluginNames = dedupeStringPluginNames(stringPluginNames)
+  const uniquePlugins = dedupePlugins(plugins)
+  const uniquePluginSources = dedupePluginFactories(pluginSources)
 
   const tsubMiddleware = hasTsubMiddleware(legacySettings)
     ? await import(
@@ -242,13 +270,40 @@ async function registerPlugins(
     mergedSettings,
     options.obfuscate,
     tsubMiddleware,
-    pluginSources
+    uniquePluginSources
   ).catch(() => [])
+
+  // Load string-based plugins
+  const loadedStringPlugins = await Promise.allSettled(
+    uniqueStringPluginNames.map(async (name) => {
+      const plugin = await createPlugin(name)
+      if (plugin) {
+        return plugin
+      } else {
+        console.warn(`failed to load plugin: ${name}`)
+        return null
+      }
+    })
+  )
+
+  const resolvedStringPlugins = loadedStringPlugins
+    .map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value
+      }
+      console.error(
+        `failed to load plugin: ${uniqueStringPluginNames[index]}`,
+        result.reason
+      )
+      return null
+    })
+    .filter((plugin): plugin is Plugin => plugin !== null)
 
   const toRegister = [
     validation,
     envEnrichment,
-    ...plugins,
+    ...uniquePlugins,
+    ...resolvedStringPlugins,
     ...legacyDestinations,
     ...remotePlugins,
   ]
@@ -384,7 +439,11 @@ async function loadAnalytics(
 
   attachInspector(analytics)
 
-  const plugins = settings.plugins ?? []
+  // Merge plugins from both settings and options
+  // This allows plugins to be specified in either place:
+  // - settings.plugins (when using HtEventsBrowser.load({ writeKey, plugins: [...] }))
+  // - options.plugins (when using snippet pattern: htevents.load(writeKey, { plugins: [...] }))
+  const plugins = [...(settings.plugins ?? []), ...(options.plugins ?? [])]
 
   const classicIntegrations = settings.classicIntegrations ?? []
 
