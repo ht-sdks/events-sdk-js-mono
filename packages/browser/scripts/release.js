@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 
 const ex = require('execa')
-const S3 = require('aws-sdk/clients/s3')
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
 const fs = require('fs-extra')
 const path = require('path')
 const mime = require('mime')
@@ -43,10 +43,12 @@ async function getFiles(dir) {
 }
 
 async function upload() {
-  const s3 = new S3({
-    accessKeyId,
-    secretAccessKey,
-    sessionToken,
+  const s3 = new S3Client({
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+      sessionToken,
+    },
     region: 'us-east-1',
   })
 
@@ -70,19 +72,19 @@ async function upload() {
       options.ContentEncoding = 'gzip'
     }
 
-    const output = await s3.putObject(options).promise()
+    const output = await s3.send(new PutObjectCommand(options))
 
     if (pathPrefix === 'browser/release') {
       // only build "v1-latest" when it's a "release" build
       // put latest version with only 5 minutes caching
       const majorVersion = pathVersion.split('.').reverse().pop()
-      await s3
-        .putObject({
+      await s3.send(
+        new PutObjectCommand({
           ...options,
           CacheControl: 'public,max-age=300,immutable',
           Key: path.join(pathPrefix, `v${majorVersion}-latest`, f),
         })
-        .promise()
+      )
     }
 
     progress++
