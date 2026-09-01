@@ -81,7 +81,9 @@ const config = {
     extensions: ['.ts', '.js'],
   },
   devServer: {
-    contentBase: path.resolve(__dirname, 'dist/umd'),
+    static: {
+      directory: path.resolve(__dirname, 'dist/umd'),
+    },
   },
   optimization: {
     moduleIds: 'deterministic',
