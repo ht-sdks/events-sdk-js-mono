@@ -22,11 +22,7 @@ function clear(): void {
 const ignoreProbeCookieWrites = (
   fn: jest.SpyInstance<
     string | undefined,
-    [
-      name: string,
-      value: string | object,
-      options?: jar.CookieAttributes | undefined,
-    ]
+    [name: string, value: string, options?: jar.CookieAttributes | undefined]
   >
 ) => fn.mock.calls.filter((c) => c[0] !== 'ajs_cookies_check')
 
@@ -276,7 +272,7 @@ describe('user', () => {
       })
 
       it('should parse integer values', () => {
-        // @ts-expect-error the library only accepts strings or objects,
+        // @ts-expect-error the library only accepts strings,
         // but AJS Classic allows setting numbers on cookie values, so we have
         // to parse them back to string.
         jar.set(cookieKey, 1234)

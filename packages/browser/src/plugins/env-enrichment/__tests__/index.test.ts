@@ -16,11 +16,7 @@ import {
 const ignoreProbeCookieWrites = (
   fn: jest.SpyInstance<
     string | undefined,
-    [
-      name: string,
-      value: string | object,
-      options?: cookie.CookieAttributes | undefined,
-    ]
+    [name: string, value: string, options?: cookie.CookieAttributes | undefined]
   >
 ) => fn.mock.calls.filter((c) => c[0] !== 'ajs_cookies_check')
 
