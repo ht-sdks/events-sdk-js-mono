@@ -161,11 +161,12 @@ Compare test results to baseline. Fix any failures before proceeding.
 
 ### 7. Verify CI Would Pass
 
-The CI runs on Node 22 and 24. If you have nvm, test on multiple versions:
+The CI runs on Node 22, 24, and 26. If you have nvm, test on multiple versions:
 
 ```bash
 nvm use 22 && npm run build && npm run test
 nvm use 24 && npm run build && npm run test
+nvm use 26 && npm run build && npm run test
 ```
 
 ---
@@ -264,7 +265,7 @@ This triggers a candidate build to CDN without publishing to NPM.
 ## CI/CD
 
 - CI config: `.github/workflows/ci.yml`
-- Runs on Node 22 and 24
+- Runs on Node 22, 24, and 26
 - Steps: `npm ci`, `npm run build`, `npm run lint`, `npm run size-limit`, `npm run test`
 
 ### CI Failures After Dependency Updates
