@@ -4,7 +4,7 @@ https://www.npmjs.com/package/@ht-sdks/events-sdk-js-node
 
 
 ## Runtime Support
-- Node.js >= 14
+- Node.js >= 22
 - AWS Lambda
 - Cloudflare Workers
 - Vercel Edge Functions
