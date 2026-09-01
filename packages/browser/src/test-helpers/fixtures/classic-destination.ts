@@ -1,13 +1,24 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 /**
- * This is a classic destination, such as:
+ * Local stand-in for a classic analytics.js destination, such as:
  * https://github.com/segmentio/analytics.js-integrations/blob/master/integrations/appcues/lib/index.js
  */
 
-const integration = require('@segment/analytics.js-integration')
-
 export const mockIntegrationName = 'Fake'
-export const Fake = integration(mockIntegrationName)
+
+export interface FakeIntegration {
+  name: string
+  initialize: () => void
+  loaded: () => boolean
+  track: () => void
+  load: (callback: Function) => void
+  ready?: () => void
+}
+
+export function Fake(this: FakeIntegration, _options?: object) {
+  // classic integration constructor
+}
+
+Fake.prototype.name = mockIntegrationName
 
 Fake.prototype.initialize = function () {
   this.load(this.ready)
