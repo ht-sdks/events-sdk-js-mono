@@ -39,6 +39,6 @@
   "devDependencies": {
     "@internal/config": "0.0.0",
     "@types/node": "^16",
-    "axios": "^1.4.0"
+    "axios": "^1.20.0"
   }
 }
