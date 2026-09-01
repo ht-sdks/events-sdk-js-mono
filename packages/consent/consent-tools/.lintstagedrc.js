@@ -1,1 +1,1 @@
-module.exports = require("@internal/config").lintStagedConfig
+module.exports = require('@internal/config').lintStagedConfig

@@ -515,7 +515,7 @@ export class Analytics
     if (isOffline() && !this.options.retryQueue) {
       return ctx
     }
-    return dispatch(ctx, this.queue, this, {
+    return await dispatch(ctx, this.queue, this, {
       callback,
       debug: this._debug,
       timeout: this.settings.timeout,

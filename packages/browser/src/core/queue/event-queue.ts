@@ -17,6 +17,6 @@ export class EventQueue extends CoreEventQueue<Context, AnyBrowserPlugin> {
   }
   async flush(): Promise<Context[]> {
     if (isOffline()) return []
-    return super.flush()
+    return await super.flush()
   }
 }
