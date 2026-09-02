@@ -1,6 +1,7 @@
 {
-  "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "$schema": "https://turborepo.dev/schema.json",
+  "envMode": "loose",
+  "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": [
@@ -22,6 +23,7 @@
     },
     "watch": {
       "cache": false,
+      "persistent": true,
       "outputs": ["dist/**"]
     },
     "lint": {
