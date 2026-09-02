@@ -1,7 +1,6 @@
 import { Plugin } from '../../core/plugin'
 import { Context } from '../../core/context'
 import { HightouchEvent } from '../../core/events'
-import fetch from 'node-fetch'
 import { version } from '../../generated/version'
 
 interface AnalyticsNodeSettings {

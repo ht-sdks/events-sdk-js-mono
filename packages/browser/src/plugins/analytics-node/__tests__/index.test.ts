@@ -1,5 +1,4 @@
 const fetcher = jest.fn()
-jest.mock('node-fetch', () => fetcher)
 
 import { Analytics } from '../../../core/analytics'
 import { AnalyticsNode } from '../../..'
@@ -9,9 +8,12 @@ const _Date = Date
 
 describe('Analytics Node', () => {
   let ajs: Analytics
+  const originalFetch = globalThis.fetch
 
   beforeEach(async () => {
     jest.resetAllMocks()
+    fetcher.mockResolvedValue({ ok: true })
+    globalThis.fetch = fetcher as typeof fetch
 
     const [analytics] = await AnalyticsNode.load({
       writeKey: 'abc123',
@@ -25,6 +27,10 @@ describe('Analytics Node', () => {
     global.Date.UTC = _Date.UTC
     global.Date.parse = _Date.parse
     global.Date.now = _Date.now
+  })
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch
   })
 
   describe('AJS', () => {

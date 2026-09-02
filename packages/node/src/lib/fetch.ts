@@ -1,16 +1,10 @@
 import type { HTTPFetchFn } from './http-client'
 
-export const fetch: HTTPFetchFn = async (...args) => {
-  if (globalThis.fetch) {
-    return globalThis.fetch(...args)
-  }
-  // This guard causes is important, as it causes dead-code elimination to be enabled inside this block.
-  // @ts-ignore
-  else if (typeof EdgeRuntime !== 'string') {
-    return (await import('node-fetch')).default(...args)
-  } else {
+export const fetch: HTTPFetchFn = (url, requestInit) => {
+  if (typeof globalThis.fetch !== 'function') {
     throw new Error(
-      'Invariant: an edge runtime that does not support fetch should not exist'
+      'globalThis.fetch is not available. Use Node.js 22+ or pass a custom httpClient.'
     )
   }
+  return globalThis.fetch(url, requestInit)
 }

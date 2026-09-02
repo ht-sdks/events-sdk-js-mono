@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import axios from 'axios'
 import {
   HtEvents,
@@ -90,9 +89,10 @@ export default {
     console.log({} as UserTraits)
   },
 
-  'HTTPFetchFn should be compatible with standard fetch and node-fetch interface, as well as functions':
+  'HTTPFetchFn should be compatible with standard fetch, as well as functions':
     () => {
-      const fetch: HTTPFetchFn = require('node-fetch')
+      const fetch: HTTPFetchFn = (url, requestInit) =>
+        globalThis.fetch(url, requestInit)
       new HtEvents({ writeKey: 'foo', httpClient: fetch })
       new HtEvents({ writeKey: 'foo', httpClient: globalThis.fetch })
     },

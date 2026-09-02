@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import http from 'http'
 import handler from 'serve-handler'
 

@@ -81,15 +81,9 @@ describe('Method Smoke Tests', () => {
       expect(pick(headers, 'authorization', 'user-agent', 'content-type'))
         .toMatchInlineSnapshot(`
         {
-          "authorization": [
-            "Basic Zm9vOg==",
-          ],
-          "content-type": [
-            "application/json",
-          ],
-          "user-agent": [
-            "events-sdk-js-node/latest",
-          ],
+          "authorization": "Basic Zm9vOg==",
+          "content-type": "application/json",
+          "user-agent": "events-sdk-js-node/latest",
         }
       `)
       expect(scope.isDone()).toBeTruthy()

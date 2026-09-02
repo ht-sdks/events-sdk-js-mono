@@ -33,7 +33,6 @@
     "@ht-sdks/events-sdk-js-core": "^1.1.0",
     "@lukeed/uuid": "^2.0.0",
     "buffer": "^6.0.3",
-    "node-fetch": "^2.6.7",
     "tslib": "^2.4.1"
   },
   "devDependencies": {
