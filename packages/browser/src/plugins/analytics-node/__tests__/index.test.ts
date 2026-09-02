@@ -8,11 +8,12 @@ const _Date = Date
 
 describe('Analytics Node', () => {
   let ajs: Analytics
+  const originalFetch = globalThis.fetch
 
   beforeEach(async () => {
     jest.resetAllMocks()
     fetcher.mockResolvedValue({ ok: true })
-    jest.spyOn(globalThis, 'fetch').mockImplementation(fetcher)
+    globalThis.fetch = fetcher as typeof fetch
 
     const [analytics] = await AnalyticsNode.load({
       writeKey: 'abc123',
@@ -29,7 +30,7 @@ describe('Analytics Node', () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    globalThis.fetch = originalFetch
   })
 
   describe('AJS', () => {
