@@ -16,7 +16,7 @@ describe('disable', () => {
     await new Promise((resolve) =>
       analytics.track({ anonymousId: 'foo', event: 'bar' }, resolve)
     )
-    expect(emitterCb).not.toBeCalled()
+    expect(emitterCb).not.toHaveBeenCalled()
   })
 
   it('should call .send if disabled is false', async () => {
@@ -27,7 +27,7 @@ describe('disable', () => {
     await new Promise((resolve) =>
       analytics.track({ anonymousId: 'foo', event: 'bar' }, resolve)
     )
-    expect(makeReqSpy).toBeCalledTimes(1)
+    expect(makeReqSpy).toHaveBeenCalledTimes(1)
   })
   it('should not call .send if disabled is true', async () => {
     const analytics = createTestAnalytics({
@@ -37,6 +37,6 @@ describe('disable', () => {
     await new Promise((resolve) =>
       analytics.track({ anonymousId: 'foo', event: 'bar' }, resolve)
     )
-    expect(makeReqSpy).not.toBeCalled()
+    expect(makeReqSpy).not.toHaveBeenCalled()
   })
 })

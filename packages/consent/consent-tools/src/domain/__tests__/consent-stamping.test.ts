@@ -21,7 +21,7 @@ describe(createConsentStampingMiddleware, () => {
       // @ts-ignore
       payload,
     })
-    expect(nextFn).toBeCalledWith(payload)
+    expect(nextFn).toHaveBeenCalledWith(payload)
     // @ts-ignore
     expect(payload.obj.context.consent.categoryPreferences).toEqual({
       Advertising: true,
@@ -36,7 +36,7 @@ describe(createConsentStampingMiddleware, () => {
       // @ts-ignore
       payload,
     })
-    expect(nextFn).toBeCalledWith(payload)
+    expect(nextFn).toHaveBeenCalledWith(payload)
     // @ts-ignore
     expect(payload.obj.context.consent.categoryPreferences).toEqual({
       Advertising: true,

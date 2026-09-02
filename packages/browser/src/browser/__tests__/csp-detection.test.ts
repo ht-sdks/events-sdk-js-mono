@@ -133,7 +133,7 @@ describe('CSP Detection', () => {
     event.disposition = 'report'
     event.blockedURI = 'cdn.hightouch-events.com'
     document.dispatchEvent(event)
-    expect(cspSpy).toBeCalled()
+    expect(cspSpy).toHaveBeenCalled()
     expect(warnSpy).not.toHaveBeenCalled()
     expect(Array.from(document.scripts)).toEqual(ogScripts)
   })

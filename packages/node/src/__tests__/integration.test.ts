@@ -20,7 +20,7 @@ describe('Settings / Configuration Init', () => {
       createTestAnalytics({
         writeKey: undefined as any,
       })
-    ).toThrowError(/writeKey/i)
+    ).toThrow(/writeKey/i)
   })
 
   it('allows host/path to override default client', async () => {
@@ -42,14 +42,14 @@ describe('Settings / Configuration Init', () => {
         host: 'SHOULD_FAIL',
         path: '/bar',
       })
-    ).toThrowError()
+    ).toThrow()
   })
 })
 
 describe('Error handling', () => {
   it('surfaces property thrown errors', async () => {
     const analytics = createTestAnalytics()
-    expect(() => analytics.track({} as any)).toThrowError(/event/i)
+    expect(() => analytics.track({} as any)).toThrow(/event/i)
   })
 
   it('should emit on an error', async () => {

@@ -16,7 +16,7 @@ const createJestTSConfig = (
   }
   const isRootConfig = dirname === process.cwd()
   const moduleMap = getJestModuleMap(dirname, isRootConfig)
-  return {
+  const config = {
     ...(isRootConfig ? {} : { displayName: path.basename(process.cwd()) }),
     /**
      * No need to manually run npm build all the time.
@@ -36,13 +36,24 @@ const createJestTSConfig = (
      * Equivalent to calling jest.clearAllMocks() before each test.
      */
     clearMocks: true,
-    globals: {
-      'ts-jest': {
-        isolatedModules: true,
-      },
+    transform: {
+      '^.+\\.tsx?$': [
+        'ts-jest',
+        {
+          isolatedModules: true,
+        },
+      ],
     },
     ...(overridesToMerge || {}),
   }
+
+  // Use the repo's jsdom 20 via @jest/environment-jsdom-abstract so
+  // window/document/location stay configurable for spies and location mocks.
+  if (config.testEnvironment === 'jsdom') {
+    config.testEnvironment = require.resolve('./jsdom-environment.js')
+  }
+
+  return config
 }
 
 module.exports = {

@@ -7,10 +7,10 @@ const baseEvent: Partial<CoreHightouchEvent> = {
 }
 describe(validateEvent, () => {
   test('should be capable of working with empty properties and traits', () => {
-    expect(() => validateEvent(undefined)).toThrowError()
-    expect(() => validateEvent(null)).toThrowError()
-    expect(() => validateEvent({} as any)).toThrowError()
-    expect(() => validateEvent('foo' as any)).toThrowError()
+    expect(() => validateEvent(undefined)).toThrow()
+    expect(() => validateEvent(null)).toThrow()
+    expect(() => validateEvent({} as any)).toThrow()
+    expect(() => validateEvent('foo' as any)).toThrow()
   })
 
   test('on track, properties should be plain objects', () => {
@@ -20,14 +20,14 @@ describe(validateEvent, () => {
         type: 'track',
         properties: [],
       })
-    ).toThrowError(/properties/i)
+    ).toThrow(/properties/i)
     expect(() =>
       validateEvent({
         ...baseEvent,
         type: 'track',
         properties: undefined,
       })
-    ).toThrowError(/properties/i)
+    ).toThrow(/properties/i)
     expect(() =>
       validateEvent({
         ...baseEvent,
@@ -43,7 +43,7 @@ describe(validateEvent, () => {
         type: 'identify',
         traits: undefined,
       })
-    ).toThrowError(/traits/i)
+    ).toThrow(/traits/i)
 
     expect(() =>
       validateEvent({
@@ -52,7 +52,7 @@ describe(validateEvent, () => {
         type: 'identify',
         traits: undefined,
       })
-    ).toThrowError(/traits/i)
+    ).toThrow(/traits/i)
 
     expect(() =>
       validateEvent({
@@ -61,7 +61,7 @@ describe(validateEvent, () => {
         type: 'identify',
         traits: null as any,
       })
-    ).toThrowError(/traits/i)
+    ).toThrow(/traits/i)
   })
 
   test('alias: should allow both traits and properties to be undefined (unlike other events)', () => {
@@ -127,7 +127,7 @@ describe(validateEvent, () => {
           userId: undefined,
           anonymousId: 123 as any,
         })
-      ).toThrowError(/string/)
+      ).toThrow(/string/)
 
       expect(() =>
         validateEvent({
@@ -137,7 +137,7 @@ describe(validateEvent, () => {
           userId: undefined,
           anonymousId: 123 as any,
         })
-      ).toThrowError(/string/)
+      ).toThrow(/string/)
     })
 
     test('should handle null as well as undefined', () => {
@@ -149,7 +149,7 @@ describe(validateEvent, () => {
           userId: undefined,
           anonymousId: null,
         })
-      ).toThrowError(/nil/i)
+      ).toThrow(/nil/i)
     })
   })
 })

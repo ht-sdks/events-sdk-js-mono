@@ -44,33 +44,33 @@ describe('Dispatch', () => {
   it('should call dispatchSingle correctly if queue is empty', async () => {
     queue.isEmpty = jest.fn().mockReturnValue(true)
     await dispatch(screenCtx, queue, emitter)
-    expect(dispatchSingleSpy).toBeCalledWith(screenCtxMatcher)
-    expect(dispatchSpy).not.toBeCalled()
+    expect(dispatchSingleSpy).toHaveBeenCalledWith(screenCtxMatcher)
+    expect(dispatchSpy).not.toHaveBeenCalled()
   })
 
   it('should call dispatch correctly if queue has items', async () => {
     await dispatch(screenCtx, queue, emitter)
-    expect(dispatchSpy).toBeCalledWith(screenCtxMatcher)
-    expect(dispatchSingleSpy).not.toBeCalled()
+    expect(dispatchSpy).toHaveBeenCalledWith(screenCtxMatcher)
+    expect(dispatchSingleSpy).not.toHaveBeenCalled()
   })
 
   it('should only call invokeCallback if callback is passed', async () => {
     await dispatch(screenCtx, queue, emitter)
-    expect(invokeCallback).not.toBeCalled()
+    expect(invokeCallback).not.toHaveBeenCalled()
 
     const cb = jest.fn()
     await dispatch(screenCtx, queue, emitter, {
       callback: cb,
     })
-    expect(invokeCallback).toBeCalledTimes(1)
+    expect(invokeCallback).toHaveBeenCalledTimes(1)
   })
   it('should call invokeCallback with correct args', async () => {
     const cb = jest.fn()
     await dispatch(screenCtx, queue, emitter, {
       callback: cb,
     })
-    expect(dispatchSpy).toBeCalledWith(screenCtxMatcher)
-    expect(invokeCallback).toBeCalledTimes(1)
+    expect(dispatchSpy).toHaveBeenCalledWith(screenCtxMatcher)
+    expect(invokeCallback).toHaveBeenCalledTimes(1)
     const [ctx, _cb] = invokeCallback.mock.calls[0]
     expect(ctx).toEqual(screenCtxMatcher)
     expect(_cb).toBe(cb)

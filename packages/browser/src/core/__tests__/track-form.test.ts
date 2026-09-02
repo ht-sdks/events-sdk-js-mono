@@ -69,7 +69,7 @@ describe('trackForm', () => {
       revenue: 99.0,
     })
     submit.click()
-    expect(mockTrack).not.toBeCalled()
+    expect(mockTrack).not.toHaveBeenCalled()
   })
 
   it('should respect options object', async () => {
@@ -86,13 +86,13 @@ describe('trackForm', () => {
   it('should trigger a track on a form submit', async () => {
     await analytics.trackForm(form, 'foo')
     submit.click()
-    expect(mockTrack).toBeCalled()
+    expect(mockTrack).toHaveBeenCalled()
   })
 
   it('should accept a jquery object for an element', async () => {
     await analytics.trackForm(form, 'foo')
     submit.click()
-    expect(mockTrack).toBeCalled()
+    expect(mockTrack).toHaveBeenCalled()
   })
 
   it('should not accept a string for an element', async () => {
@@ -103,13 +103,13 @@ describe('trackForm', () => {
     } catch (e) {
       expect(e instanceof TypeError).toBe(true)
     }
-    expect(mockTrack).not.toBeCalled()
+    expect(mockTrack).not.toHaveBeenCalled()
   })
 
   it('should send an event and properties', async () => {
     await analytics.trackForm(form, 'event', { property: true })
     submit.click()
-    expect(mockTrack).toBeCalledWith('event', { property: true }, {})
+    expect(mockTrack).toHaveBeenCalledWith('event', { property: true }, {})
   })
 
   it('should accept an event function', async () => {
@@ -118,7 +118,7 @@ describe('trackForm', () => {
     }
     await analytics.trackForm(form, event, { foo: 'bar' })
     submit.click()
-    expect(mockTrack).toBeCalledWith('event', { foo: 'bar' }, {})
+    expect(mockTrack).toHaveBeenCalledWith('event', { foo: 'bar' }, {})
   })
 
   it('should accept a properties function', async () => {
@@ -127,7 +127,7 @@ describe('trackForm', () => {
     }
     await analytics.trackForm(form, 'event', properties)
     submit.click()
-    expect(mockTrack).toBeCalledWith('event', { property: true }, {})
+    expect(mockTrack).toHaveBeenCalledWith('event', { property: true }, {})
   })
 
   it('should call submit after a timeout', async () => {
@@ -174,7 +174,7 @@ describe('trackForm', () => {
     await analytics.trackForm(form, 'foo')
     $form.submit()
 
-    expect(mockTrack).toBeCalled()
+    expect(mockTrack).toHaveBeenCalled()
   })
 
   it('should trigger an existing jquery submit handler on a form submitted via jquery', async () => {

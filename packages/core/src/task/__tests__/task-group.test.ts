@@ -20,7 +20,7 @@ describe('TaskGroup', () => {
     })
 
     await group.done()
-    expect(a).toBeCalled()
-    expect(b).toBeCalled()
+    expect(a).toHaveBeenCalled()
+    expect(b).toHaveBeenCalled()
   })
 })

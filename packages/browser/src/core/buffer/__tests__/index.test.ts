@@ -111,9 +111,9 @@ describe(PreInitMethodCallBuffer, () => {
       )
 
       const buffer = new PreInitMethodCallBuffer()
-      expect(getGlobalAnalyticsSpy).not.toBeCalled()
+      expect(getGlobalAnalyticsSpy).not.toHaveBeenCalled()
       buffer.toArray()
-      expect(getGlobalAnalyticsSpy).toBeCalled()
+      expect(getGlobalAnalyticsSpy).toHaveBeenCalled()
     })
   })
   describe('BufferedPageContext', () => {
@@ -294,7 +294,7 @@ describe(AnalyticsBuffered, () => {
         .catch((err) => {
           expect(err).toBe('nope')
         })
-      expect(thenCb).not.toBeCalled()
+      expect(thenCb).not.toHaveBeenCalled()
       expect.assertions(2)
       return p
     })
@@ -326,7 +326,7 @@ describe(callAnalyticsMethod, () => {
   })
   it('should  resolve if an async method is called, like track', async () => {
     await callAnalyticsMethod(ajs, methodCall)
-    expect(resolveSpy).toBeCalled()
+    expect(resolveSpy).toHaveBeenCalled()
   })
 
   it('should not defer if a synchronous method is called, like "on"', () => {
@@ -335,7 +335,7 @@ describe(callAnalyticsMethod, () => {
       method: 'on',
       args: ['foo', jest.fn],
     })
-    expect(resolveSpy).toBeCalled()
+    expect(resolveSpy).toHaveBeenCalled()
   })
   describe('error handling', () => {
     it('will catch a promise rejection for async functions', async () => {
@@ -349,7 +349,7 @@ describe(callAnalyticsMethod, () => {
       } as PreInitMethodCall<'track'>)
 
       expect(methodCall.resolve).not.toHaveBeenCalled()
-      expect(methodCall.reject).toBeCalledWith(genericError)
+      expect(methodCall.reject).toHaveBeenCalledWith(genericError)
     })
 
     it('will catch any thrown errors for a non-async functions', () => {
@@ -364,14 +364,14 @@ describe(callAnalyticsMethod, () => {
       } as PreInitMethodCall<'on'>)
 
       expect(methodCall.resolve).not.toHaveBeenCalled()
-      expect(methodCall.reject).toBeCalledWith(genericError)
+      expect(methodCall.reject).toHaveBeenCalledWith(genericError)
     })
   })
 
   it('should not resolve and return undefined if previously called', async () => {
     methodCall.called = true
     const result = await callAnalyticsMethod(ajs, methodCall)
-    expect(resolveSpy).not.toBeCalled()
+    expect(resolveSpy).not.toHaveBeenCalled()
     expect(result).toBeUndefined()
   })
 })
@@ -400,11 +400,11 @@ describe(flushAnalyticsCallsInNewTask, () => {
 
     const buffer = new PreInitMethodCallBuffer(synchronousMethod, asyncMethod)
     flushAnalyticsCallsInNewTask(new Analytics({ writeKey: 'abc' }), buffer)
-    expect(synchronousMethod.resolve).not.toBeCalled()
-    expect(asyncMethod.resolve).not.toBeCalled()
+    expect(synchronousMethod.resolve).not.toHaveBeenCalled()
+    expect(asyncMethod.resolve).not.toHaveBeenCalled()
     await sleep(0)
-    expect(synchronousMethod.resolve).toBeCalled()
-    expect(asyncMethod.resolve).toBeCalled()
+    expect(synchronousMethod.resolve).toHaveBeenCalled()
+    expect(asyncMethod.resolve).toHaveBeenCalled()
   })
 
   test('should handle promise rejections', async () => {
@@ -421,7 +421,7 @@ describe(flushAnalyticsCallsInNewTask, () => {
     const buffer = new PreInitMethodCallBuffer(asyncMethod)
     flushAnalyticsCallsInNewTask(new Analytics({ writeKey: 'abc' }), buffer)
     await sleep(0)
-    expect(asyncMethod.reject).toBeCalledWith('oops!')
+    expect(asyncMethod.reject).toHaveBeenCalledWith('oops!')
   })
 
   test('a thrown error by a synchronous method should not terminate the queue', async () => {
@@ -449,7 +449,7 @@ describe(flushAnalyticsCallsInNewTask, () => {
     const buffer = new PreInitMethodCallBuffer(synchronousMethod, asyncMethod)
     flushAnalyticsCallsInNewTask(new Analytics({ writeKey: 'abc' }), buffer)
     await sleep(0)
-    expect(synchronousMethod.reject).toBeCalledTimes(1)
-    expect(asyncMethod.resolve).toBeCalledTimes(1)
+    expect(synchronousMethod.reject).toHaveBeenCalledTimes(1)
+    expect(asyncMethod.resolve).toHaveBeenCalledTimes(1)
   })
 })

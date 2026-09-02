@@ -1019,7 +1019,7 @@ describe('retries', () => {
 
     await ajs.track('event')
 
-    expect(trackSpy).toBeCalledTimes(0)
+    expect(trackSpy).toHaveBeenCalledTimes(0)
   })
 
   it('enqueues events / dispatches if the client is currently offline and retries are *enabled* for the main event queue', async () => {
@@ -1039,11 +1039,11 @@ describe('retries', () => {
     // @ts-ignore ignore reassining function
     isOffline = jest.fn().mockReturnValue(true)
 
-    expect(trackSpy).toBeCalledTimes(0)
+    expect(trackSpy).toHaveBeenCalledTimes(0)
 
     await ajs.track('event')
 
-    expect(trackSpy).toBeCalledTimes(1)
+    expect(trackSpy).toHaveBeenCalledTimes(1)
   })
 })
 

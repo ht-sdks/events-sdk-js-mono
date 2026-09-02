@@ -14,7 +14,7 @@ describe(validateSettings, () => {
   })
 
   it('should throw an instance of ValidationError', () => {
-    expect(() => validateSettings(null as any)).toThrowError(ValidationError)
+    expect(() => validateSettings(null as any)).toThrow(ValidationError)
   })
 
   it('should throw with the expected error', () => {

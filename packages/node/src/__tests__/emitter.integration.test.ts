@@ -9,7 +9,7 @@ describe('http_request', () => {
     await new Promise((resolve) =>
       analytics.track({ anonymousId: 'foo', event: 'bar' }, resolve)
     )
-    expect(fn).toBeCalledTimes(1)
+    expect(fn).toHaveBeenCalledTimes(1)
     assertHttpRequestEmittedEvent(fn.mock.lastCall[0])
   })
 
@@ -40,6 +40,6 @@ describe('http_request', () => {
     await new Promise((resolve) =>
       analytics.track({ anonymousId: 'foo', event: 'bar' }, resolve)
     )
-    expect(fn).toBeCalledTimes(3)
+    expect(fn).toHaveBeenCalledTimes(3)
   })
 })

@@ -21,7 +21,7 @@ describe('LocalStorage', function () {
         })
       store.set('foo', 'some value')
       expect(store.get('foo')).toBeNull()
-      expect(getItemSpy).toBeCalledTimes(1)
+      expect(getItemSpy).toHaveBeenCalledTimes(1)
     })
 
     it('should not get an empty record', function () {
