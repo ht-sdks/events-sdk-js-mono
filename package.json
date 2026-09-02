@@ -19,7 +19,6 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@npmcli/promise-spawn": "^3.0.0",
-    "@size-limit/preset-big-lib": "^13.0.3",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.25",
