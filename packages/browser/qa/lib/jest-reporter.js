@@ -1,4 +1,3 @@
-const fetch = require('node-fetch')
 const ex = require('execa')
 
 const btoa = (val) => Buffer.from(val).toString('base64')

@@ -36,7 +36,7 @@ describe(abortSignalAfterTimeout, () => {
       throw Error('fail test.')
     } catch (err: any) {
       expect(err.name).toMatch('AbortError')
-      expect(err.message).toMatch('The user aborted a request')
+      expect(err.message).toMatch(/aborted/i)
     }
   })
   it('should abort operation immediately if timeout is 0', async () => {
@@ -48,7 +48,7 @@ describe(abortSignalAfterTimeout, () => {
       throw Error('fail test.')
     } catch (err: any) {
       expect(err.name).toMatch('AbortError')
-      expect(err.message).toMatch('The user aborted a request')
+      expect(err.message).toMatch(/aborted/i)
     }
   })
 })

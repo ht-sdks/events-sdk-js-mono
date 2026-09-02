@@ -3,7 +3,7 @@ import { fetch as defaultFetch } from './fetch'
 
 /**
  * This interface is meant to be compatible with different fetch implementations (node and browser).
- * Using the ambient fetch type is not possible because the AbortSignal type is not compatible with node-fetch.
+ * A minimal contract is used instead of the ambient fetch type so custom clients stay easy to implement.
  * @link https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
  */
 export interface HTTPFetchFn {
@@ -18,7 +18,7 @@ export interface HTTPFetchRequest {
   headers: Record<string, string>
   body: string
   method: HTTPClientRequest['method']
-  signal: any // AbortSignal type does not play nicely with node-fetch
+  signal: any // AbortSignal differs slightly across runtimes
 }
 
 /**

@@ -1,5 +1,4 @@
 import http from 'http'
-import fetch from 'node-fetch'
 import querystring from 'querystring'
 import handler from 'serve-handler'
 import { classic, next } from '../__fixtures__/snippets'

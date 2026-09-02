@@ -1,5 +1,4 @@
 const fetcher = jest.fn()
-jest.mock('node-fetch', () => fetcher)
 
 import { Analytics } from '../../../core/analytics'
 import { AnalyticsNode } from '../../..'
@@ -12,6 +11,8 @@ describe('Analytics Node', () => {
 
   beforeEach(async () => {
     jest.resetAllMocks()
+    fetcher.mockResolvedValue({ ok: true })
+    jest.spyOn(globalThis, 'fetch').mockImplementation(fetcher)
 
     const [analytics] = await AnalyticsNode.load({
       writeKey: 'abc123',
@@ -25,6 +26,10 @@ describe('Analytics Node', () => {
     global.Date.UTC = _Date.UTC
     global.Date.parse = _Date.parse
     global.Date.now = _Date.now
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
   describe('AJS', () => {
