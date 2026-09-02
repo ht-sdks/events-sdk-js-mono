@@ -13,7 +13,7 @@
     "ecma-version-validator-webpack-plugin": "^1.2.1",
     "terser-webpack-plugin": "^5.6.1",
     "webpack": "^5.110.3",
-    "webpack-cli": "^6.0.1",
+    "webpack-cli": "^7.2.3",
     "webpack-merge": "^6.0.1"
   }
 }
