@@ -114,7 +114,7 @@ describe(createWrapper, () => {
   it('should invoke addSourceMiddleware in order to stamp the event', async () => {
     wrapTestAnalytics()
     await analytics.load(DEFAULT_LOAD_SETTINGS)
-    expect(addSourceMiddlewareSpy).toBeCalledWith(expect.any(Function))
+    expect(addSourceMiddlewareSpy).toHaveBeenCalledWith(expect.any(Function))
   })
 
   it('should be chainable', async () => {
@@ -161,7 +161,7 @@ describe(createWrapper, () => {
           })
           const result = await analytics.load(DEFAULT_LOAD_SETTINGS)
           expect(result).toBeUndefined()
-          expect(consoleErrorSpy).not.toBeCalled()
+          expect(consoleErrorSpy).not.toHaveBeenCalled()
         }
       )
 
@@ -175,7 +175,7 @@ describe(createWrapper, () => {
         })
 
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(analyticsLoadSpy).toBeCalled()
+        expect(analyticsLoadSpy).toHaveBeenCalled()
       })
 
       it('should allow hightouch loading to be completely aborted via ctx.abort', async () => {
@@ -188,7 +188,7 @@ describe(createWrapper, () => {
           },
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(analyticsLoadSpy).not.toBeCalled()
+        expect(analyticsLoadSpy).not.toHaveBeenCalled()
       })
       it('should throw a validation error if ctx.abort is called incorrectly', async () => {
         const { getError, shouldLoad } = createShouldLoadThatThrows(
@@ -213,8 +213,8 @@ describe(createWrapper, () => {
           analytics.load(DEFAULT_LOAD_SETTINGS)
         ).rejects.toThrow(err)
 
-        expect(consoleErrorSpy).not.toBeCalled()
-        expect(analyticsLoadSpy).not.toBeCalled()
+        expect(consoleErrorSpy).not.toHaveBeenCalled()
+        expect(analyticsLoadSpy).not.toHaveBeenCalled()
       })
     })
     it('should first call shouldLoad(), then wait for it to resolve/return before calling analytics.load()', async () => {
@@ -268,9 +268,9 @@ describe(createWrapper, () => {
         })
 
         const { updatedCDNSettings } = getAnalyticsLoadLastCall()
-        expect(analyticsLoadSpy).toBeCalled()
+        expect(analyticsLoadSpy).toHaveBeenCalled()
         expect(updatedCDNSettings).toBeTruthy()
-        expect(mockGetCategories).toBeCalled()
+        expect(mockGetCategories).toHaveBeenCalled()
       }
     )
 
@@ -305,8 +305,8 @@ describe(createWrapper, () => {
           cdnSettings: mockCdnSettings,
         })
         const { updatedCDNSettings } = getAnalyticsLoadLastCall()
-        expect(analyticsLoadSpy).toBeCalled()
-        expect(mockGetCategories).toBeCalled()
+        expect(analyticsLoadSpy).toHaveBeenCalled()
+        expect(mockGetCategories).toHaveBeenCalled()
         expect(updatedCDNSettings).toBeTruthy()
       }
     )
@@ -316,9 +316,9 @@ describe(createWrapper, () => {
     /* NOTE: This test suite is meant to be minimal -- please see validation/__tests__ */
 
     test('createWrapper should throw if user-defined settings/configuration/options are invalid', () => {
-      expect(() =>
-        wrapTestAnalytics({ getCategories: {} as any })
-      ).toThrowError(/validation/i)
+      expect(() => wrapTestAnalytics({ getCategories: {} as any })).toThrow(
+        /validation/i
+      )
     })
 
     test('analytics.load should reject if categories are in the wrong format', async () => {
@@ -370,7 +370,7 @@ describe(createWrapper, () => {
         cdnSettings: mockCdnSettings,
       })
 
-      expect(analyticsLoadSpy).toBeCalled()
+      expect(analyticsLoadSpy).toHaveBeenCalled()
       const { updatedCDNSettings } = getAnalyticsLoadLastCall()
 
       expect(typeof updatedCDNSettings.remotePlugins).toBe('object')
@@ -398,7 +398,7 @@ describe(createWrapper, () => {
         ...DEFAULT_LOAD_SETTINGS,
         cdnSettings: mockCdnSettings,
       })
-      expect(analyticsLoadSpy).toBeCalled()
+      expect(analyticsLoadSpy).toHaveBeenCalled()
       const { updatedCDNSettings } = getAnalyticsLoadLastCall()
       // remote plugins should be filtered based on consent settings
       assertIntegrationsContainOnly(
@@ -423,7 +423,7 @@ describe(createWrapper, () => {
         ...DEFAULT_LOAD_SETTINGS,
         cdnSettings: mockCdnSettings,
       })
-      expect(analyticsLoadSpy).toBeCalled()
+      expect(analyticsLoadSpy).toHaveBeenCalled()
       const { updatedCDNSettings } = getAnalyticsLoadLastCall()
       // remote plugins should be filtered based on consent settings
       assertIntegrationsContainOnly(
@@ -465,7 +465,7 @@ describe(createWrapper, () => {
           shouldDisableConsentRequirement: () => true,
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(analyticsLoadSpy).toBeCalled()
+        expect(analyticsLoadSpy).toHaveBeenCalled()
       })
 
       it('should not call shouldLoad if called on first', async () => {
@@ -475,7 +475,7 @@ describe(createWrapper, () => {
           shouldLoad,
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(shouldLoad).not.toBeCalled()
+        expect(shouldLoad).not.toHaveBeenCalled()
       })
 
       it('should work with promises if false', async () => {
@@ -485,7 +485,7 @@ describe(createWrapper, () => {
           shouldLoad,
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(shouldLoad).toBeCalled()
+        expect(shouldLoad).toHaveBeenCalled()
       })
 
       it('should work with promises if true', async () => {
@@ -495,7 +495,7 @@ describe(createWrapper, () => {
           shouldLoad,
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(shouldLoad).not.toBeCalled()
+        expect(shouldLoad).not.toHaveBeenCalled()
       })
 
       it('should forward all arguments to the original analytics.load method', async () => {
@@ -513,7 +513,7 @@ describe(createWrapper, () => {
           {},
         ]
         await analytics.load(...loadArgs)
-        expect(analyticsLoadSpy).toBeCalled()
+        expect(analyticsLoadSpy).toHaveBeenCalled()
         expect(getAnalyticsLoadLastCall().args).toEqual(loadArgs)
       })
 
@@ -522,7 +522,7 @@ describe(createWrapper, () => {
           shouldDisableConsentRequirement: () => true,
         })
         await analytics.load(DEFAULT_LOAD_SETTINGS)
-        expect(addSourceMiddlewareSpy).not.toBeCalled()
+        expect(addSourceMiddlewareSpy).not.toHaveBeenCalled()
       })
     })
   })
@@ -533,7 +533,7 @@ describe(createWrapper, () => {
         shouldDisableHightouch: () => false,
       })
       await analytics.load(DEFAULT_LOAD_SETTINGS)
-      expect(analyticsLoadSpy).toBeCalled()
+      expect(analyticsLoadSpy).toHaveBeenCalled()
     })
 
     it('should not load analytics if disableAll returns true', async () => {
@@ -541,9 +541,9 @@ describe(createWrapper, () => {
         shouldDisableHightouch: () => true,
       })
       await analytics.load(DEFAULT_LOAD_SETTINGS)
-      expect(mockGetCategories).not.toBeCalled()
-      expect(addSourceMiddlewareSpy).not.toBeCalled()
-      expect(analyticsLoadSpy).not.toBeCalled()
+      expect(mockGetCategories).not.toHaveBeenCalled()
+      expect(addSourceMiddlewareSpy).not.toHaveBeenCalled()
+      expect(analyticsLoadSpy).not.toHaveBeenCalled()
     })
   })
   test.each([
@@ -781,14 +781,14 @@ describe(createWrapper, () => {
       })
       await analytics.load(DEFAULT_LOAD_SETTINGS)
 
-      expect(sendConsentChangedEventSpy).not.toBeCalled()
-      expect(registerOnConsentChanged).toBeCalledTimes(1)
+      expect(sendConsentChangedEventSpy).not.toHaveBeenCalled()
+      expect(registerOnConsentChanged).toHaveBeenCalledTimes(1)
       setCategories({ C0001: true, C0002: false })
-      expect(registerOnConsentChanged).toBeCalledTimes(1)
-      expect(sendConsentChangedEventSpy).toBeCalledTimes(1)
+      expect(registerOnConsentChanged).toHaveBeenCalledTimes(1)
+      expect(sendConsentChangedEventSpy).toHaveBeenCalledTimes(1)
 
       // if OnConsentChanged callback is called with categories, it should send event
-      expect(analyticsTrackSpy).toBeCalledWith(
+      expect(analyticsTrackSpy).toHaveBeenCalledWith(
         'Consent Updated',
         {
           categoryPreferences: { C0001: true, C0002: false },
@@ -808,14 +808,14 @@ describe(createWrapper, () => {
       })
 
       await analytics.load(DEFAULT_LOAD_SETTINGS)
-      expect(consoleErrorSpy).not.toBeCalled()
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
       setCategories(['OOPS'] as any)
-      expect(consoleErrorSpy).toBeCalledTimes(1)
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
       const err = consoleErrorSpy.mock.lastCall![0]
       expect(err.toString()).toMatch(/validation/i)
       // if OnConsentChanged callback is called with categories, it should send event
-      expect(sendConsentChangedEventSpy).not.toBeCalled()
-      expect(analyticsTrackSpy).not.toBeCalled()
+      expect(sendConsentChangedEventSpy).not.toHaveBeenCalled()
+      expect(analyticsTrackSpy).not.toHaveBeenCalled()
     })
   })
 })

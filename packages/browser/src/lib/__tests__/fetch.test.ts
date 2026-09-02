@@ -15,13 +15,13 @@ describe(fetch, () => {
     const nativeFetchMock = jest.fn()
     getGlobalMock.mockReturnValue({ ...window, fetch: nativeFetchMock })
     void fetch(...testFetchArgs)
-    expect(nativeFetchMock).toBeCalledWith(...testFetchArgs)
-    expect(unfetchMock).not.toBeCalled()
+    expect(nativeFetchMock).toHaveBeenCalledWith(...testFetchArgs)
+    expect(unfetchMock).not.toHaveBeenCalled()
   })
   it('should fall back to unfetch in non-browserlike environment', () => {
     getGlobalMock.mockReturnValue(null)
     void fetch(...testFetchArgs)
-    expect(unfetchMock).toBeCalledWith(...testFetchArgs)
+    expect(unfetchMock).toHaveBeenCalledWith(...testFetchArgs)
   })
   it('should fall back to unfetch if native fetch is unsupported', () => {
     getGlobalMock.mockReturnValue({
@@ -30,6 +30,6 @@ describe(fetch, () => {
     } as any)
 
     void fetch(...testFetchArgs)
-    expect(unfetchMock).toBeCalledWith(...testFetchArgs)
+    expect(unfetchMock).toHaveBeenCalledWith(...testFetchArgs)
   })
 })

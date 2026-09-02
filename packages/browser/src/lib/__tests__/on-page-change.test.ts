@@ -29,21 +29,21 @@ describe('onPageChange', () => {
     const cb = jest.fn()
     onPageChange(cb)
     helpers.dispatchPageHideEvent()
-    expect(cb).toBeCalledTimes(1)
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 
   test('callback should fire if document becomes hidden', () => {
     const cb = jest.fn()
     onPageChange(cb)
     helpers.dispatchVisChangeEvent('hidden')
-    expect(cb).toBeCalledTimes(1)
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 
   test('callback should fire if document becomes visible', () => {
     const cb = jest.fn()
     onPageChange(cb)
     helpers.dispatchVisChangeEvent('visible')
-    expect(cb).toBeCalledTimes(1)
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 
   test('if both event handlers fire, callback should still fire only once', () => {
@@ -51,7 +51,7 @@ describe('onPageChange', () => {
     onPageChange(cb)
     helpers.dispatchVisChangeEvent('hidden')
     helpers.dispatchPageHideEvent()
-    expect(cb).toBeCalledTimes(1)
+    expect(cb).toHaveBeenCalledTimes(1)
   })
 
   test('if user leaves a tab, returns, and leaves again, callback should be called on each navigation', () => {
@@ -60,15 +60,15 @@ describe('onPageChange', () => {
     helpers.dispatchVisChangeEvent('hidden')
     helpers.dispatchVisChangeEvent('visible')
     helpers.dispatchVisChangeEvent('hidden')
-    expect(cb).toBeCalledTimes(3)
+    expect(cb).toHaveBeenCalledTimes(3)
   })
 
   test('if user navigates, callback should be passed appropriate "unloaded" value', () => {
     const cb = jest.fn()
     onPageChange(cb)
     helpers.dispatchVisChangeEvent('hidden')
-    expect(cb).toBeCalledWith(true)
+    expect(cb).toHaveBeenCalledWith(true)
     helpers.dispatchVisChangeEvent('visible')
-    expect(cb).toBeCalledWith(false)
+    expect(cb).toHaveBeenCalledWith(false)
   })
 })

@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "main": "./src",
+  "dependencies": {
+    "@jest/environment-jsdom-abstract": "30.5.1"
+  },
   "devDependencies": {
     "app-root-path": "^3.1.0"
   }

@@ -25,10 +25,10 @@ describe('Lazy initialization', () => {
     const analytics = new HtEventsBrowser()
     const track = analytics.track('foo')
     await sleep(100)
-    expect(trackSpy).not.toBeCalled()
+    expect(trackSpy).not.toHaveBeenCalled()
     analytics.load({ writeKey: 'abc' })
     await track
-    expect(trackSpy).toBeCalledWith('foo', getBufferedPageCtxFixture())
+    expect(trackSpy).toHaveBeenCalledWith('foo', getBufferedPageCtxFixture())
   })
 
   it('.load method return an analytics instance', async () => {
@@ -41,8 +41,8 @@ describe('Lazy initialization', () => {
     const analytics = new HtEventsBrowser()
     await analytics.load({ writeKey: 'my-write-key' })
     await analytics.load({ writeKey: 'def' })
-    expect(fetched).toBeCalledTimes(1)
-    expect(fetched).toBeCalledWith(
+    expect(fetched).toHaveBeenCalledTimes(1)
+    expect(fetched).toHaveBeenCalledWith(
       expect.stringContaining(
         'https://cdn.hightouch-events.com/v1/projects/my-write-key/settings'
       )

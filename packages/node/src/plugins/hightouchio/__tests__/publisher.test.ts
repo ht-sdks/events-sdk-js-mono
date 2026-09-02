@@ -194,7 +194,7 @@ describe('flushAfterClose', () => {
     void hightouchPlugin.track(_createTrackCtx())
     expect(fetcher).toHaveBeenCalledTimes(0)
     void hightouchPlugin.track(_createTrackCtx())
-    expect(fetcher).toBeCalledTimes(1)
+    expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
   it('continues to flush on each event if batch size is 1', async () => {
@@ -207,7 +207,7 @@ describe('flushAfterClose', () => {
     void hightouchPlugin.track(_createTrackCtx())
     void hightouchPlugin.track(_createTrackCtx())
     void hightouchPlugin.track(_createTrackCtx())
-    expect(fetcher).toBeCalledTimes(3)
+    expect(fetcher).toHaveBeenCalledTimes(3)
   })
 
   it('sends immediately once there are no pending items, even if pending events exceeds batch size', async () => {
@@ -247,9 +247,9 @@ describe('flushAfterClose', () => {
     range(4).forEach(() => hightouchPlugin.track(_createTrackCtx())) // batch is full, send.
     expect(fetcher).toHaveBeenCalledTimes(1)
     range(2).forEach(() => hightouchPlugin.track(_createTrackCtx()))
-    expect(fetcher).toBeCalledTimes(1)
+    expect(fetcher).toHaveBeenCalledTimes(1)
     void hightouchPlugin.track(_createTrackCtx()) // pending items limit has been reached, send.
-    expect(fetcher).toBeCalledTimes(2)
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
 })
 

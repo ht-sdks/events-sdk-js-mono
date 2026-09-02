@@ -64,7 +64,7 @@ describe('Ability for users to exit without losing events', () => {
       ajs.track({ userId: 'foo', event: 'bar' }, cb)
       expect(cb).not.toHaveBeenCalled()
       await ajs.closeAndFlush()
-      expect(cb).toBeCalled()
+      expect(cb).toHaveBeenCalled()
     })
 
     test('all async callbacks should be called', async () => {

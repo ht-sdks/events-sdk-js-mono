@@ -25,7 +25,7 @@ it('supports overriding the CDN', async () => {
     cdnURL: mockCdn,
   })
   // by default, cdn settings are NOT fetched from the server
-  expect(unfetch).not.toBeCalledWith(expect.stringContaining(mockCdn))
+  expect(unfetch).not.toHaveBeenCalledWith(expect.stringContaining(mockCdn))
 })
 
 it('should not use the default CDN if not overridden', async () => {
@@ -33,7 +33,7 @@ it('should not use the default CDN if not overridden', async () => {
     writeKey,
   })
   // by default, cdn settings are NOT fetched from the server
-  expect(unfetch).not.toBeCalledWith(
+  expect(unfetch).not.toHaveBeenCalledWith(
     expect.stringContaining('https://cdn.hightouch-events.com')
   )
 })

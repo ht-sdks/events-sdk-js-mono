@@ -152,7 +152,7 @@ describe('trackLink', () => {
     const $link = jQuery(link)
     await analytics.trackLink($link, 'foo')
     link.click()
-    expect(mockTrack).toBeCalled()
+    expect(mockTrack).toHaveBeenCalled()
   })
 
   it('accepts array of elements', async () => {
@@ -167,7 +167,7 @@ describe('trackLink', () => {
     await analytics.trackLink(link, 'event', { property: true })
     link.click()
 
-    expect(mockTrack).toBeCalledWith('event', { property: true }, {})
+    expect(mockTrack).toHaveBeenCalledWith('event', { property: true }, {})
   })
 
   it('should accept an event function', async () => {
@@ -177,7 +177,7 @@ describe('trackLink', () => {
     await analytics.trackLink(link, event, { foo: 'bar' })
     link.click()
 
-    expect(mockTrack).toBeCalledWith('A', { foo: 'bar' }, {})
+    expect(mockTrack).toHaveBeenCalledWith('A', { foo: 'bar' }, {})
   })
 
   it('should accept a properties function', async () => {
@@ -187,7 +187,7 @@ describe('trackLink', () => {
     await analytics.trackLink(link, 'event', properties)
     link.click()
 
-    expect(mockTrack).toBeCalledWith('event', { type: 'A' }, {})
+    expect(mockTrack).toHaveBeenCalledWith('event', { type: 'A' }, {})
   })
 
   it('should load an href on click', async () => {

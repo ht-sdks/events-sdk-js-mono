@@ -18,10 +18,10 @@ describe(tryCreateFormattedUrl, () => {
     expect(tryCreateFormattedUrl('http://foo.com', '/bar')).toBe(result)
   })
   it('should throw if no http', () => {
-    expect(() => tryCreateFormattedUrl('foo.com', '/bar')).toThrowError()
+    expect(() => tryCreateFormattedUrl('foo.com', '/bar')).toThrow()
   })
   it('should throw if no url', () => {
-    expect(() => tryCreateFormattedUrl('', '/bar')).toThrowError()
+    expect(() => tryCreateFormattedUrl('', '/bar')).toThrow()
   })
   it('should not require .com', () => {
     expect(tryCreateFormattedUrl('http://foo', 'bar')).toBe('http://foo/bar')

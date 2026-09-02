@@ -60,12 +60,12 @@ describe('Pre-initialization', () => {
       const trackCtxPromise = ajsBrowser.track('foo', { name: 'john' })
       const result = await trackCtxPromise
       expect(result).toBeInstanceOf(Context)
-      expect(trackSpy).toBeCalledWith(
+      expect(trackSpy).toHaveBeenCalledWith(
         'foo',
         { name: 'john' },
         getBufferedPageCtxFixture()
       )
-      expect(trackSpy).toBeCalledTimes(1)
+      expect(trackSpy).toHaveBeenCalledTimes(1)
     })
 
     test('"return types should not change over the lifecycle for async methods', async () => {
@@ -110,20 +110,23 @@ describe('Pre-initialization', () => {
 
       await Promise.all([trackCtxPromise, trackCtxPromise2, identifyCtxPromise])
 
-      expect(trackSpy).toBeCalledWith(
+      expect(trackSpy).toHaveBeenCalledWith(
         'foo',
         { name: 'john' },
         getBufferedPageCtxFixture()
       )
-      expect(trackSpy).toBeCalledWith(
+      expect(trackSpy).toHaveBeenCalledWith(
         'bar',
         { age: 123 },
         getBufferedPageCtxFixture()
       )
-      expect(trackSpy).toBeCalledTimes(2)
+      expect(trackSpy).toHaveBeenCalledTimes(2)
 
-      expect(identifySpy).toBeCalledWith('hello', getBufferedPageCtxFixture())
-      expect(identifySpy).toBeCalledTimes(1)
+      expect(identifySpy).toHaveBeenCalledWith(
+        'hello',
+        getBufferedPageCtxFixture()
+      )
+      expect(identifySpy).toHaveBeenCalledTimes(1)
     })
 
     // by default, we do not fetch settings from cdn
@@ -148,7 +151,7 @@ describe('Pre-initialization', () => {
         .mockImplementationOnce(() => {})
       HtEventsBrowser.load({ writeKey: 'abc' })
       await sleep(500)
-      expect(consoleSpy).toBeCalled()
+      expect(consoleSpy).toHaveBeenCalled()
     })
   })
 
@@ -189,9 +192,9 @@ describe('Pre-initialization', () => {
         const finallyCb = jest.fn()
         const catchCb = jest.fn()
         await ajsBrowser.then(thenCb).catch(catchCb).finally(finallyCb)
-        expect(catchCb).not.toBeCalled()
-        expect(finallyCb).toBeCalledTimes(1)
-        expect(thenCb).toBeCalledTimes(1)
+        expect(catchCb).not.toHaveBeenCalled()
+        expect(finallyCb).toHaveBeenCalledTimes(1)
+        expect(thenCb).toHaveBeenCalledTimes(1)
       })
       test('rejection', async () => {
         browserLoadSpy.mockImplementationOnce((): any => Promise.reject(errMsg))
@@ -204,7 +207,7 @@ describe('Pre-initialization', () => {
           .finally(() => {
             onFinallyCb()
           })
-        expect(onFinallyCb).toBeCalledTimes(1)
+        expect(onFinallyCb).toHaveBeenCalledTimes(1)
         expect.assertions(2)
       })
     })
@@ -247,16 +250,16 @@ describe('Pre-initialization', () => {
       await HtEventsBrowser.standalone(writeKey)
 
       await sleep(100) // the snippet does not return a promise (pre-initialization) ... it sometimes has a callback as the third argument.
-      expect(trackSpy).toBeCalledWith('foo', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledWith('bar', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledTimes(2)
+      expect(trackSpy).toHaveBeenCalledWith('foo', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledWith('bar', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledTimes(2)
 
-      expect(identifySpy).toBeCalledTimes(1)
+      expect(identifySpy).toHaveBeenCalledTimes(1)
 
       expect(getOnSpyCalls('track').length).toBe(1)
-      expect(onTrackCb).toBeCalledTimes(2) // gets called once for each track event
-      expect(onTrackCb).toBeCalledWith('foo', {}, undefined)
-      expect(onTrackCb).toBeCalledWith('bar', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledTimes(2) // gets called once for each track event
+      expect(onTrackCb).toHaveBeenCalledWith('foo', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledWith('bar', {}, undefined)
     })
     test('If a snippet user has an event "fail", it will not create a promise rejection or effect other method calls', async () => {
       identifySpy.mockImplementationOnce(() => {
@@ -275,21 +278,21 @@ describe('Pre-initialization', () => {
       await HtEventsBrowser.standalone(writeKey)
 
       await sleep(100) // the snippet does not return a promise (pre-initialization) ... it sometimes has a callback as the third argument.
-      expect(trackSpy).toBeCalledWith('foo', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledWith('bar', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledTimes(2)
+      expect(trackSpy).toHaveBeenCalledWith('foo', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledWith('bar', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledTimes(2)
 
-      expect(identifySpy).toBeCalledWith(getBufferedPageCtxFixture())
-      expect(identifySpy).toBeCalledTimes(1)
-      expect(consoleErrorSpy).toBeCalledTimes(1)
+      expect(identifySpy).toHaveBeenCalledWith(getBufferedPageCtxFixture())
+      expect(identifySpy).toHaveBeenCalledTimes(1)
+      expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
 
-      expect(consoleErrorSpy).toBeCalledWith('identity rejection')
+      expect(consoleErrorSpy).toHaveBeenCalledWith('identity rejection')
 
       expect(getOnSpyCalls('track').length).toBe(1)
 
-      expect(onTrackCb).toBeCalledTimes(2) // gets called once for each track event
-      expect(onTrackCb).toBeCalledWith('foo', {}, undefined)
-      expect(onTrackCb).toBeCalledWith('bar', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledTimes(2) // gets called once for each track event
+      expect(onTrackCb).toHaveBeenCalledWith('foo', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledWith('bar', {}, undefined)
     })
     test('events can be buffered under a custom window key', async () => {
       const onTrackCb = jest.fn()
@@ -305,16 +308,16 @@ describe('Pre-initialization', () => {
       })
 
       await sleep(100) // the snippet does not return a promise (pre-initialization) ... it sometimes has a callback as the third argument.
-      expect(trackSpy).toBeCalledWith('foo', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledWith('bar', getBufferedPageCtxFixture())
-      expect(trackSpy).toBeCalledTimes(2)
+      expect(trackSpy).toHaveBeenCalledWith('foo', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledWith('bar', getBufferedPageCtxFixture())
+      expect(trackSpy).toHaveBeenCalledTimes(2)
 
-      expect(identifySpy).toBeCalledTimes(1)
+      expect(identifySpy).toHaveBeenCalledTimes(1)
 
       expect(getOnSpyCalls('track').length).toBe(1)
-      expect(onTrackCb).toBeCalledTimes(2) // gets called once for each track event
-      expect(onTrackCb).toBeCalledWith('foo', {}, undefined)
-      expect(onTrackCb).toBeCalledWith('bar', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledTimes(2) // gets called once for each track event
+      expect(onTrackCb).toHaveBeenCalledWith('foo', {}, undefined)
+      expect(onTrackCb).toHaveBeenCalledWith('bar', {}, undefined)
     })
   })
 
@@ -326,7 +329,7 @@ describe('Pre-initialization', () => {
       expect(onSpy).not.toHaveBeenCalledWith(...args)
 
       await ajsBrowser
-      expect(onSpy).toBeCalledWith(...args)
+      expect(onSpy).toHaveBeenCalledWith(...args)
       expect(getOnSpyCalls('track').length).toBe(1)
     })
 
@@ -340,11 +343,11 @@ describe('Pre-initialization', () => {
 
       await Promise.all([analytics, trackCtxPromise])
 
-      expect(onSpy).toBeCalledWith('track', onFnCb)
+      expect(onSpy).toHaveBeenCalledWith('track', onFnCb)
       expect(getOnSpyCalls('track').length).toBe(1)
 
       expect(onFnCb).toHaveBeenCalledWith('foo', { name: 123 }, undefined)
-      expect(onFnCb).toBeCalledTimes(1)
+      expect(onFnCb).toHaveBeenCalledTimes(1)
     })
 
     test('If, before initialization, .ready is called, the callback method should be called after analytics loads', async () => {
