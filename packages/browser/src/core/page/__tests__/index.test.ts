@@ -3,8 +3,10 @@ import {
   getDefaultBufferedPageContext,
   getDefaultPageContext,
   isBufferedPageContext,
+  addPageContext,
 } from '../'
 import { pickBy } from 'lodash'
+import { HightouchEvent } from '../../events'
 
 const originalLocation = window.location
 beforeEach(() => {
@@ -125,6 +127,142 @@ describe(getDefaultPageContext, () => {
       document.body.appendChild(el)
       const defs = getDefaultPageContext()
       expect(defs.url).toEqual('http://www.hightouch.local?foo=123')
+    })
+  })
+})
+
+describe(addPageContext, () => {
+  const mockPageCtx = {
+    path: '/default-path',
+    referrer: 'https://example.com/referrer',
+    search: '',
+    title: 'Test Page',
+    url: 'https://example.com/default-path',
+  }
+
+  describe('path derivation from user-provided url', () => {
+    it('derives path from url when user provides url but not path', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'https://example.com/new-path',
+          referrer: 'https://example.com/previous-path',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/new-path')
+      expect(event.context?.page?.path).toBe('/new-path')
+    })
+
+    it('preserves user-provided path when both url and path are provided', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'https://example.com/url-path',
+          path: '/explicit-path',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/explicit-path')
+      expect(event.context?.page?.path).toBe('/explicit-path')
+    })
+
+    it('uses default path when user does not provide url', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          referrer: 'https://example.com/previous-path',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/default-path')
+      expect(event.context?.page?.path).toBe('/default-path')
+    })
+
+    it('handles complex paths with query strings', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'https://example.com/products/shoes?color=red&size=10',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/products/shoes')
+      expect(event.context?.page?.path).toBe('/products/shoes')
+    })
+
+    it('handles urls with hash fragments', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'https://example.com/page#section',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/page')
+      expect(event.context?.page?.path).toBe('/page')
+    })
+
+    it('does not modify path for non-page events', () => {
+      const event: HightouchEvent = {
+        type: 'track',
+        event: 'Test Event',
+        properties: {
+          url: 'https://example.com/some-path',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      // For track events, context.page should use defaults, not derive from properties
+      expect(event.context?.page?.path).toBe('/default-path')
+    })
+
+    it('handles invalid url gracefully', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'not-a-valid-url',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      // Should fall back to default path when url is invalid
+      expect(event.properties?.path).toBe('/default-path')
+      expect(event.context?.page?.path).toBe('/default-path')
+    })
+
+    it('handles url with encoded characters', () => {
+      const event: HightouchEvent = {
+        type: 'page',
+        properties: {
+          url: 'https://example.com/path%20with%20spaces',
+        },
+        context: {},
+      }
+
+      addPageContext(event, mockPageCtx)
+
+      expect(event.properties?.path).toBe('/path%20with%20spaces')
+      expect(event.context?.page?.path).toBe('/path%20with%20spaces')
     })
   })
 })
