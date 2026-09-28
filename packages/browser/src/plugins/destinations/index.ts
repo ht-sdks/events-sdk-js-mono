@@ -17,6 +17,10 @@ export async function createDestination(
       return import(
         /* webpackChunkName: "google-tag-manager" */ './google-tag-manager'
       ).then((mod) => mod.default(settings as any))
+    case 'Braze':
+      return import(/* webpackChunkName: "braze" */ './braze').then((mod) =>
+        mod.default(settings as any)
+      )
     default:
       return undefined
   }
