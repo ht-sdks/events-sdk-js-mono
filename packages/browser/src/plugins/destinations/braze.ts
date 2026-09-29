@@ -15,6 +15,14 @@ type SubscriptionType = Parameters<
 >[0]
 type CustomAttributeValue = Parameters<BrazeUser['setCustomUserAttribute']>[1]
 
+export type BrazePurchase = {
+  productId: string
+  price: number
+  currency: string
+  quantity: number
+  properties: Record<string, any>
+}
+
 type BrazeSettings = {
   /**
    * Braze Web SDK API key. Required unless `instance` is set.
@@ -55,9 +63,9 @@ type BrazeSettings = {
   onReady?: (braze: Braze) => void
 
   /**
-   * Which product field becomes the purchase `productId`
+   * Which product field becomes the purchase `productId`: `sku` (falling back to `product_id`, then `name`), or `name`
    */
-  purchaseProductIdentifier?: 'name' | 'sku'
+  purchaseProductIdentifier?: 'sku' | 'name'
 
   /**
    * `track` event names logged as purchases. Case-sensitive.
@@ -65,7 +73,7 @@ type BrazeSettings = {
   purchaseEventNames?: string[]
 
   /**
-   * Decides if a `track` event is a purchase. Overrides `purchaseEventNames` and `logPurchaseWhenRevenuePresent`.
+   * Decides if a `track` event is a purchase. Overrides `purchaseEventNames`.
    */
   isPurchaseEvent?: (event: HightouchEvent) => boolean
 
@@ -75,9 +83,18 @@ type BrazeSettings = {
   bundleCommerceEvents?: boolean
 
   /**
-   * If any `track` call with `revenue` should be logged as a purchase
+   * Changes each purchase before it is logged. Return `null` or `undefined` to skip it.
+   * `product` is undefined for per-order purchases and orders without products.
+   * If it throws, the unchanged purchase is logged.
    */
-  logPurchaseWhenRevenuePresent?: boolean
+  transformPurchase?: (
+    purchase: BrazePurchase,
+    context: {
+      event: HightouchEvent
+      order: Record<string, any>
+      product?: Record<string, any>
+    }
+  ) => BrazePurchase | null | undefined
 
   /**
    * If `page` calls should be logged as custom events
@@ -85,9 +102,9 @@ type BrazeSettings = {
   forwardScreenViews?: boolean
 
   /**
-   * Page view event name: the URL path, or the `page` call's name
+   * Page view event name: the `page` call's name (falling back to the URL path), or the URL path
    */
-  pageViewEventName?: 'path' | 'name'
+  pageViewEventName?: 'name' | 'path'
 
   /**
    * If attribute and property values should be sent as strings
@@ -101,21 +118,6 @@ type AttributeCache = {
 }
 
 const CACHE_KEY = 'htjs_braze_attributes'
-
-const STANDARD_PRODUCT_FIELDS = [
-  'product_id',
-  'sku',
-  'category',
-  'name',
-  'brand',
-  'variant',
-  'price',
-  'quantity',
-  'coupon',
-  'position',
-  'url',
-  'image_url',
-]
 
 const GENDERS = new Map<string, Gender>([
   ['m', 'm'],
@@ -139,20 +141,18 @@ const SUBSCRIPTION_TYPES: SubscriptionType[] = [
 ]
 
 const STRING_TRAITS = [
-  ['setFirstName', ['firstName', 'first_name', '$FirstName']],
-  ['setLastName', ['lastName', 'last_name', '$LastName']],
-  ['setEmail', ['email', 'Email']],
-  ['setPhoneNumber', ['phone', '$Mobile']],
-  ['setHomeCity', ['address.city', 'home_city', '$City']],
-  ['setCountry', ['address.country', 'country', '$Country']],
+  ['setFirstName', ['firstName', 'first_name']],
+  ['setLastName', ['lastName', 'last_name']],
+  ['setEmail', ['email']],
+  ['setPhoneNumber', ['phone']],
+  ['setHomeCity', ['address.city', 'home_city']],
+  ['setCountry', ['address.country', 'country']],
 ] as const
 
 const SUBSCRIPTION_TRAITS = [
   ['setEmailNotificationSubscriptionType', 'email_subscribe'],
   ['setPushNotificationSubscriptionType', 'push_subscribe'],
 ] as const
-
-const stripDollar = (key: string) => key.replace(/^\$+/, '')
 
 const isPlainObject = (value: unknown): value is Properties =>
   typeof value === 'object' &&
@@ -189,9 +189,6 @@ const parseDateOfBirth = (
     : undefined
 }
 
-/**
- * https://github.com/mparticle-integrations/mparticle-javascript-integration-braze/blob/v5.0.0/src/BrazeKit-dev.js
- */
 const brazeDestination: DestinationFactory<BrazeSettings> = ({
   apiKey,
   baseUrl,
@@ -201,13 +198,13 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   sessionTimeoutInSeconds,
   initOptions,
   onReady,
-  purchaseProductIdentifier = 'name',
+  purchaseProductIdentifier = 'sku',
   purchaseEventNames = ['Order Completed', 'Completed Order'],
   isPurchaseEvent,
   bundleCommerceEvents = false,
-  logPurchaseWhenRevenuePresent = false,
+  transformPurchase,
   forwardScreenViews = false,
-  pageViewEventName = 'path',
+  pageViewEventName = 'name',
   stringifyAttributeValues = false,
 }) => {
   const storage = new LocalStorage<{ [CACHE_KEY]: AttributeCache }>()
@@ -240,7 +237,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     const result: Properties = {}
     Object.keys(properties).forEach((key) => {
       if (properties[key] !== undefined) {
-        result[stripDollar(key)] = toValue(properties[key])
+        result[key] = toValue(properties[key])
       }
     })
     return result
@@ -276,16 +273,20 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     if (!user) return
 
     const traits: Properties = { ...rawTraits }
-    const address = isPlainObject(traits.address) ? traits.address : undefined
-    if (address) delete traits.address
+    let address: Properties = {}
+    if (isPlainObject(traits.address)) {
+      address = { ...traits.address }
+      delete traits.address
+    }
 
     const pick = (keys: readonly string[]) => {
       let result: unknown
       keys.forEach((key) => {
-        const trait = key.startsWith('address.')
-          ? address?.[key.slice('address.'.length)]
-          : traits[key]
-        delete traits[key]
+        const [source, field] = key.startsWith('address.')
+          ? [address, key.slice('address.'.length)]
+          : [traits, key]
+        const trait = source[field]
+        delete source[field]
         if (result === undefined) result = trait
       })
       return result
@@ -316,7 +317,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       }
     })
 
-    const gender = pick(['gender', '$Gender'])
+    const gender = pick(['gender'])
     if (gender !== undefined) {
       const normalized =
         gender === null
@@ -334,22 +335,19 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     }
 
     const birthday = pick(['birthday', 'dob'])
-    const age = pick(['age', '$Age'])
     let dateOfBirth: [number | null, number | null, number | null] | undefined
     if (birthday === null) {
       dateOfBirth = [null, null, null]
     } else if (birthday !== undefined) {
       dateOfBirth = parseDateOfBirth(birthday)
-    } else if (typeof age === 'number') {
-      dateOfBirth = [new Date().getFullYear() - age, 1, 1]
     }
     if (dateOfBirth) {
       const [year, month, day] = dateOfBirth
       set('setDateOfBirth', dateOfBirth, () =>
         user.setDateOfBirth(year, month, day)
       )
-    } else if (birthday !== undefined || age !== undefined) {
-      warn('dropped date of birth: expected an ISO 8601 date or numeric age')
+    } else if (birthday !== undefined) {
+      warn('dropped birthday: expected an ISO 8601 date')
     }
 
     SUBSCRIPTION_TRAITS.forEach(([setter, key]) => {
@@ -362,79 +360,78 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       }
     })
 
-    const zip = pick(['address.postalCode', '$Zip'])
-    if (zip !== undefined) setCustom('Zip', zip)
-
-    Object.keys(traits).forEach((key) =>
-      setCustom(stripDollar(key), traits[key])
-    )
+    Object.keys(address).forEach((key) => setCustom(key, address[key]))
+    Object.keys(traits).forEach((key) => setCustom(key, traits[key]))
     save()
   }
 
-  const logPurchase = (braze: Braze, name: string, properties: Properties) => {
+  const logPurchase = (braze: Braze, event: HightouchEvent) => {
+    const order: Properties = event.properties ?? {}
     const currency =
-      typeof properties.currency === 'string' &&
-      properties.currency.length === 3
-        ? properties.currency
+      typeof order.currency === 'string' && order.currency.length === 3
+        ? order.currency
         : 'USD'
-    const total =
-      toNumber(properties.revenue) ?? toNumber(properties.total) ?? 0
-    const products = Array.isArray(properties.products)
-      ? properties.products.filter(isPlainObject)
+    const total = toNumber(order.revenue) ?? toNumber(order.total) ?? 0
+    const products = Array.isArray(order.products)
+      ? order.products.filter(isPlainObject)
       : []
 
-    if (bundleCommerceEvents) {
+    const log = (purchase: BrazePurchase, product?: Properties) => {
+      let result: BrazePurchase | null | undefined = purchase
+      if (transformPurchase) {
+        try {
+          result = transformPurchase(
+            { ...purchase, properties: { ...purchase.properties } },
+            { event, order, product }
+          )
+        } catch (error) {
+          warn('transformPurchase threw', error)
+        }
+      }
+      if (!result) return
+      if (typeof result.productId !== 'string' || !result.productId) {
+        warn('skipped purchase: missing productId')
+        return
+      }
       braze.logPurchase(
-        'eCommerce - purchase',
-        total,
-        currency,
-        1,
-        eventProperties({
-          ...properties,
-          'Transaction Id': properties.order_id,
-          products: products.map(({ sku, coupon, ...product }) => ({
-            ...product,
-            Id: sku,
-            'Coupon Code': coupon,
-            'Total Product Amount':
-              (toNumber(product.price) ?? 0) *
-              (toNumber(product.quantity) ?? 1),
-          })),
-        })
-      )
-    } else if (products.length) {
-      products.forEach((product) => {
-        const custom: Properties = {}
-        Object.keys(product).forEach((key) => {
-          if (STANDARD_PRODUCT_FIELDS.indexOf(key) < 0) {
-            custom[key] = product[key]
-          }
-        })
-        const productId =
-          purchaseProductIdentifier === 'sku'
-            ? (product.sku ?? product.product_id)
-            : product.name
-        braze.logPurchase(
-          stripDollar(String(productId ?? '')),
-          toNumber(product.price) ?? 0,
-          currency,
-          toNumber(product.quantity) ?? 1,
-          eventProperties({
-            ...custom,
-            Sku: product.sku,
-            'Transaction Id': properties.order_id,
-          })
-        )
-      })
-    } else {
-      braze.logPurchase(
-        stripDollar(name),
-        total,
-        currency,
-        1,
-        eventProperties(properties)
+        result.productId,
+        result.price,
+        result.currency,
+        result.quantity,
+        eventProperties(result.properties)
       )
     }
+
+    if (bundleCommerceEvents || !products.length) {
+      log({
+        productId: event.event ?? '',
+        price: total,
+        currency,
+        quantity: 1,
+        properties: { ...order },
+      })
+      return
+    }
+
+    const shared = { ...order }
+    delete shared.products
+    products.forEach((product) => {
+      const { price, quantity, ...fields } = product
+      const productId =
+        purchaseProductIdentifier === 'name'
+          ? product.name
+          : (product.sku ?? product.product_id ?? product.name)
+      log(
+        {
+          productId: productId == null ? '' : String(productId),
+          price: toNumber(price) ?? 0,
+          currency,
+          quantity: toNumber(quantity) ?? 1,
+          properties: { ...shared, ...fields },
+        },
+        product
+      )
+    })
   }
 
   const isPurchase = (event: HightouchEvent) => {
@@ -446,19 +443,16 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         return false
       }
     }
-    return (
-      purchaseEventNames.indexOf(event.event ?? '') >= 0 ||
-      (logPurchaseWhenRevenuePresent && !!toNumber(event.properties?.revenue))
-    )
+    return purchaseEventNames.indexOf(event.event ?? '') >= 0
   }
 
   const track = (braze: Braze, event: HightouchEvent) => {
     const name = event.event ?? ''
     const properties = event.properties ?? {}
     if (isPurchase(event)) {
-      logPurchase(braze, name, properties)
+      logPurchase(braze, event)
     } else {
-      braze.logCustomEvent(stripDollar(name), eventProperties(properties))
+      braze.logCustomEvent(name, eventProperties(properties))
     }
   }
 
@@ -515,9 +509,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
           hostname: window.location.hostname,
           title: document.title,
         }
-        run((braze) =>
-          braze.logCustomEvent(stripDollar(name), eventProperties(properties))
-        )
+        run((braze) => braze.logCustomEvent(name, eventProperties(properties)))
       },
 
       track: (ctx: Context) => run((braze) => track(braze, ctx.event)),

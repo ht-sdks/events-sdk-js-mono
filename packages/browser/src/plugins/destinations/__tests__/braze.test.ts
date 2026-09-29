@@ -177,7 +177,7 @@ describe('Braze destination identify', () => {
     expect(braze.changeUser.mock.calls).toEqual([['user-1'], ['user-2']])
   })
 
-  it('maps reserved traits and their mParticle aliases', async () => {
+  it('maps reserved traits and their Braze names', async () => {
     const { plugin, ready } = await setup()
     await ready
 
@@ -185,11 +185,16 @@ describe('Braze destination identify', () => {
       identify('user-1', {
         firstName: 'Ada',
         last_name: 'Lovelace',
-        Email: 'ada@example.com',
-        $Mobile: '5555555555',
+        email: 'ada@example.com',
+        phone: '5555555555',
         gender: 'Female',
-        birthday: '1990-05-01T00:00:00.000Z',
-        address: { city: 'London', country: 'UK', postalCode: 'N1' },
+        dob: '1990-05-01T00:00:00.000Z',
+        address: {
+          city: 'London',
+          country: 'UK',
+          postalCode: 'N1',
+          state: 'LDN',
+        },
         email_subscribe: 'opted_in',
         push_subscribe: 'maybe',
       })
@@ -207,22 +212,39 @@ describe('Braze destination identify', () => {
       'opted_in'
     )
     expect(user.setPushNotificationSubscriptionType).not.toHaveBeenCalled()
-    expect(user.setCustomUserAttribute.mock.calls).toEqual([['Zip', 'N1']])
+    expect(user.setCustomUserAttribute.mock.calls).toEqual([
+      ['postalCode', 'N1'],
+      ['state', 'LDN'],
+    ])
   })
 
-  it('estimates date of birth from age and drops unknown genders', async () => {
+  it('treats mParticle names and age as custom attributes', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+
+    await plugin.identify(
+      identify('user-1', { $FirstName: 'Ada', Email: 'a@b.co', age: 30 })
+    )
+
+    expect(user.setFirstName).not.toHaveBeenCalled()
+    expect(user.setEmail).not.toHaveBeenCalled()
+    expect(user.setDateOfBirth).not.toHaveBeenCalled()
+    expect(user.setCustomUserAttribute.mock.calls).toEqual([
+      ['$FirstName', 'Ada'],
+      ['Email', 'a@b.co'],
+      ['age', 30],
+    ])
+  })
+
+  it('normalizes gender spellings and drops unknown genders', async () => {
     jest.spyOn(console, 'warn').mockImplementation(() => {})
     const { plugin, ready } = await setup()
     await ready
 
-    await plugin.identify(identify('user-1', { $Age: 30, $Gender: 'robot' }))
+    await plugin.identify(identify('user-1', { gender: 'Prefer not to say' }))
+    await plugin.identify(identify('user-1', { gender: 'robot' }))
 
-    expect(user.setDateOfBirth).toHaveBeenCalledWith(
-      new Date().getFullYear() - 30,
-      1,
-      1
-    )
-    expect(user.setGender).not.toHaveBeenCalled()
+    expect(user.setGender.mock.calls).toEqual([['p']])
   })
 
   it('sets custom attributes', async () => {
@@ -242,7 +264,7 @@ describe('Braze destination identify', () => {
     )
 
     expect(user.setCustomUserAttribute.mock.calls).toEqual([
-      ['plan', 'pro'],
+      ['$plan', 'pro'],
       ['seats', 3],
       ['vip', true],
       ['tags', ['a', '1']],
@@ -323,14 +345,14 @@ describe('Braze destination track', () => {
     ],
   }
 
-  it('logs custom events, stripping leading $ from names and keys', async () => {
+  it('logs custom events with names and keys unchanged', async () => {
     const { plugin, ready } = await setup()
     await ready
 
     await plugin.track(track('$Signed Up', { $plan: 'pro', nested: { a: 1 } }))
 
-    expect(braze.logCustomEvent).toHaveBeenCalledWith('Signed Up', {
-      plan: 'pro',
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('$Signed Up', {
+      $plan: 'pro',
       nested: { a: 1 },
     })
   })
@@ -353,28 +375,95 @@ describe('Braze destination track', () => {
 
     await plugin.track(track('Order Completed', order))
 
+    const shared = { order_id: 'order-1', currency: 'EUR', revenue: 30 }
     expect(braze.logPurchase.mock.calls).toEqual([
       [
-        'Shirt',
+        'SKU1',
         10,
         'EUR',
         2,
-        { color: 'blue', Sku: 'SKU1', 'Transaction Id': 'order-1' },
+        {
+          ...shared,
+          product_id: 'p1',
+          sku: 'SKU1',
+          name: 'Shirt',
+          brand: 'Acme',
+          coupon: 'SAVE',
+          color: 'blue',
+        },
       ],
-      ['Hat', 10, 'EUR', 1, { Sku: 'SKU2', 'Transaction Id': 'order-1' }],
+      ['SKU2', 10, 'EUR', 1, { ...shared, sku: 'SKU2', name: 'Hat' }],
     ])
   })
 
-  it('can use the SKU as the purchase productId', async () => {
-    const { plugin, ready } = await setup({ purchaseProductIdentifier: 'sku' })
+  it('lets product fields win over order fields', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+
+    await plugin.track(
+      track('Order Completed', {
+        coupon: 'ORDER',
+        products: [{ sku: 'SKU1', coupon: 'ITEM' }],
+      })
+    )
+
+    expect(braze.logPurchase).toHaveBeenCalledWith('SKU1', 0, 'USD', 1, {
+      sku: 'SKU1',
+      coupon: 'ITEM',
+    })
+  })
+
+  it('falls back to product_id, then name, and skips products without either', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup()
+    await ready
+
+    await plugin.track(
+      track('Order Completed', {
+        products: [
+          { product_id: 'p1', name: 'Shirt' },
+          { name: 'Hat' },
+          { price: 5 },
+        ],
+      })
+    )
+
+    expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual([
+      'p1',
+      'Hat',
+    ])
+    expect(warn).toHaveBeenCalled()
+  })
+
+  it('can use the product name as the purchase productId', async () => {
+    const { plugin, ready } = await setup({
+      purchaseProductIdentifier: 'name',
+    })
     await ready
 
     await plugin.track(track('Order Completed', order))
 
     expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual([
-      'SKU1',
-      'SKU2',
+      'Shirt',
+      'Hat',
     ])
+  })
+
+  it('passes a leading $ in product IDs through', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+
+    await plugin.track(
+      track('$Order Completed', { products: [{ sku: '$SKU1' }] })
+    )
+    await plugin.track(
+      track('Order Completed', { products: [{ sku: '$SKU1' }] })
+    )
+
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('$Order Completed', {
+      products: [{ sku: '$SKU1' }],
+    })
+    expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual(['$SKU1'])
   })
 
   it('can bundle the order into a single purchase', async () => {
@@ -384,37 +473,7 @@ describe('Braze destination track', () => {
     await plugin.track(track('Order Completed', order))
 
     expect(braze.logPurchase.mock.calls).toEqual([
-      [
-        'eCommerce - purchase',
-        30,
-        'EUR',
-        1,
-        {
-          order_id: 'order-1',
-          currency: 'EUR',
-          revenue: 30,
-          'Transaction Id': 'order-1',
-          products: [
-            {
-              product_id: 'p1',
-              Id: 'SKU1',
-              name: 'Shirt',
-              brand: 'Acme',
-              price: 10,
-              quantity: 2,
-              'Coupon Code': 'SAVE',
-              color: 'blue',
-              'Total Product Amount': 20,
-            },
-            {
-              Id: 'SKU2',
-              name: 'Hat',
-              price: '10',
-              'Total Product Amount': 10,
-            },
-          ],
-        },
-      ],
+      ['Order Completed', 30, 'EUR', 1, order],
     ])
   })
 
@@ -431,22 +490,6 @@ describe('Braze destination track', () => {
       1,
       { total: '15' }
     )
-  })
-
-  it('can log any event with revenue as a purchase', async () => {
-    const off = await setup()
-    await off.ready
-    await off.plugin.track(track('Upgraded', { revenue: 5 }))
-    expect(braze.logCustomEvent).toHaveBeenCalledWith('Upgraded', {
-      revenue: 5,
-    })
-
-    const on = await setup({ logPurchaseWhenRevenuePresent: true })
-    await on.ready
-    await on.plugin.track(track('Upgraded', { revenue: 5 }))
-    expect(braze.logPurchase).toHaveBeenCalledWith('Upgraded', 5, 'USD', 1, {
-      revenue: 5,
-    })
   })
 
   it('logs purchases for custom purchase event names', async () => {
@@ -468,14 +511,13 @@ describe('Braze destination track', () => {
     ])
   })
 
-  it('lets isPurchaseEvent override names and revenue detection', async () => {
+  it('lets isPurchaseEvent override purchaseEventNames', async () => {
     const isPurchaseEvent = jest.fn(
       (event) => event.properties?.kind === 'purchase'
     )
     const { plugin, ready } = await setup({
       isPurchaseEvent,
       purchaseEventNames: ['Upgraded'],
-      logPurchaseWhenRevenuePresent: true,
     })
     await ready
 
@@ -510,6 +552,92 @@ describe('Braze destination track', () => {
     })
     expect(warn).toHaveBeenCalled()
   })
+
+  it('lets transformPurchase change each purchase', async () => {
+    const transformPurchase = jest.fn(
+      ({ properties: { order_id, ...rest }, ...purchase }) => ({
+        ...purchase,
+        productId: `${purchase.productId}-x`,
+        properties: { ...rest, 'Transaction Id': order_id },
+      })
+    )
+    const { plugin, ready } = await setup({ transformPurchase })
+    await ready
+
+    const event = track('Order Completed', order)
+    await plugin.track(event)
+
+    expect(transformPurchase).toHaveBeenCalledWith(
+      expect.objectContaining({ productId: 'SKU2' }),
+      { event: event.event, order, product: order.products[1] }
+    )
+    expect(braze.logPurchase.mock.calls[1]).toEqual([
+      'SKU2-x',
+      10,
+      'EUR',
+      1,
+      {
+        currency: 'EUR',
+        revenue: 30,
+        sku: 'SKU2',
+        name: 'Hat',
+        'Transaction Id': 'order-1',
+      },
+    ])
+  })
+
+  it('passes no product to transformPurchase for per-order purchases', async () => {
+    const transformPurchase = jest.fn((purchase) => purchase)
+    const { plugin, ready } = await setup({
+      transformPurchase,
+      bundleCommerceEvents: true,
+    })
+    await ready
+
+    await plugin.track(track('Order Completed', order))
+
+    expect(transformPurchase).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ order, product: undefined })
+    )
+    expect(braze.logPurchase).toHaveBeenCalledTimes(1)
+  })
+
+  it('skips purchases when transformPurchase returns null or no productId', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup({
+      transformPurchase: (purchase: { productId: string }) =>
+        purchase.productId === 'SKU1' ? null : { ...purchase, productId: '' },
+    })
+    await ready
+
+    await plugin.track(track('Order Completed', order))
+
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('logs the default purchase when transformPurchase throws', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup({
+      transformPurchase: (purchase: { properties: object }) => {
+        purchase.properties = {}
+        throw new Error('boom')
+      },
+    })
+    await ready
+
+    await plugin.track(track('Completed Order', { total: '15' }))
+
+    expect(braze.logPurchase).toHaveBeenCalledWith(
+      'Completed Order',
+      15,
+      'USD',
+      1,
+      { total: '15' }
+    )
+    expect(warn).toHaveBeenCalled()
+  })
 })
 
 describe('Braze destination page', () => {
@@ -528,24 +656,33 @@ describe('Braze destination page', () => {
     expect(braze.logCustomEvent).not.toHaveBeenCalled()
   })
 
-  it('logs page views named after the path or the page name', async () => {
+  it('logs page views named after the page name, falling back to the path', async () => {
     document.title = 'Home page'
-    const byPath = await setup({ forwardScreenViews: true })
-    await byPath.ready
-    await byPath.plugin.page(page)
-
-    const byName = await setup({
-      forwardScreenViews: true,
-      pageViewEventName: 'name',
-    })
-    await byName.ready
-    await byName.plugin.page(page)
+    const { plugin, ready } = await setup({ forwardScreenViews: true })
+    await ready
+    await plugin.page(page)
+    await plugin.page(new Context({ type: 'page', properties: { path: '/' } }))
 
     const properties = { path: '/', hostname: 'localhost', title: 'Home page' }
     expect(braze.logCustomEvent.mock.calls).toEqual([
-      [window.location.pathname, properties],
       ['Home', properties],
+      [window.location.pathname, properties],
     ])
+  })
+
+  it('can always name page views after the path', async () => {
+    document.title = 'Home page'
+    const { plugin, ready } = await setup({
+      forwardScreenViews: true,
+      pageViewEventName: 'path',
+    })
+    await ready
+    await plugin.page(page)
+
+    expect(braze.logCustomEvent).toHaveBeenCalledWith(
+      window.location.pathname,
+      { path: '/', hostname: 'localhost', title: 'Home page' }
+    )
   })
 })
 
