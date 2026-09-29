@@ -448,6 +448,68 @@ describe('Braze destination track', () => {
       revenue: 5,
     })
   })
+
+  it('logs purchases for custom purchase event names', async () => {
+    const { plugin, ready } = await setup({
+      purchaseEventNames: ['Membership Purchased'],
+    })
+    await ready
+
+    await plugin.track(track('Membership Purchased', { revenue: 5 }))
+    await plugin.track(track('membership purchased', { revenue: 5 }))
+    await plugin.track(track('Order Completed', { revenue: 5 }))
+
+    expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual([
+      'Membership Purchased',
+    ])
+    expect(braze.logCustomEvent.mock.calls.map(([name]) => name)).toEqual([
+      'membership purchased',
+      'Order Completed',
+    ])
+  })
+
+  it('lets isPurchaseEvent override names and revenue detection', async () => {
+    const isPurchaseEvent = jest.fn(
+      (event) => event.properties?.kind === 'purchase'
+    )
+    const { plugin, ready } = await setup({
+      isPurchaseEvent,
+      purchaseEventNames: ['Upgraded'],
+      logPurchaseWhenRevenuePresent: true,
+    })
+    await ready
+
+    await plugin.track(track('Renewed', { kind: 'purchase', revenue: 5 }))
+    await plugin.track(track('Upgraded', { revenue: 5 }))
+    await plugin.track(track('Order Completed', order))
+
+    expect(isPurchaseEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'Renewed' })
+    )
+    expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual(['Renewed'])
+    expect(braze.logCustomEvent.mock.calls.map(([name]) => name)).toEqual([
+      'Upgraded',
+      'Order Completed',
+    ])
+  })
+
+  it('logs a custom event when isPurchaseEvent throws', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup({
+      isPurchaseEvent: () => {
+        throw new Error('boom')
+      },
+    })
+    await ready
+
+    await plugin.track(track('Order Completed', { revenue: 5 }))
+
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('Order Completed', {
+      revenue: 5,
+    })
+    expect(warn).toHaveBeenCalled()
+  })
 })
 
 describe('Braze destination page', () => {

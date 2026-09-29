@@ -1,6 +1,7 @@
 import type { Context } from '../../core/context'
 import type * as BrazeSdk from '@braze/web-sdk'
 import type { Analytics } from '../../core/analytics'
+import type { HightouchEvent } from '../../core/events/interfaces'
 import type { DestinationFactory } from './types'
 import { LocalStorage } from '../../core/storage/localStorage'
 import { Destination } from './destination'
@@ -59,7 +60,17 @@ type BrazeSettings = {
   purchaseProductIdentifier?: 'name' | 'sku'
 
   /**
-   * If `Order Completed` should log one purchase for the whole order instead of one per product
+   * `track` event names logged as purchases. Case-sensitive.
+   */
+  purchaseEventNames?: string[]
+
+  /**
+   * Decides if a `track` event is a purchase. Overrides `purchaseEventNames` and `logPurchaseWhenRevenuePresent`.
+   */
+  isPurchaseEvent?: (event: HightouchEvent) => boolean
+
+  /**
+   * If a purchase event should log one purchase for the whole order instead of one per product
    */
   bundleCommerceEvents?: boolean
 
@@ -90,8 +101,6 @@ type AttributeCache = {
 }
 
 const CACHE_KEY = 'htjs_braze_attributes'
-
-const PURCHASE_EVENTS = ['Order Completed', 'Completed Order']
 
 const STANDARD_PRODUCT_FIELDS = [
   'product_id',
@@ -193,6 +202,8 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   initOptions,
   onReady,
   purchaseProductIdentifier = 'name',
+  purchaseEventNames = ['Order Completed', 'Completed Order'],
+  isPurchaseEvent,
   bundleCommerceEvents = false,
   logPurchaseWhenRevenuePresent = false,
   forwardScreenViews = false,
@@ -426,11 +437,25 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     }
   }
 
-  const track = (braze: Braze, name: string, properties: Properties) => {
-    if (
-      PURCHASE_EVENTS.indexOf(name) >= 0 ||
-      (logPurchaseWhenRevenuePresent && toNumber(properties.revenue))
-    ) {
+  const isPurchase = (event: HightouchEvent) => {
+    if (isPurchaseEvent) {
+      try {
+        return isPurchaseEvent(event)
+      } catch (error) {
+        warn('isPurchaseEvent threw', error)
+        return false
+      }
+    }
+    return (
+      purchaseEventNames.indexOf(event.event ?? '') >= 0 ||
+      (logPurchaseWhenRevenuePresent && !!toNumber(event.properties?.revenue))
+    )
+  }
+
+  const track = (braze: Braze, event: HightouchEvent) => {
+    const name = event.event ?? ''
+    const properties = event.properties ?? {}
+    if (isPurchase(event)) {
       logPurchase(braze, name, properties)
     } else {
       braze.logCustomEvent(stripDollar(name), eventProperties(properties))
@@ -495,10 +520,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         )
       },
 
-      track: (ctx: Context) =>
-        run((braze) =>
-          track(braze, ctx.event.event ?? '', ctx.event.properties ?? {})
-        ),
+      track: (ctx: Context) => run((braze) => track(braze, ctx.event)),
     }),
     {
       alternativeNames: ['Appboy'],
