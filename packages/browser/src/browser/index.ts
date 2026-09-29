@@ -329,6 +329,7 @@ async function registerPlugins(
   // destination plugins
   await Promise.allSettled(
     Object.entries(options.destinations ?? {}).map(async ([name, settings]) => {
+      if (!settings) return
       const plugin = await createDestination(name, settings)
       if (plugin) {
         toRegister.push(plugin)

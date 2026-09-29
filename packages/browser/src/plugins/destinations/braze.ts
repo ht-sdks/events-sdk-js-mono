@@ -23,94 +23,136 @@ export type BrazePurchase = {
   properties: Record<string, any>
 }
 
-type BrazeSettings = {
-  /**
-   * Braze Web SDK API key. Required unless `instance` is set.
-   */
-  apiKey?: string
+type StartSettings =
+  | {
+      /**
+       * Braze Web SDK API key. Required unless `instance` is set.
+       */
+      apiKey: string
 
-  /**
-   * Braze SDK endpoint, e.g. `sdk.iad-03.braze.com`. Required unless `instance` is set.
-   */
-  baseUrl?: string
+      /**
+       * Braze SDK endpoint, e.g. `sdk.iad-03.braze.com`. Required unless `instance` is set.
+       */
+      baseUrl: string
 
-  /**
-   * The Braze Web SDK for the destination to initialize, or a function that loads it,
-   * e.g. `() => import('@braze/web-sdk')`
-   */
-  sdk?: Braze | (() => Promise<Braze>)
+      /**
+       * The Braze Web SDK for the destination to initialize, or a function that loads it,
+       * e.g. `() => import('@braze/web-sdk')`
+       */
+      sdk: Braze | (() => Promise<Braze>)
 
-  /**
-   * A Braze instance you already initialized. The destination skips `initialize` and `openSession`.
-   */
-  instance?: Braze
+      instance?: never
 
-  /**
-   * If `braze.automaticallyShowInAppMessages()` should be called. Ignored when `instance` is set.
-   */
-  automaticallyShowInAppMessages?: boolean
+      /**
+       * If `braze.automaticallyShowInAppMessages()` should be called. Ignored when `instance` is set.
+       */
+      automaticallyShowInAppMessages?: boolean
 
-  sessionTimeoutInSeconds?: number
+      sessionTimeoutInSeconds?: number
 
-  /**
-   * Extra options passed to `braze.initialize`
-   */
-  initOptions?: Partial<BrazeSdk.InitializationOptions>
-
-  /**
-   * Called with the Braze instance once it is initialized, before the session opens and queued events are sent
-   */
-  onReady?: (braze: Braze) => void
-
-  /**
-   * Which product field becomes the purchase `productId`: `sku` (falling back to `product_id`, then `name`), or `name`
-   */
-  purchaseProductIdentifier?: 'sku' | 'name'
-
-  /**
-   * `track` event names logged as purchases. Case-sensitive.
-   */
-  purchaseEventNames?: string[]
-
-  /**
-   * Decides if a `track` event is a purchase. Overrides `purchaseEventNames`.
-   */
-  isPurchaseEvent?: (event: HightouchEvent) => boolean
-
-  /**
-   * If a purchase event should log one purchase for the whole order instead of one per product
-   */
-  bundleCommerceEvents?: boolean
-
-  /**
-   * Changes each purchase before it is logged. Return `null` or `undefined` to skip it.
-   * `product` is undefined for per-order purchases and orders without products.
-   * If it throws, the unchanged purchase is logged.
-   */
-  transformPurchase?: (
-    purchase: BrazePurchase,
-    context: {
-      event: HightouchEvent
-      order: Record<string, any>
-      product?: Record<string, any>
+      /**
+       * Extra options passed to `braze.initialize`
+       */
+      initOptions?: Partial<BrazeSdk.InitializationOptions> & {
+        baseUrl?: never
+      }
     }
-  ) => BrazePurchase | null | undefined
+  | {
+      apiKey?: never
+      baseUrl?: never
+      sdk?: never
 
-  /**
-   * If `page` calls should be logged as custom events
-   */
-  forwardScreenViews?: boolean
+      /**
+       * A Braze instance you already initialized. The destination skips `initialize` and `openSession`.
+       */
+      instance: Braze
 
-  /**
-   * Page view event name: the `page` call's name (falling back to the URL path), or the URL path
-   */
-  pageViewEventName?: 'name' | 'path'
+      automaticallyShowInAppMessages?: never
+      sessionTimeoutInSeconds?: never
+      initOptions?: never
+    }
 
-  /**
-   * If attribute and property values should be sent as strings
-   */
-  stringifyAttributeValues?: boolean
-}
+type PurchaseDetectionSettings =
+  | {
+      /**
+       * `track` event names logged as purchases. Case-sensitive.
+       */
+      purchaseEventNames?: string[]
+
+      isPurchaseEvent?: never
+    }
+  | {
+      purchaseEventNames?: never
+
+      /**
+       * Decides if a `track` event is a purchase. Overrides `purchaseEventNames`.
+       */
+      isPurchaseEvent: (event: HightouchEvent) => boolean
+    }
+
+type PurchaseGroupingSettings =
+  | {
+      /**
+       * If a purchase event should log one purchase for the whole order instead of one per product
+       */
+      bundleCommerceEvents?: false
+
+      /**
+       * Which product field becomes the purchase `productId`: `sku` (falling back to `product_id`, then `name`), or `name`
+       */
+      purchaseProductIdentifier?: 'sku' | 'name'
+    }
+  | {
+      bundleCommerceEvents: true
+      purchaseProductIdentifier?: never
+    }
+
+type PageViewSettings =
+  | {
+      /**
+       * If `page` calls should be logged as custom events
+       */
+      forwardScreenViews?: false
+
+      pageViewEventName?: never
+    }
+  | {
+      forwardScreenViews: true
+
+      /**
+       * Page view event name: the `page` call's name (falling back to the URL path), or the URL path
+       */
+      pageViewEventName?: 'name' | 'path'
+    }
+
+export type BrazeSettings = StartSettings &
+  PurchaseDetectionSettings &
+  PurchaseGroupingSettings &
+  PageViewSettings & {
+    /**
+     * Called with the Braze instance once it is initialized, before the session opens and queued events are sent
+     */
+    onReady?: (braze: Braze) => void
+
+    /**
+     * Changes each purchase before it is logged. Return `null` or `undefined` to skip it.
+     * `product` is undefined for per-order purchases and orders without products.
+     * If it throws, the unchanged purchase is logged.
+     */
+    transformPurchase?: (
+      purchase: BrazePurchase,
+      context: {
+        event: HightouchEvent
+        order: Record<string, any>
+        product?: Record<string, any>
+      }
+    ) => BrazePurchase | null | undefined
+
+    /**
+     * If attribute and property values should be sent as strings
+     */
+    stringifyAttributeValues?: boolean
+  }
 
 type AttributeCache = {
   userId?: string
