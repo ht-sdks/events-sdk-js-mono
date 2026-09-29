@@ -1,4 +1,6 @@
+import type * as BrazeSdk from '@braze/web-sdk'
 import { HtEventsBrowser, Analytics, Context, User, Group } from '../../..'
+import type { InitOptions } from '../../..'
 import { assertNotAny, assertIs } from '../../../test-helpers/type-assertions'
 
 /**
@@ -146,5 +148,71 @@ export default {
         active: 'hello',
       },
     })
+  },
+
+  'Braze destination settings should be checked': () => {
+    const braze = {} as typeof BrazeSdk
+    const init = {
+      apiKey: 'abc',
+      baseUrl: 'sdk.iad-03.braze.com',
+      sdk: braze,
+    }
+    const load = (Braze: NonNullable<InitOptions['destinations']>['Braze']) =>
+      HtEventsBrowser.load({ writeKey: 'foo' }, { destinations: { Braze } })
+
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          Braze: {
+            ...init,
+            purchaseEventNames: ['Order Completed'],
+            bundleCommerceEvents: true,
+            forwardScreenViews: true,
+            pageViewEventName: 'path',
+          },
+          'Google Tag Manager': { containerId: 'GTM-123' },
+        },
+      }
+    )
+    load({ instance: braze, isPurchaseEvent: () => true })
+    load({ ...init, purchaseProductIdentifier: 'name' })
+
+    // @ts-expect-error - `apiKey` is ignored when `instance` is set
+    load({ instance: braze, apiKey: 'abc' })
+    // @ts-expect-error - `apiKey` is required without `instance`
+    load({ baseUrl: 'sdk.iad-03.braze.com', sdk: braze })
+    // @ts-expect-error - `baseUrl` belongs at the top level
+    load({ ...init, initOptions: { baseUrl: 'sdk.iad-03.braze.com' } })
+    // @ts-expect-error - `sessionTimeoutInSeconds` belongs at the top level
+    load({ ...init, initOptions: { sessionTimeoutInSeconds: 60 } })
+    // @ts-expect-error - `isPurchaseEvent` overrides `purchaseEventNames`
+    load({ ...init, isPurchaseEvent: () => true, purchaseEventNames: ['a'] })
+    load({
+      ...init,
+      bundleCommerceEvents: true,
+      // @ts-expect-error - `purchaseProductIdentifier` is unused for bundled purchases
+      purchaseProductIdentifier: 'sku',
+    })
+    // @ts-expect-error - `pageViewEventName` needs `forwardScreenViews: true`
+    load({ ...init, pageViewEventName: 'path' })
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          // @ts-expect-error - `apiKey` is ignored when `instance` is set
+          Braze: { instance: braze, apiKey: 'abc' },
+        },
+      }
+    )
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          // @ts-expect-error - unknown settings are rejected
+          Braze: { ...init, apiKeyy: 'abc' },
+        },
+      }
+    )
   },
 }
