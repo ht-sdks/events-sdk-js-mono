@@ -55,6 +55,7 @@ type StartSettings =
        */
       initOptions?: Partial<BrazeSdk.InitializationOptions> & {
         baseUrl?: never
+        sessionTimeoutInSeconds?: never
       }
     }
   | {

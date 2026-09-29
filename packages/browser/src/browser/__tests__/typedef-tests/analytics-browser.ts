@@ -184,6 +184,8 @@ export default {
     load({ baseUrl: 'sdk.iad-03.braze.com', sdk: braze })
     // @ts-expect-error - `baseUrl` belongs at the top level
     load({ ...init, initOptions: { baseUrl: 'sdk.iad-03.braze.com' } })
+    // @ts-expect-error - `sessionTimeoutInSeconds` belongs at the top level
+    load({ ...init, initOptions: { sessionTimeoutInSeconds: 60 } })
     // @ts-expect-error - `isPurchaseEvent` overrides `purchaseEventNames`
     load({ ...init, isPurchaseEvent: () => true, purchaseEventNames: ['a'] })
     load({
