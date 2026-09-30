@@ -10,6 +10,13 @@ body {
   gap: 0.5rem;
 }
 
-button {
+button,
+input {
   font: inherit;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
