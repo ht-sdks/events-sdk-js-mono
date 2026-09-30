@@ -1,0 +1,19 @@
+{
+  "name": "braze-browser-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@braze/web-sdk": "^6.13.0",
+    "@ht-sdks/events-sdk-js-browser": "file:../../packages/browser"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}
