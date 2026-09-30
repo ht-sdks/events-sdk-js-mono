@@ -139,6 +139,13 @@ onClick('opt-out', () => {
   void htevents.track('Private Event', {}, { integrations: { Appboy: false } })
 })
 
+onClick('flush', () => {
+  void htevents.then(([analytics]) => analytics.queue.flush())
+  void import('@braze/web-sdk').then((braze) => {
+    if (braze.isInitialized()) braze.requestImmediateDataFlush()
+  })
+})
+
 onClick('reset', () => {
   htevents.reset()
 })
