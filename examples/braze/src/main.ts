@@ -32,13 +32,28 @@ const htevents = HtEventsBrowser.load(
   }
 )
 
-const userA = {
-  email: 'jane@example.com',
-  firstName: 'Jane',
-  gender: 'male',
-  plan: 'pro',
-  address: { city: 'New York', country: 'US' },
+const names = ['Jane', 'Bob', 'Ada', 'Maya', 'Luis', 'Priya', 'Omar', 'Chen']
+const userIdInput = document.querySelector<HTMLInputElement>('#user-id')
+const nameInput = document.querySelector<HTMLInputElement>('#first-name')
+
+function rollUser() {
+  if (!userIdInput || !nameInput) return
+  userIdInput.value = crypto.randomUUID()
+  nameInput.value = names[Math.floor(Math.random() * names.length)]
 }
+
+function traits(plan: string) {
+  const firstName = nameInput?.value ?? ''
+  return {
+    email: `${firstName.trim().toLowerCase().replace(/\s+/g, '')}@example.com`,
+    firstName,
+    gender: 'male',
+    plan,
+    address: { city: 'New York', country: 'US' },
+  }
+}
+
+rollUser()
 
 const twoProducts = [
   {
@@ -70,16 +85,20 @@ function onClick(id: string, action: () => void) {
   })
 }
 
+onClick('new-user', () => {
+  rollUser()
+})
+
 onClick('identify-a', () => {
-  void htevents.identify('user-a', userA)
+  void htevents.identify(userIdInput?.value ?? '', traits('pro'))
 })
 
 onClick('identify-a-again', () => {
-  void htevents.identify('user-a', userA)
+  void htevents.identify(userIdInput?.value ?? '', traits('pro'))
 })
 
 onClick('change-plan', () => {
-  void htevents.identify('user-a', { ...userA, plan: 'enterprise' })
+  void htevents.identify(userIdInput?.value ?? '', traits('enterprise'))
 })
 
 onClick('custom-event', () => {
@@ -122,11 +141,4 @@ onClick('opt-out', () => {
 
 onClick('reset', () => {
   htevents.reset()
-})
-
-onClick('identify-b', () => {
-  void htevents.identify('user-b', {
-    email: 'bob@example.com',
-    firstName: 'Bob',
-  })
 })
