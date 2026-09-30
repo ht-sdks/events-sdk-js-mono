@@ -19,6 +19,7 @@ module.exports = tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      'examples/**',
       'packages/browser/e2e-tests/**',
       'packages/browser/qa/**',
       'packages/browser/*.tmp.*/**',

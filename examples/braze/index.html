@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Braze browser example</title>
+  </head>
+  <body>
+    <main>
+      <div class="actions">
+        <label>User ID <input id="user-id" /></label>
+        <label>First name <input id="first-name" /></label>
+        <button type="button" id="new-user">New user</button>
+        <button type="button" id="identify-a">Identify</button>
+        <button type="button" id="identify-a-again">Identify again</button>
+        <button type="button" id="change-plan">Change plan</button>
+        <button type="button" id="custom-event">Custom event</button>
+        <button type="button" id="purchase-two">Purchase, two products</button>
+        <button type="button" id="purchase-custom">Purchase, custom name</button>
+        <button type="button" id="page">Page</button>
+        <button type="button" id="opt-out">Opt-out event</button>
+        <button type="button" id="flush">Flush</button>
+        <button type="button" id="reset">Reset</button>
+      </div>
+      <p id="last-action"></p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
