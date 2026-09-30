@@ -587,6 +587,127 @@ describe('Braze destination track', () => {
     ])
   })
 
+  it('applies the mParticle web purchase recipe', async () => {
+    const standard = [
+      'product_id',
+      'sku',
+      'name',
+      'brand',
+      'category',
+      'variant',
+      'position',
+      'coupon',
+      'price',
+      'quantity',
+    ]
+    const { plugin, ready } = await setup({
+      purchaseProductIdentifier: 'name',
+      transformPurchase: (
+        purchase,
+        { order: purchaseOrder, product = {} }
+      ) => ({
+        ...purchase,
+        properties: {
+          ...Object.fromEntries(
+            Object.entries(product).filter(([key]) => !standard.includes(key))
+          ),
+          Sku: product.sku,
+          'Transaction Id': purchaseOrder.order_id,
+        },
+      }),
+    })
+    await ready
+
+    await plugin.track(
+      track('Order Completed', {
+        order_id: 'order-1',
+        currency: 'USD',
+        products: [
+          {
+            sku: 'RB-100',
+            name: 'Resistance Band',
+            price: 15,
+            quantity: 2,
+            brand: 'Equinox',
+            color: 'blue',
+          },
+        ],
+      })
+    )
+
+    expect(braze.logPurchase).toHaveBeenCalledWith(
+      'Resistance Band',
+      15,
+      'USD',
+      2,
+      { color: 'blue', Sku: 'RB-100', 'Transaction Id': 'order-1' }
+    )
+  })
+
+  it('applies the mParticle bundled purchase recipe', async () => {
+    const { plugin, ready } = await setup({
+      bundleCommerceEvents: true,
+      transformPurchase: (purchase, { order: purchaseOrder }) => ({
+        ...purchase,
+        productId: 'eCommerce - purchase',
+        properties: {
+          ...purchase.properties,
+          'Transaction Id': purchaseOrder.order_id,
+          products: (purchaseOrder.products ?? []).map(
+            ({ sku, coupon, ...product }) => ({
+              ...product,
+              Id: sku,
+              'Coupon Code': coupon,
+              'Total Product Amount':
+                (product.price ?? 0) * (product.quantity ?? 1),
+            })
+          ),
+        },
+      }),
+    })
+    await ready
+
+    await plugin.track(
+      track('Order Completed', {
+        order_id: 'order-123',
+        revenue: 30,
+        currency: 'USD',
+        products: [
+          {
+            sku: 'RB-100',
+            name: 'Band',
+            price: 15,
+            quantity: 2,
+            coupon: 'C1',
+          },
+        ],
+      })
+    )
+
+    expect(braze.logPurchase).toHaveBeenCalledWith(
+      'eCommerce - purchase',
+      30,
+      'USD',
+      1,
+      {
+        order_id: 'order-123',
+        revenue: 30,
+        currency: 'USD',
+        'Transaction Id': 'order-123',
+        products: [
+          {
+            name: 'Band',
+            price: 15,
+            quantity: 2,
+            Id: 'RB-100',
+            'Coupon Code': 'C1',
+            'Total Product Amount': 30,
+          },
+        ],
+      }
+    )
+  })
+
   it('passes no product to transformPurchase for per-order purchases', async () => {
     const transformPurchase = jest.fn((purchase) => purchase)
     const { plugin, ready } = await setup({
