@@ -15,13 +15,15 @@ const brazeSettings: NonNullable<
   baseUrl,
   sdk: () => import('@braze/web-sdk'),
   automaticallyShowInAppMessages: true,
-  forwardScreenViews: true,
-  purchaseEventNames: [
+  pageTracking: 'name',
+  purchaseDetection: [
     'Order Completed',
     'Completed Order',
     'Membership Purchased',
   ],
-  ...(perOrder ? { bundleCommerceEvents: true as const } : {}),
+  purchaseGrouping: perOrder
+    ? { mode: 'perOrder' }
+    : { mode: 'perProduct', identifier: 'sku' },
 }
 
 const htevents = HtEventsBrowser.load(
