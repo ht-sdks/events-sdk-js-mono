@@ -166,17 +166,19 @@ export default {
         destinations: {
           Braze: {
             ...init,
-            purchaseEventNames: ['Order Completed'],
-            bundleCommerceEvents: true,
-            forwardScreenViews: true,
-            pageViewEventName: 'path',
+            purchaseDetection: ['Order Completed'],
+            purchaseGrouping: { mode: 'perOrder' },
+            pageTracking: 'path',
           },
           'Google Tag Manager': { containerId: 'GTM-123' },
         },
       }
     )
-    load({ instance: braze, isPurchaseEvent: () => true })
-    load({ ...init, purchaseProductIdentifier: 'name' })
+    load({ instance: braze, purchaseDetection: () => true })
+    load({
+      ...init,
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    })
 
     // @ts-expect-error - `apiKey` is ignored when `instance` is set
     load({ instance: braze, apiKey: 'abc' })
@@ -186,16 +188,12 @@ export default {
     load({ ...init, initOptions: { baseUrl: 'sdk.iad-03.braze.com' } })
     // @ts-expect-error - `sessionTimeoutInSeconds` belongs at the top level
     load({ ...init, initOptions: { sessionTimeoutInSeconds: 60 } })
-    // @ts-expect-error - `isPurchaseEvent` overrides `purchaseEventNames`
-    load({ ...init, isPurchaseEvent: () => true, purchaseEventNames: ['a'] })
-    load({
-      ...init,
-      bundleCommerceEvents: true,
-      // @ts-expect-error - `purchaseProductIdentifier` is unused for bundled purchases
-      purchaseProductIdentifier: 'sku',
-    })
-    // @ts-expect-error - `pageViewEventName` needs `forwardScreenViews: true`
-    load({ ...init, pageViewEventName: 'path' })
+    // @ts-expect-error - purchase detection is names or a predicate
+    load({ ...init, purchaseDetection: true })
+    // @ts-expect-error - per-order purchases do not select a product field
+    load({ ...init, purchaseGrouping: { mode: 'perOrder', identifier: 'sku' } })
+    // @ts-expect-error - page tracking selects the name, path, or false
+    load({ ...init, pageTracking: true })
     HtEventsBrowser.load(
       { writeKey: 'foo' },
       {

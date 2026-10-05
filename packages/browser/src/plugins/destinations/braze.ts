@@ -73,87 +73,37 @@ type StartSettings =
       initOptions?: never
     }
 
-type PurchaseDetectionSettings =
-  | {
-      /**
-       * `track` event names logged as purchases. Case-sensitive.
-       */
-      purchaseEventNames?: string[]
+export type BrazeSettings = StartSettings & {
+  /** Exact event names or a predicate identifying purchases. Defaults to Order Completed and Completed Order. */
+  purchaseDetection?: string[] | ((event: HightouchEvent) => boolean)
 
-      isPurchaseEvent?: never
+  /** One purchase per product (SKU by default), or one for the whole order. */
+  purchaseGrouping?:
+    | { mode: 'perProduct'; identifier?: 'sku' | 'name' }
+    | { mode: 'perOrder' }
+
+  /** Forward page calls using their name (falling back to path), or their path. Off by default. */
+  pageTracking?: false | 'name' | 'path'
+
+  /**
+   * Called with the Braze instance once it is initialized, before the session opens and queued events are sent
+   */
+  onReady?: (braze: Braze) => void
+
+  /**
+   * Changes each purchase before it is logged. Return `null` or `undefined` to skip it.
+   * `product` is undefined for per-order purchases and orders without products.
+   * If it throws, the unchanged purchase is logged.
+   */
+  transformPurchase?: (
+    purchase: BrazePurchase,
+    context: {
+      event: HightouchEvent
+      order: Record<string, any>
+      product?: Record<string, any>
     }
-  | {
-      purchaseEventNames?: never
-
-      /**
-       * Decides if a `track` event is a purchase. Overrides `purchaseEventNames`.
-       */
-      isPurchaseEvent: (event: HightouchEvent) => boolean
-    }
-
-type PurchaseGroupingSettings =
-  | {
-      /**
-       * If a purchase event should log one purchase for the whole order instead of one per product
-       */
-      bundleCommerceEvents?: false
-
-      /**
-       * Which product field becomes the purchase `productId`: `sku` (falling back to `product_id`, then `name`), or `name`
-       */
-      purchaseProductIdentifier?: 'sku' | 'name'
-    }
-  | {
-      bundleCommerceEvents: true
-      purchaseProductIdentifier?: never
-    }
-
-type PageViewSettings =
-  | {
-      /**
-       * If `page` calls should be logged as custom events
-       */
-      forwardScreenViews?: false
-
-      pageViewEventName?: never
-    }
-  | {
-      forwardScreenViews: true
-
-      /**
-       * Page view event name: the `page` call's name (falling back to the URL path), or the URL path
-       */
-      pageViewEventName?: 'name' | 'path'
-    }
-
-export type BrazeSettings = StartSettings &
-  PurchaseDetectionSettings &
-  PurchaseGroupingSettings &
-  PageViewSettings & {
-    /**
-     * Called with the Braze instance once it is initialized, before the session opens and queued events are sent
-     */
-    onReady?: (braze: Braze) => void
-
-    /**
-     * Changes each purchase before it is logged. Return `null` or `undefined` to skip it.
-     * `product` is undefined for per-order purchases and orders without products.
-     * If it throws, the unchanged purchase is logged.
-     */
-    transformPurchase?: (
-      purchase: BrazePurchase,
-      context: {
-        event: HightouchEvent
-        order: Record<string, any>
-        product?: Record<string, any>
-      }
-    ) => BrazePurchase | null | undefined
-
-    /**
-     * If attribute and property values should be sent as strings
-     */
-    stringifyAttributeValues?: boolean
-  }
+  ) => BrazePurchase | null | undefined
+}
 
 type AttributeCache = {
   userId?: string
@@ -241,14 +191,10 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   sessionTimeoutInSeconds,
   initOptions,
   onReady,
-  purchaseProductIdentifier = 'sku',
-  purchaseEventNames = ['Order Completed', 'Completed Order'],
-  isPurchaseEvent,
-  bundleCommerceEvents = false,
+  purchaseDetection = ['Order Completed', 'Completed Order'],
+  purchaseGrouping = { mode: 'perProduct', identifier: 'sku' },
   transformPurchase,
-  forwardScreenViews = false,
-  pageViewEventName = 'name',
-  stringifyAttributeValues = false,
+  pageTracking = false,
 }) => {
   const storage = new LocalStorage<{ [CACHE_KEY]: AttributeCache }>()
   let cache: AttributeCache = storage.get(CACHE_KEY) ?? { attributes: {} }
@@ -273,14 +219,11 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     }
   }
 
-  const toValue = (value: unknown) =>
-    stringifyAttributeValues && value !== null ? toStringValue(value) : value
-
   const eventProperties = (properties: Properties) => {
     const result: Properties = {}
     Object.keys(properties).forEach((key) => {
       if (properties[key] !== undefined) {
-        result[key] = toValue(properties[key])
+        result[key] = properties[key]
       }
     })
     return result
@@ -294,7 +237,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       attribute instanceof Date ||
       ['string', 'number', 'boolean'].indexOf(typeof attribute) >= 0
     ) {
-      return toValue(attribute)
+      return attribute
     }
     return undefined
   }
@@ -445,7 +388,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       )
     }
 
-    if (bundleCommerceEvents || !products.length) {
+    if (purchaseGrouping.mode === 'perOrder' || !products.length) {
       log({
         productId: event.event ?? '',
         price: total,
@@ -461,7 +404,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     products.forEach((product) => {
       const { price, quantity, ...fields } = product
       const productId =
-        purchaseProductIdentifier === 'name'
+        purchaseGrouping.identifier === 'name'
           ? product.name
           : (product.sku ?? product.product_id ?? product.name)
       log(
@@ -478,15 +421,15 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   }
 
   const isPurchase = (event: HightouchEvent) => {
-    if (isPurchaseEvent) {
+    if (typeof purchaseDetection === 'function') {
       try {
-        return isPurchaseEvent(event)
+        return purchaseDetection(event)
       } catch (error) {
-        warn('isPurchaseEvent threw', error)
+        warn('purchaseDetection threw', error)
         return false
       }
     }
-    return purchaseEventNames.indexOf(event.event ?? '') >= 0
+    return purchaseDetection.indexOf(event.event ?? '') >= 0
   }
 
   const track = (braze: Braze, event: HightouchEvent) => {
@@ -543,9 +486,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         ),
 
       page: (ctx: Context) => {
-        if (!forwardScreenViews) return
+        if (!pageTracking) return
         const name =
-          (pageViewEventName === 'name' && ctx.event.name) ||
+          (pageTracking === 'name' && ctx.event.name) ||
           window.location.pathname
         const properties = {
           ...ctx.event.properties,

@@ -273,11 +273,11 @@ describe('Braze destination identify', () => {
     ])
   })
 
-  it('can send attribute values as strings', async () => {
-    const { plugin, ready } = await setup({ stringifyAttributeValues: true })
+  it('preserves explicitly string-valued attributes', async () => {
+    const { plugin, ready } = await setup()
     await ready
 
-    await plugin.identify(identify('user-1', { seats: 3, vip: true }))
+    await plugin.identify(identify('user-1', { seats: '3', vip: 'true' }))
 
     expect(user.setCustomUserAttribute.mock.calls).toEqual([
       ['seats', '3'],
@@ -357,11 +357,11 @@ describe('Braze destination track', () => {
     })
   })
 
-  it('can send property values as strings', async () => {
-    const { plugin, ready } = await setup({ stringifyAttributeValues: true })
+  it('preserves explicitly string-valued properties', async () => {
+    const { plugin, ready } = await setup()
     await ready
 
-    await plugin.track(track('Signed Up', { seats: 1, nested: { a: 1 } }))
+    await plugin.track(track('Signed Up', { seats: '1', nested: '{"a":1}' }))
 
     expect(braze.logCustomEvent).toHaveBeenCalledWith('Signed Up', {
       seats: '1',
@@ -437,7 +437,7 @@ describe('Braze destination track', () => {
 
   it('can use the product name as the purchase productId', async () => {
     const { plugin, ready } = await setup({
-      purchaseProductIdentifier: 'name',
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
     })
     await ready
 
@@ -467,7 +467,9 @@ describe('Braze destination track', () => {
   })
 
   it('can bundle the order into a single purchase', async () => {
-    const { plugin, ready } = await setup({ bundleCommerceEvents: true })
+    const { plugin, ready } = await setup({
+      purchaseGrouping: { mode: 'perOrder' },
+    })
     await ready
 
     await plugin.track(track('Order Completed', order))
@@ -494,7 +496,7 @@ describe('Braze destination track', () => {
 
   it('logs purchases for custom purchase event names', async () => {
     const { plugin, ready } = await setup({
-      purchaseEventNames: ['Membership Purchased'],
+      purchaseDetection: ['Membership Purchased'],
     })
     await ready
 
@@ -511,13 +513,12 @@ describe('Braze destination track', () => {
     ])
   })
 
-  it('lets isPurchaseEvent override purchaseEventNames', async () => {
-    const isPurchaseEvent = jest.fn(
+  it('uses a purchaseDetection predicate instead of the default event names', async () => {
+    const purchaseDetection = jest.fn(
       (event) => event.properties?.kind === 'purchase'
     )
     const { plugin, ready } = await setup({
-      isPurchaseEvent,
-      purchaseEventNames: ['Upgraded'],
+      purchaseDetection,
     })
     await ready
 
@@ -525,7 +526,7 @@ describe('Braze destination track', () => {
     await plugin.track(track('Upgraded', { revenue: 5 }))
     await plugin.track(track('Order Completed', order))
 
-    expect(isPurchaseEvent).toHaveBeenCalledWith(
+    expect(purchaseDetection).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'Renewed' })
     )
     expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual(['Renewed'])
@@ -535,10 +536,10 @@ describe('Braze destination track', () => {
     ])
   })
 
-  it('logs a custom event when isPurchaseEvent throws', async () => {
+  it('logs a custom event when purchaseDetection throws', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     const { plugin, ready } = await setup({
-      isPurchaseEvent: () => {
+      purchaseDetection: () => {
         throw new Error('boom')
       },
     })
@@ -590,7 +591,7 @@ describe('Braze destination track', () => {
     const transformPurchase = jest.fn((purchase) => purchase)
     const { plugin, ready } = await setup({
       transformPurchase,
-      bundleCommerceEvents: true,
+      purchaseGrouping: { mode: 'perOrder' },
     })
     await ready
 
@@ -658,7 +659,7 @@ describe('Braze destination page', () => {
 
   it('logs page views named after the page name, falling back to the path', async () => {
     document.title = 'Home page'
-    const { plugin, ready } = await setup({ forwardScreenViews: true })
+    const { plugin, ready } = await setup({ pageTracking: 'name' })
     await ready
     await plugin.page(page)
     await plugin.page(new Context({ type: 'page', properties: { path: '/' } }))
@@ -673,8 +674,7 @@ describe('Braze destination page', () => {
   it('can always name page views after the path', async () => {
     document.title = 'Home page'
     const { plugin, ready } = await setup({
-      forwardScreenViews: true,
-      pageViewEventName: 'path',
+      pageTracking: 'path',
     })
     await ready
     await plugin.page(page)
