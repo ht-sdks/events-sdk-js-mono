@@ -645,7 +645,7 @@ describe('Braze destination page', () => {
   const page = new Context({
     type: 'page',
     name: 'Home',
-    properties: { path: '/' },
+    properties: { path: '/home' },
   })
 
   it('ignores page calls by default', async () => {
@@ -662,12 +662,18 @@ describe('Braze destination page', () => {
     const { plugin, ready } = await setup({ pageTracking: 'name' })
     await ready
     await plugin.page(page)
-    await plugin.page(new Context({ type: 'page', properties: { path: '/' } }))
+    await plugin.page(
+      new Context({ type: 'page', properties: { path: '/home' } })
+    )
 
-    const properties = { path: '/', hostname: 'localhost', title: 'Home page' }
+    const properties = {
+      path: '/home',
+      hostname: 'localhost',
+      title: 'Home page',
+    }
     expect(braze.logCustomEvent.mock.calls).toEqual([
       ['Home', properties],
-      [window.location.pathname, properties],
+      ['/home', properties],
     ])
   })
 
@@ -679,9 +685,61 @@ describe('Braze destination page', () => {
     await ready
     await plugin.page(page)
 
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('/home', {
+      path: '/home',
+      hostname: 'localhost',
+      title: 'Home page',
+    })
+  })
+
+  it.each(['name', 'path'])(
+    'preserves captured page metadata while loading in %s mode',
+    async (pageTracking) => {
+      let resolve!: (sdk: typeof braze) => void
+      const { plugin, ready } = await setup({
+        pageTracking,
+        sdk: () => new Promise((r) => (resolve = r)),
+      })
+      const properties = {
+        path: '/previous',
+        title: '',
+        hostname: 'example.com',
+      }
+      const originalPath = window.location.pathname
+      const originalTitle = document.title
+      try {
+        window.history.replaceState({}, '', '/current')
+        document.title = 'Current page'
+        await plugin.page(new Context({ type: 'page', properties }))
+        expect(braze.logCustomEvent).not.toHaveBeenCalled()
+
+        window.history.replaceState({}, '', '/next')
+        document.title = 'Next page'
+        resolve(braze)
+        await ready
+
+        expect(braze.logCustomEvent).toHaveBeenCalledWith(
+          '/previous',
+          properties
+        )
+      } finally {
+        window.history.replaceState({}, '', originalPath)
+        document.title = originalTitle
+      }
+    }
+  )
+
+  it('uses browser metadata when the event has none', async () => {
+    const { plugin, ready } = await setup({ pageTracking: 'path' })
+    await ready
+    await plugin.page(new Context({ type: 'page' }))
+
     expect(braze.logCustomEvent).toHaveBeenCalledWith(
       window.location.pathname,
-      { path: '/', hostname: 'localhost', title: 'Home page' }
+      {
+        hostname: window.location.hostname,
+        title: document.title,
+      }
     )
   })
 })

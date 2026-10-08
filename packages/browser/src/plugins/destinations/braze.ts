@@ -490,11 +490,11 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         if (!pageTracking) return
         const name =
           (pageTracking === 'name' && ctx.event.name) ||
-          window.location.pathname
+          (ctx.event.properties?.path ?? window.location.pathname)
         const properties = {
-          ...ctx.event.properties,
           hostname: window.location.hostname,
           title: document.title,
+          ...ctx.event.properties,
         }
         run((braze) => braze.logCustomEvent(name, eventProperties(properties)))
       },
