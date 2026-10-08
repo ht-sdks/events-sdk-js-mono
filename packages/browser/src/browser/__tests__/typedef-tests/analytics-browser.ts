@@ -1,4 +1,6 @@
+import type * as BrazeSdk from '@braze/web-sdk'
 import { HtEventsBrowser, Analytics, Context, User, Group } from '../../..'
+import type { InitOptions } from '../../..'
 import { assertNotAny, assertIs } from '../../../test-helpers/type-assertions'
 
 /**
@@ -146,5 +148,78 @@ export default {
         active: 'hello',
       },
     })
+  },
+
+  'Braze destination settings should be checked': () => {
+    const braze = {} as typeof BrazeSdk
+    const init = {
+      apiKey: 'abc',
+      baseUrl: 'sdk.iad-03.braze.com',
+      sdk: braze,
+    }
+    const load = (Braze: NonNullable<InitOptions['destinations']>['Braze']) =>
+      HtEventsBrowser.load({ writeKey: 'foo' }, { destinations: { Braze } })
+
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          Braze: {
+            ...init,
+            purchaseDetection: ['Order Completed'],
+            purchaseGrouping: { mode: 'perOrder' },
+            pageTracking: 'path',
+            onReady: (sdk) => {
+              assertIs<typeof BrazeSdk>(sdk)
+              assertNotAny(sdk)
+              sdk.requestContentCardsRefresh()
+              // @ts-expect-error - the installed SDK still provides its full types
+              sdk.notABrazeMethod()
+            },
+          },
+          'Google Tag Manager': { containerId: 'GTM-123' },
+        },
+      }
+    )
+    load({ instance: braze, purchaseDetection: () => true })
+    load({
+      ...init,
+      purchaseGrouping: { mode: 'perProduct', identifier: 'name' },
+    })
+
+    // @ts-expect-error - `apiKey` is ignored when `instance` is set
+    load({ instance: braze, apiKey: 'abc' })
+    // @ts-expect-error - `apiKey` is required without `instance`
+    load({ baseUrl: 'sdk.iad-03.braze.com', sdk: braze })
+    // @ts-expect-error - `baseUrl` belongs at the top level
+    load({ ...init, initOptions: { baseUrl: 'sdk.iad-03.braze.com' } })
+    // @ts-expect-error - `sessionTimeoutInSeconds` belongs at the top level
+    load({ ...init, initOptions: { sessionTimeoutInSeconds: 60 } })
+    // @ts-expect-error - Braze initialization options retain their vendor types
+    load({ ...init, initOptions: { enableLogging: 'true' } })
+    // @ts-expect-error - purchase detection is names or a predicate
+    load({ ...init, purchaseDetection: true })
+    // @ts-expect-error - per-order purchases do not select a product field
+    load({ ...init, purchaseGrouping: { mode: 'perOrder', identifier: 'sku' } })
+    // @ts-expect-error - page tracking selects the name, path, or false
+    load({ ...init, pageTracking: true })
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          // @ts-expect-error - `apiKey` is ignored when `instance` is set
+          Braze: { instance: braze, apiKey: 'abc' },
+        },
+      }
+    )
+    HtEventsBrowser.load(
+      { writeKey: 'foo' },
+      {
+        destinations: {
+          // @ts-expect-error - unknown settings are rejected
+          Braze: { ...init, apiKeyy: 'abc' },
+        },
+      }
+    )
   },
 }

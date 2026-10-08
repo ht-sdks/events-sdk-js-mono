@@ -60,6 +60,7 @@ import type {
   HTTPCookieServiceOptions,
 } from '../http-cookies'
 import type { DestinationSettings } from '../../plugins/destinations'
+import type { BrazeSettings } from '../../plugins/destinations/braze'
 import type { BuiltInPluginName } from '../../plugins/built-in-plugins'
 
 const deprecationWarning =
@@ -138,7 +139,10 @@ export interface InitOptions {
   /**
    * Allows specifying plugins as configuration. Used to load plugins in `plugins/destinations/*`.
    */
-  destinations?: Record<string, DestinationSettings>
+  destinations?: {
+    Braze?: BrazeSettings
+    [name: string]: DestinationSettings | undefined
+  }
 
   /**
    * Array of plugins to load. Can be plugin instances, plugin factories, or built-in plugin names.

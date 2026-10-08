@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1123.0",
+    "@braze/web-sdk": "^6.13.0",
     "@internal/config": "0.0.0",
     "@segment/analytics-browser-actions-braze": "^1.3.0",
     "@size-limit/file": "^13.0.3",
@@ -97,5 +98,13 @@
     "webpack": "^5.110.3",
     "webpack-bundle-analyzer": "^5.3.2",
     "webpack-cli": "^7.2.3"
+  },
+  "peerDependencies": {
+    "@braze/web-sdk": ">=5.0.0 <7"
+  },
+  "peerDependenciesMeta": {
+    "@braze/web-sdk": {
+      "optional": true
+    }
   }
 }
