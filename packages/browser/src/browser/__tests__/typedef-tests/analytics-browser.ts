@@ -169,6 +169,13 @@ export default {
             purchaseDetection: ['Order Completed'],
             purchaseGrouping: { mode: 'perOrder' },
             pageTracking: 'path',
+            onReady: (sdk) => {
+              assertIs<typeof BrazeSdk>(sdk)
+              assertNotAny(sdk)
+              sdk.requestContentCardsRefresh()
+              // @ts-expect-error - the installed SDK still provides its full types
+              sdk.notABrazeMethod()
+            },
           },
           'Google Tag Manager': { containerId: 'GTM-123' },
         },
@@ -188,6 +195,8 @@ export default {
     load({ ...init, initOptions: { baseUrl: 'sdk.iad-03.braze.com' } })
     // @ts-expect-error - `sessionTimeoutInSeconds` belongs at the top level
     load({ ...init, initOptions: { sessionTimeoutInSeconds: 60 } })
+    // @ts-expect-error - Braze initialization options retain their vendor types
+    load({ ...init, initOptions: { enableLogging: 'true' } })
     // @ts-expect-error - purchase detection is names or a predicate
     load({ ...init, purchaseDetection: true })
     // @ts-expect-error - per-order purchases do not select a product field

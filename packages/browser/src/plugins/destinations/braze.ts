@@ -1,4 +1,5 @@
 import type { Context } from '../../core/context'
+/** @ts-ignore Optional peer; retained in .d.ts for non-Braze consumers. */
 import type * as BrazeSdk from '@braze/web-sdk'
 import type { Analytics } from '../../core/analytics'
 import type { HightouchEvent } from '../../core/events/interfaces'
