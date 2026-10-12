@@ -490,6 +490,58 @@ describe('Braze purchase numbers', () => {
 })
 
 describe('Braze destination identify', () => {
+  it('clears standard attributes, preserves alias precedence, and allows restoring values', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    const values = {
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.com',
+      phone: '555-0100',
+      gender: 'female',
+      birthday: '1990-05-12',
+      address: { city: 'London', country: 'GB' },
+    }
+    await plugin.identify(identify('user-1', values))
+    jest.clearAllMocks()
+    await plugin.identify(identify('user-1', {}))
+    await plugin.identify(identify('user-1', { email: undefined }))
+    expect(user.setEmail).not.toHaveBeenCalled()
+    const clears = {
+      firstName: null,
+      first_name: 'Ignored',
+      lastName: null,
+      last_name: 'Ignored',
+      email: null,
+      phone: null,
+      gender: null,
+      birthday: null,
+      dob: '2000-01-01',
+      address: { city: null, country: null },
+      home_city: 'Ignored',
+      country: 'US',
+    }
+    await plugin.identify(identify('user-1', clears))
+    await plugin.identify(identify('user-1', clears))
+    for (const setter of [
+      user.setFirstName,
+      user.setLastName,
+      user.setEmail,
+      user.setPhoneNumber,
+      user.setGender,
+      user.setHomeCity,
+      user.setCountry,
+    ]) {
+      expect(setter.mock.calls).toEqual([[null]])
+    }
+    expect(user.setDateOfBirth.mock.calls).toEqual([[null, null, null]])
+    jest.clearAllMocks()
+    await plugin.identify(identify('user-1', values))
+    expect(user.setEmail).toHaveBeenCalledWith('ada@example.com')
+    expect(user.setGender).toHaveBeenCalledWith('f')
+    expect(user.setDateOfBirth).toHaveBeenCalledWith(1990, 5, 12)
+  })
+
   it('calls changeUser only when the userId changes', async () => {
     const { plugin, ready } = await setup()
     await ready
