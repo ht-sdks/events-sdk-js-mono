@@ -253,6 +253,113 @@ describe('Braze destination pending loader', () => {
   })
 })
 
+describe('Braze purchase currency', () => {
+  afterEach(() => jest.restoreAllMocks())
+
+  it.each([' eur\n', 'uSd', 'btc', ' zzz '])(
+    'normalizes %j without a default',
+    async (currency) => {
+      const { plugin, ready } = await setup()
+      await ready
+      await plugin.track(track('Order Completed', { currency }))
+      expect(braze.logPurchase).toHaveBeenCalledWith(
+        'Order Completed',
+        0,
+        currency.trim().toUpperCase(),
+        1,
+        { currency }
+      )
+    }
+  )
+
+  it.each([
+    undefined,
+    null,
+    123,
+    '',
+    '   ',
+    'dollars',
+    'US',
+    '123',
+    'US1',
+    '€€€',
+    'éur',
+    'US D',
+  ])('rejects %j and reports an error without a default', async (currency) => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup()
+    await ready
+    await plugin.track(track('Order Completed', { currency }))
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('[Braze]', expect.any(RangeError))
+    await plugin.track(track('Next event'))
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('Next event', {})
+  })
+
+  it('uses a normalized explicit default only when needed', async () => {
+    const { plugin, ready } = await setup({ defaultCurrency: ' gbp\n' })
+    await ready
+    for (const currency of [undefined, 'US1', 'eur']) {
+      await plugin.track(track('Order Completed', { currency }))
+    }
+    expect(braze.logPurchase.mock.calls.map((call) => call[2])).toEqual([
+      'GBP',
+      'GBP',
+      'EUR',
+    ])
+  })
+
+  it('leaves currency recognition to Braze with an explicit default', async () => {
+    const { plugin, ready } = await setup({ defaultCurrency: ' zzz ' })
+    await ready
+    await plugin.track(
+      track('Order Completed', { currency: 'abc', revenue: 2, quantity: 1 })
+    )
+    await plugin.track(track('Order Completed', { revenue: 2, quantity: 1 }))
+    expect(braze.logPurchase.mock.calls.map((call) => call[2])).toEqual([
+      'ABC',
+      'ZZZ',
+    ])
+  })
+
+  it('rejects an invalid default', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup({ defaultCurrency: 'US1' })
+    await ready
+    await plugin.track(track('Order Completed'))
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      new RangeError(
+        'Braze purchase rejected: defaultCurrency must be a three-letter currency code.'
+      )
+    )
+  })
+
+  it.each(['perOrder', 'perProduct'])(
+    'validates transformed currencies in %s mode',
+    async (mode) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      let currency = ' zzz '
+      const { plugin, ready } = await setup({
+        purchaseGrouping: { mode, identifier: 'sku' },
+        transformPurchase: (purchase: object) => ({ ...purchase, currency }),
+      })
+      await ready
+      const event = track('Order Completed', {
+        currency: 'USD',
+        products: [{ sku: 'SKU1' }],
+      })
+      await plugin.track(event)
+      expect(braze.logPurchase.mock.calls[0][2]).toBe('ZZZ')
+      currency = 'US1'
+      await plugin.track(event)
+      expect(braze.logPurchase).toHaveBeenCalledTimes(1)
+      expect(warn).toHaveBeenCalledWith('[Braze]', expect.any(RangeError))
+    }
+  )
+})
+
 describe('Braze destination identify', () => {
   it('calls changeUser only when the userId changes', async () => {
     const { plugin, ready } = await setup()
@@ -486,7 +593,7 @@ describe('Braze destination track', () => {
   })
 
   it('lets product fields win over order fields', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
@@ -504,7 +611,7 @@ describe('Braze destination track', () => {
 
   it('falls back to product_id, then name, and skips products without either', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
@@ -539,7 +646,7 @@ describe('Braze destination track', () => {
   })
 
   it('passes a leading $ in product IDs through', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
@@ -569,7 +676,7 @@ describe('Braze destination track', () => {
   })
 
   it('logs a single purchase when there are no products', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(track('Completed Order', { total: '15' }))
@@ -585,6 +692,7 @@ describe('Braze destination track', () => {
 
   it('logs purchases for custom purchase event names', async () => {
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       purchaseDetection: ['Membership Purchased'],
     })
     await ready
@@ -607,6 +715,7 @@ describe('Braze destination track', () => {
       (event) => event.properties?.kind === 'purchase'
     )
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       purchaseDetection,
     })
     await ready
@@ -651,7 +760,9 @@ describe('Braze destination track', () => {
         properties: { ...rest, 'Transaction Id': order_id },
       })
     )
-    const { plugin, ready } = await setup({ transformPurchase })
+    const { plugin, ready } = await setup({
+      transformPurchase,
+    })
     await ready
 
     const event = track('Order Completed', order)
@@ -710,6 +821,7 @@ describe('Braze destination track', () => {
   it('logs the default purchase when transformPurchase throws', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       transformPurchase: (purchase: { properties: object }) => {
         purchase.properties = {}
         throw new Error('boom')

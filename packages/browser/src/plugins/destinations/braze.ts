@@ -6,6 +6,7 @@ import type { HightouchEvent } from '../../core/events/interfaces'
 import type { DestinationFactory } from './types'
 import { LocalStorage } from '../../core/storage/localStorage'
 import { Destination } from './destination'
+import { resolvePurchaseCurrency } from './braze-currency'
 
 type Braze = typeof BrazeSdk
 type BrazeUser = BrazeSdk.User
@@ -78,6 +79,13 @@ type StartSettings =
     }
 
 export type BrazeSettings = StartSettings & {
+  /**
+   * Explicit fallback for missing/invalid purchase currencies; no implicit default.
+   * Codes are trimmed, uppercased, and checked for exactly three ASCII letters,
+   * including after transformPurchase. Braze determines which codes it supports.
+   * Without a valid fallback, the purchase is rejected and the error is logged.
+   */
+  defaultCurrency?: string
   /** Exact event names or a predicate identifying purchases. Defaults to Order Completed and Completed Order. */
   purchaseDetection?: string[] | ((event: HightouchEvent) => boolean)
 
@@ -220,6 +228,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   purchaseDetection = ['Order Completed', 'Completed Order'],
   purchaseGrouping = { mode: 'perProduct', identifier: 'sku' },
   transformPurchase,
+  defaultCurrency,
   pageTracking = false,
 }) => {
   const storage = new LocalStorage<{ [CACHE_KEY]: AttributeCache }>()
@@ -385,10 +394,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
   const logPurchase = (braze: Braze, event: HightouchEvent) => {
     const order: Properties = event.properties ?? {}
-    const currency =
-      typeof order.currency === 'string' && order.currency.length === 3
-        ? order.currency
-        : 'USD'
+    const currency = resolvePurchaseCurrency(order.currency, defaultCurrency)
     const total = toNumber(order.revenue) ?? toNumber(order.total) ?? 0
     const products = Array.isArray(order.products)
       ? order.products.filter(isPlainObject)
@@ -414,7 +420,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       braze.logPurchase(
         result.productId,
         result.price,
-        result.currency,
+        resolvePurchaseCurrency(result.currency, defaultCurrency),
         result.quantity,
         eventProperties(result.properties)
       )
