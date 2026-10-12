@@ -383,7 +383,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
     SUBSCRIPTION_TRAITS.forEach(([setter, key]) => {
       const trait = pick([key])
-      const type = SUBSCRIPTION_TYPES.find((type) => type === trait)
+      const normalized =
+        typeof trait === 'string' ? trait.trim().toLowerCase() : undefined
+      const type = SUBSCRIPTION_TYPES.find((type) => type === normalized)
       if (type) {
         set(setter, type, () => user[setter](type))
       } else if (trait !== undefined) {

@@ -543,6 +543,45 @@ describe('Braze destination identify', () => {
     ])
   })
 
+  it('normalizes subscription values before caching', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    for (const state of ['opted_in', 'subscribed', 'unsubscribed']) {
+      for (const value of [` \t${state.toUpperCase()}\n`, state]) {
+        await plugin.identify(
+          identify('user-1', { email_subscribe: value, push_subscribe: value })
+        )
+      }
+    }
+    const expected = [['opted_in'], ['subscribed'], ['unsubscribed']]
+    expect(user.setEmailNotificationSubscriptionType.mock.calls).toEqual(
+      expected
+    )
+    expect(user.setPushNotificationSubscriptionType.mock.calls).toEqual(
+      expected
+    )
+  })
+
+  it('ignores invalid subscription values', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    for (const value of [
+      null,
+      true,
+      1,
+      ' ',
+      ' Maybe ',
+      ' Constructor ',
+      '__proto__',
+    ]) {
+      await plugin.identify(
+        identify('user-1', { email_subscribe: value, push_subscribe: value })
+      )
+    }
+    expect(user.setEmailNotificationSubscriptionType).not.toHaveBeenCalled()
+    expect(user.setPushNotificationSubscriptionType).not.toHaveBeenCalled()
+  })
+
   it('treats mParticle names and age as custom attributes', async () => {
     const { plugin, ready } = await setup()
     await ready
