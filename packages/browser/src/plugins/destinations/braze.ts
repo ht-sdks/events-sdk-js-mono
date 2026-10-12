@@ -7,6 +7,7 @@ import type { DestinationFactory } from './types'
 import { LocalStorage } from '../../core/storage/localStorage'
 import { Destination } from './destination'
 import { resolvePurchaseCurrency } from './braze-currency'
+import { purchaseNumber } from './braze-purchase-number'
 
 type Braze = typeof BrazeSdk
 type BrazeUser = BrazeSdk.User
@@ -89,7 +90,15 @@ export type BrazeSettings = StartSettings & {
   /** Exact event names or a predicate identifying purchases. Defaults to Order Completed and Completed Order. */
   purchaseDetection?: string[] | ((event: HightouchEvent) => boolean)
 
-  /** One purchase per product (SKU by default), or one for the whole order. */
+  /**
+   * One purchase per product (SKU by default), or one for the whole order.
+   * Products require a finite price. Omitted quantities default to 1; supplied
+   * quantities must be integers from 1 to 100.
+   * Whole-order purchases (including events without products) require revenue
+   * (or total if revenue is absent); quantity also defaults to 1.
+   * Complete numeric strings are accepted. Missing prices and invalid values are rejected,
+   * including after transformPurchase; an explicitly supplied zero price is valid.
+   */
   purchaseGrouping?:
     | { mode: 'perProduct'; identifier?: 'sku' | 'name' }
     | { mode: 'perOrder' }
@@ -186,11 +195,6 @@ const isPlainObject = (value: unknown): value is Properties =>
   value !== null &&
   !Array.isArray(value) &&
   !(value instanceof Date)
-
-const toNumber = (value: unknown): number | undefined => {
-  const number = typeof value === 'string' ? parseFloat(value) : value
-  return typeof number === 'number' && isFinite(number) ? number : undefined
-}
 
 const toStringValue = (value: unknown): string => {
   if (typeof value === 'string') return value
@@ -395,7 +399,6 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   const logPurchase = (braze: Braze, event: HightouchEvent) => {
     const order: Properties = event.properties ?? {}
     const currency = resolvePurchaseCurrency(order.currency, defaultCurrency)
-    const total = toNumber(order.revenue) ?? toNumber(order.total) ?? 0
     const products = Array.isArray(order.products)
       ? order.products.filter(isPlainObject)
       : []
@@ -419,9 +422,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       }
       braze.logPurchase(
         result.productId,
-        result.price,
+        purchaseNumber(result.price, 'price'),
         resolvePurchaseCurrency(result.currency, defaultCurrency),
-        result.quantity,
+        purchaseNumber(result.quantity, 'quantity'),
         eventProperties(result.properties)
       )
     }
@@ -429,9 +432,15 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     if (purchaseGrouping.mode === 'perOrder' || !products.length) {
       log({
         productId: event.event ?? '',
-        price: total,
+        price: purchaseNumber(
+          order.revenue === undefined ? order.total : order.revenue,
+          'price'
+        ),
         currency,
-        quantity: 1,
+        quantity: purchaseNumber(
+          order.quantity === undefined ? 1 : order.quantity,
+          'quantity'
+        ),
         properties: { ...order },
       })
       return
@@ -448,9 +457,12 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       log(
         {
           productId: productId == null ? '' : String(productId),
-          price: toNumber(price) ?? 0,
+          price: purchaseNumber(price, 'price'),
           currency,
-          quantity: toNumber(quantity) ?? 1,
+          quantity: purchaseNumber(
+            quantity === undefined ? 1 : quantity,
+            'quantity'
+          ),
           properties: { ...shared, ...fields },
         },
         product
