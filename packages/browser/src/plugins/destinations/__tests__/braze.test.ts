@@ -164,6 +164,95 @@ describe('Braze destination startup', () => {
   })
 })
 
+describe('Braze destination pending loader', () => {
+  beforeEach(() => jest.useFakeTimers())
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+  })
+
+  it('warns on overflow and replays only the latest 1000 operations in order', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let resolve!: (sdk: typeof braze) => void
+    const { plugin, ready } = await setup({
+      sdk: () => new Promise((r) => (resolve = r)),
+    })
+    for (let index = 0; index < 1000; index++) {
+      await plugin.track(track(`Event ${index}`))
+    }
+    expect(warn).not.toHaveBeenCalled()
+    await plugin.track(track('Event 1000'))
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      expect.stringMatching(/1000.*dropped the oldest operation/)
+    )
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+
+    resolve(braze)
+    await ready
+
+    expect(braze.logCustomEvent.mock.calls).toEqual(
+      Array.from({ length: 1000 }, (_, index) => [`Event ${index + 1}`, {}])
+    )
+    expect(jest.getTimerCount()).toBe(0)
+    await plugin.track(track('After startup'))
+    expect(braze.logCustomEvent).toHaveBeenLastCalledWith('After startup', {})
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('times out after 30 seconds, reports dropped operations and ignores a late SDK', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let resolve!: (sdk: typeof braze) => void
+    const { plugin, onReady } = await setup({
+      sdk: () => new Promise((r) => (resolve = r)),
+    })
+    await plugin.identify(identify('user-1', {}))
+    await plugin.track(track('Queued'))
+
+    await jest.advanceTimersByTimeAsync(29999)
+    expect(warn).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(1)
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      'failed to load; dropped 2 queued operations',
+      new Error('SDK loader timed out after 30000 ms')
+    )
+
+    resolve(braze)
+    await jest.advanceTimersByTimeAsync(0)
+    await expect(plugin.track(track('After timeout'))).resolves.toBeDefined()
+    expect(plugin.isLoaded()).toBe(false)
+    expect(braze.initialize).not.toHaveBeenCalled()
+    expect(onReady).not.toHaveBeenCalled()
+    expect(braze.changeUser).not.toHaveBeenCalled()
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+    expect(jest.getTimerCount()).toBe(0)
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears the timeout and reports queued operations when the loader rejects', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let reject!: (error: Error) => void
+    const { plugin } = await setup({
+      sdk: () => new Promise((_, r) => (reject = r)),
+    })
+    await plugin.track(track('Queued'))
+    reject(new Error('blocked'))
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      'failed to load; dropped 1 queued operations',
+      new Error('blocked')
+    )
+    expect(jest.getTimerCount()).toBe(0)
+    await jest.advanceTimersByTimeAsync(30000)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(plugin.isLoaded()).toBe(false)
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+  })
+})
+
 describe('Braze destination identify', () => {
   it('calls changeUser only when the userId changes', async () => {
     const { plugin, ready } = await setup()

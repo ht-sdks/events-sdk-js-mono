@@ -39,6 +39,9 @@ type StartSettings =
       /**
        * The Braze Web SDK for the destination to initialize, or a function that loads it,
        * e.g. `() => import('@braze/web-sdk')`
+       * Loaders have 30 seconds to resolve. While waiting, up to 1000 operations are
+       * queued; overflow drops the oldest with a warning. Load failure or timeout
+       * discards the queue and disables forwarding for this destination instance.
        */
       sdk: Braze | (() => Promise<Braze>)
 
@@ -112,6 +115,28 @@ type AttributeCache = {
 }
 
 const CACHE_KEY = 'htjs_braze_attributes'
+const MAX_PENDING_COUNT = 1000
+const SDK_LOAD_TIMEOUT_MS = 30000
+
+const loadBraze = async (load: () => Promise<Braze>): Promise<Braze> => {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      load(),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () =>
+            reject(
+              new Error(`SDK loader timed out after ${SDK_LOAD_TIMEOUT_MS} ms`)
+            ),
+          SDK_LOAD_TIMEOUT_MS
+        )
+      }),
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
 
 const GENDERS = new Map<string, Gender>([
   ['m', 'm'],
@@ -210,6 +235,12 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   const run = (fn: (braze: Braze) => void) => {
     if (failed) return
     if (!client) {
+      if (pending.length >= MAX_PENDING_COUNT) {
+        pending.shift()
+        warn(
+          `pending queue reached ${MAX_PENDING_COUNT} operations; dropped the oldest operation while waiting for the SDK loader`
+        )
+      }
       pending.push(fn)
       return
     }
@@ -444,7 +475,8 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   }
 
   const start = async (analytics: Analytics) => {
-    const braze = instance ?? (typeof sdk === 'function' ? await sdk() : sdk)
+    const braze =
+      instance ?? (typeof sdk === 'function' ? await loadBraze(sdk) : sdk)
     if (!braze) throw new Error('`sdk` or `instance` is required')
 
     if (!instance) {
@@ -511,8 +543,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         })
         start(analytics).catch((error) => {
           failed = true
+          const dropped = pending.length
           pending.length = 0
-          warn('failed to load', error)
+          warn(`failed to load; dropped ${dropped} queued operations`, error)
         })
         return Promise.resolve()
       },
