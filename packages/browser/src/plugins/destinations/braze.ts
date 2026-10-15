@@ -450,25 +450,29 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
     const shared = { ...order }
     delete shared.products
-    products.forEach((product) => {
-      const { price, quantity, ...fields } = product
-      const productId =
-        purchaseGrouping.identifier === 'name'
-          ? product.name
-          : (product.sku ?? product.product_id ?? product.name)
-      log(
-        {
-          productId: productId == null ? '' : String(productId),
-          price: purchaseNumber(price, 'price'),
-          currency,
-          quantity: purchaseNumber(
-            quantity === undefined ? 1 : quantity,
-            'quantity'
-          ),
-          properties: { ...shared, ...fields },
-        },
-        product
-      )
+    products.forEach((product, index) => {
+      try {
+        const { price, quantity, ...fields } = product
+        const productId =
+          purchaseGrouping.identifier === 'name'
+            ? product.name
+            : (product.sku ?? product.product_id ?? product.name)
+        log(
+          {
+            productId: productId == null ? '' : String(productId),
+            price: purchaseNumber(price, 'price'),
+            currency,
+            quantity: purchaseNumber(
+              quantity === undefined ? 1 : quantity,
+              'quantity'
+            ),
+            properties: { ...shared, ...fields },
+          },
+          product
+        )
+      } catch (error) {
+        warn(`skipped purchase for product at index ${index}`, error)
+      }
     })
   }
 

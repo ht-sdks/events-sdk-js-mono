@@ -3,6 +3,7 @@ import { HtEventsBrowser } from '../../../browser'
 import { Context } from '../../../core/context'
 import type { DestinationPlugin } from '../../../core/plugin'
 import brazeDestination from '../braze'
+import type { BrazePurchase } from '../braze'
 
 jest.mock('@braze/web-sdk', () => {
   const setter = () => jest.fn(() => true)
@@ -363,7 +364,13 @@ describe('Braze purchase currency', () => {
       currency = 'US1'
       await plugin.track(event)
       expect(braze.logPurchase).toHaveBeenCalledTimes(1)
-      expect(warn).toHaveBeenCalledWith('[Braze]', expect.any(RangeError))
+      expect(warn).toHaveBeenCalledWith(
+        '[Braze]',
+        ...(mode === 'perProduct'
+          ? ['skipped purchase for product at index 0']
+          : []),
+        expect.any(RangeError)
+      )
     }
   )
 })
@@ -410,11 +417,54 @@ describe('Braze purchase numbers', () => {
           )
           expect(warn).toHaveBeenLastCalledWith(
             '[Braze]',
+            ...(mode === 'perProduct'
+              ? ['skipped purchase for product at index 0']
+              : []),
             expect.any(RangeError)
           )
         }
       }
       expect(braze.logPurchase).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(['price', 'quantity', 'transformed price', 'transformed quantity'])(
+    'continues logging valid products after an invalid %s',
+    async (field) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const transformed = field.startsWith('transformed ')
+      const invalidField = field.endsWith('quantity') ? 'quantity' : 'price'
+      const invalid = { [invalidField]: invalidField === 'price' ? NaN : 0 }
+      const { plugin, ready } = await setup({
+        transformPurchase: (purchase: BrazePurchase) =>
+          transformed && purchase.productId === 'B'
+            ? { ...purchase, ...invalid }
+            : purchase,
+      })
+      await ready
+      await plugin.track(
+        track('Order Completed', {
+          currency: 'USD',
+          products: [
+            { sku: 'A', price: 2 },
+            { sku: 'B', price: 3, ...(transformed ? {} : invalid) },
+            { sku: 'C', price: 4 },
+          ],
+        })
+      )
+
+      expect(
+        braze.logPurchase.mock.calls.map((call) => call.slice(0, 4))
+      ).toEqual([
+        ['A', 2, 'USD', 1],
+        ['C', 4, 'USD', 1],
+      ])
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn).toHaveBeenCalledWith(
+        '[Braze]',
+        'skipped purchase for product at index 1',
+        expect.any(RangeError)
+      )
     }
   )
 
