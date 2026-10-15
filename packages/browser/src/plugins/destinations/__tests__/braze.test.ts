@@ -3,6 +3,7 @@ import { HtEventsBrowser } from '../../../browser'
 import { Context } from '../../../core/context'
 import type { DestinationPlugin } from '../../../core/plugin'
 import brazeDestination from '../braze'
+import type { BrazePurchase } from '../braze'
 
 jest.mock('@braze/web-sdk', () => {
   const setter = () => jest.fn(() => true)
@@ -164,7 +165,433 @@ describe('Braze destination startup', () => {
   })
 })
 
+describe('Braze destination pending loader', () => {
+  beforeEach(() => jest.useFakeTimers())
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
+  })
+
+  it('warns on overflow and replays only the latest 1000 operations in order', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let resolve!: (sdk: typeof braze) => void
+    const { plugin, ready } = await setup({
+      sdk: () => new Promise((r) => (resolve = r)),
+    })
+    for (let index = 0; index < 1000; index++) {
+      await plugin.track(track(`Event ${index}`))
+    }
+    expect(warn).not.toHaveBeenCalled()
+    await plugin.track(track('Event 1000'))
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      expect.stringMatching(/1000.*dropped the oldest operation/)
+    )
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+
+    resolve(braze)
+    await ready
+
+    expect(braze.logCustomEvent.mock.calls).toEqual(
+      Array.from({ length: 1000 }, (_, index) => [`Event ${index + 1}`, {}])
+    )
+    expect(jest.getTimerCount()).toBe(0)
+    await plugin.track(track('After startup'))
+    expect(braze.logCustomEvent).toHaveBeenLastCalledWith('After startup', {})
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('times out after 30 seconds, reports dropped operations and ignores a late SDK', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let resolve!: (sdk: typeof braze) => void
+    const { plugin, onReady } = await setup({
+      sdk: () => new Promise((r) => (resolve = r)),
+    })
+    await plugin.identify(identify('user-1', {}))
+    await plugin.track(track('Queued'))
+
+    await jest.advanceTimersByTimeAsync(29999)
+    expect(warn).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(1)
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      'failed to load; dropped 2 queued operations',
+      new Error('SDK loader timed out after 30000 ms')
+    )
+
+    resolve(braze)
+    await jest.advanceTimersByTimeAsync(0)
+    await expect(plugin.track(track('After timeout'))).resolves.toBeDefined()
+    expect(plugin.isLoaded()).toBe(false)
+    expect(braze.initialize).not.toHaveBeenCalled()
+    expect(onReady).not.toHaveBeenCalled()
+    expect(braze.changeUser).not.toHaveBeenCalled()
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+    expect(jest.getTimerCount()).toBe(0)
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears the timeout and reports queued operations when the loader rejects', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    let reject!: (error: Error) => void
+    const { plugin } = await setup({
+      sdk: () => new Promise((_, r) => (reject = r)),
+    })
+    await plugin.track(track('Queued'))
+    reject(new Error('blocked'))
+    await jest.advanceTimersByTimeAsync(0)
+
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      'failed to load; dropped 1 queued operations',
+      new Error('blocked')
+    )
+    expect(jest.getTimerCount()).toBe(0)
+    await jest.advanceTimersByTimeAsync(30000)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(plugin.isLoaded()).toBe(false)
+    expect(braze.logCustomEvent).not.toHaveBeenCalled()
+  })
+})
+
+describe('Braze purchase currency', () => {
+  afterEach(() => jest.restoreAllMocks())
+
+  it.each([' eur\n', 'uSd', 'btc', ' zzz '])(
+    'normalizes %j without a default',
+    async (currency) => {
+      const { plugin, ready } = await setup()
+      await ready
+      await plugin.track(
+        track('Order Completed', { currency, quantity: 1, revenue: 0 })
+      )
+      expect(braze.logPurchase).toHaveBeenCalledWith(
+        'Order Completed',
+        0,
+        currency.trim().toUpperCase(),
+        1,
+        { currency, quantity: 1, revenue: 0 }
+      )
+    }
+  )
+
+  it.each([
+    undefined,
+    null,
+    123,
+    '',
+    '   ',
+    'dollars',
+    'US',
+    '123',
+    'US1',
+    '€€€',
+    'éur',
+    'US D',
+  ])('rejects %j and reports an error without a default', async (currency) => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup()
+    await ready
+    await plugin.track(
+      track('Order Completed', { currency, quantity: 1, revenue: 0 })
+    )
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('[Braze]', expect.any(RangeError))
+    await plugin.track(track('Next event'))
+    expect(braze.logCustomEvent).toHaveBeenCalledWith('Next event', {})
+  })
+
+  it('uses a normalized explicit default only when needed', async () => {
+    const { plugin, ready } = await setup({ defaultCurrency: ' gbp\n' })
+    await ready
+    for (const currency of [undefined, 'US1', 'eur']) {
+      await plugin.track(
+        track('Order Completed', { currency, quantity: 1, revenue: 0 })
+      )
+    }
+    expect(braze.logPurchase.mock.calls.map((call) => call[2])).toEqual([
+      'GBP',
+      'GBP',
+      'EUR',
+    ])
+  })
+
+  it('leaves currency recognition to Braze with an explicit default', async () => {
+    const { plugin, ready } = await setup({ defaultCurrency: ' zzz ' })
+    await ready
+    await plugin.track(
+      track('Order Completed', { currency: 'abc', revenue: 2, quantity: 1 })
+    )
+    await plugin.track(track('Order Completed', { revenue: 2, quantity: 1 }))
+    expect(braze.logPurchase.mock.calls.map((call) => call[2])).toEqual([
+      'ABC',
+      'ZZZ',
+    ])
+  })
+
+  it('rejects an invalid default', async () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+    const { plugin, ready } = await setup({ defaultCurrency: 'US1' })
+    await ready
+    await plugin.track(track('Order Completed'))
+    expect(braze.logPurchase).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith(
+      '[Braze]',
+      new RangeError(
+        'Braze purchase rejected: defaultCurrency must be a three-letter currency code.'
+      )
+    )
+  })
+
+  it.each(['perOrder', 'perProduct'])(
+    'validates transformed currencies in %s mode',
+    async (mode) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      let currency = ' zzz '
+      const { plugin, ready } = await setup({
+        purchaseGrouping: { mode, identifier: 'sku' },
+        transformPurchase: (purchase: object) => ({ ...purchase, currency }),
+      })
+      await ready
+      const event = track('Order Completed', {
+        currency: 'USD',
+        products: [{ sku: 'SKU1', price: 0, quantity: 1 }],
+        quantity: 1,
+        revenue: 0,
+      })
+      await plugin.track(event)
+      expect(braze.logPurchase.mock.calls[0][2]).toBe('ZZZ')
+      currency = 'US1'
+      await plugin.track(event)
+      expect(braze.logPurchase).toHaveBeenCalledTimes(1)
+      expect(warn).toHaveBeenCalledWith(
+        '[Braze]',
+        ...(mode === 'perProduct'
+          ? ['skipped purchase for product at index 0']
+          : []),
+        expect.any(RangeError)
+      )
+    }
+  )
+})
+
+describe('Braze purchase numbers', () => {
+  afterEach(() => jest.restoreAllMocks())
+  it.each(['perOrder', 'perProduct'])(
+    'requires price and validates supplied quantity in %s mode',
+    async (mode) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const { plugin, ready } = await setup({
+        purchaseGrouping: { mode, identifier: 'sku' },
+      })
+      await ready
+      for (const field of ['price', 'quantity']) {
+        const invalid = [
+          undefined,
+          null,
+          true,
+          '',
+          ' ',
+          '12oops',
+          'NaN',
+          Infinity,
+          NaN,
+          '1e309',
+          '0x10',
+          {},
+          [],
+        ]
+        if (field === 'quantity') invalid.push(0, -1, 1.5, 101)
+        for (const value of invalid) {
+          if (field === 'quantity' && value === undefined) continue
+          const product = { sku: 'SKU1', price: 2, quantity: 1, [field]: value }
+          await plugin.track(
+            track('Order Completed', {
+              currency: 'USD',
+              revenue: 2,
+              quantity: 1,
+              products: [product],
+              [field === 'price' ? 'revenue' : field]: value,
+              total: field === 'price' && value !== undefined ? 99 : undefined,
+            })
+          )
+          expect(warn).toHaveBeenLastCalledWith(
+            '[Braze]',
+            ...(mode === 'perProduct'
+              ? ['skipped purchase for product at index 0']
+              : []),
+            expect.any(RangeError)
+          )
+        }
+      }
+      expect(braze.logPurchase).not.toHaveBeenCalled()
+    }
+  )
+
+  it.each(['price', 'quantity', 'transformed price', 'transformed quantity'])(
+    'continues logging valid products after an invalid %s',
+    async (field) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const transformed = field.startsWith('transformed ')
+      const invalidField = field.endsWith('quantity') ? 'quantity' : 'price'
+      const invalid = { [invalidField]: invalidField === 'price' ? NaN : 0 }
+      const { plugin, ready } = await setup({
+        transformPurchase: (purchase: BrazePurchase) =>
+          transformed && purchase.productId === 'B'
+            ? { ...purchase, ...invalid }
+            : purchase,
+      })
+      await ready
+      await plugin.track(
+        track('Order Completed', {
+          currency: 'USD',
+          products: [
+            { sku: 'A', price: 2 },
+            { sku: 'B', price: 3, ...(transformed ? {} : invalid) },
+            { sku: 'C', price: 4 },
+          ],
+        })
+      )
+
+      expect(
+        braze.logPurchase.mock.calls.map((call) => call.slice(0, 4))
+      ).toEqual([
+        ['A', 2, 'USD', 1],
+        ['C', 4, 'USD', 1],
+      ])
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn).toHaveBeenCalledWith(
+        '[Braze]',
+        'skipped purchase for product at index 1',
+        expect.any(RangeError)
+      )
+    }
+  )
+
+  it.each(['perOrder', 'perProduct'])(
+    'defaults omitted quantity to one in %s mode',
+    async (mode) => {
+      const transformPurchase = jest.fn((purchase) => purchase)
+      const { plugin, ready } = await setup({
+        purchaseGrouping: { mode, identifier: 'sku' },
+        transformPurchase,
+      })
+      await ready
+      for (const products of [[], [{ sku: 'SKU1', price: 2 }]]) {
+        await plugin.track(
+          track('Order Completed', { currency: 'USD', revenue: 2, products })
+        )
+      }
+      expect(
+        transformPurchase.mock.calls.map(([purchase]) => purchase.quantity)
+      ).toEqual([1, 1])
+      expect(
+        braze.logPurchase.mock.calls.map((call) => [call[1], call[3]])
+      ).toEqual([
+        [2, 1],
+        [2, 1],
+      ])
+    }
+  )
+
+  it('preserves an explicit zero revenue and accepts complete numeric strings', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    await plugin.track(
+      track('Order Completed', {
+        currency: 'USD',
+        revenue: 0,
+        total: 99,
+        quantity: '2',
+      })
+    )
+    await plugin.track(
+      track('Order Completed', {
+        currency: 'USD',
+        products: [{ sku: 'SKU1', price: ' 2.5e1 ', quantity: '3' }],
+      })
+    )
+    expect(
+      braze.logPurchase.mock.calls.map((call) => call.slice(0, 4))
+    ).toEqual([
+      ['Order Completed', 0, 'USD', 2],
+      ['SKU1', 25, 'USD', 3],
+    ])
+  })
+
+  it.each(['price', 'quantity'])(
+    'rejects invalid transformed %s',
+    async (field) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const { plugin, ready } = await setup({
+        transformPurchase: (purchase: object) => ({
+          ...purchase,
+          [field]: field === 'price' ? Infinity : 0,
+        }),
+      })
+      await ready
+      await plugin.track(
+        track('Order Completed', { currency: 'USD', revenue: 2, quantity: 1 })
+      )
+      expect(braze.logPurchase).not.toHaveBeenCalled()
+      expect(warn).toHaveBeenCalledWith('[Braze]', expect.any(RangeError))
+    }
+  )
+})
+
 describe('Braze destination identify', () => {
+  it('clears standard attributes, preserves alias precedence, and allows restoring values', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    const values = {
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.com',
+      phone: '555-0100',
+      gender: 'female',
+      birthday: '1990-05-12',
+      address: { city: 'London', country: 'GB' },
+    }
+    await plugin.identify(identify('user-1', values))
+    jest.clearAllMocks()
+    await plugin.identify(identify('user-1', {}))
+    await plugin.identify(identify('user-1', { email: undefined }))
+    expect(user.setEmail).not.toHaveBeenCalled()
+    const clears = {
+      firstName: null,
+      first_name: 'Ignored',
+      lastName: null,
+      last_name: 'Ignored',
+      email: null,
+      phone: null,
+      gender: null,
+      birthday: null,
+      dob: '2000-01-01',
+      address: { city: null, country: null },
+      home_city: 'Ignored',
+      country: 'US',
+    }
+    await plugin.identify(identify('user-1', clears))
+    await plugin.identify(identify('user-1', clears))
+    for (const setter of [
+      user.setFirstName,
+      user.setLastName,
+      user.setEmail,
+      user.setPhoneNumber,
+      user.setGender,
+      user.setHomeCity,
+      user.setCountry,
+    ]) {
+      expect(setter.mock.calls).toEqual([[null]])
+    }
+    expect(user.setDateOfBirth.mock.calls).toEqual([[null, null, null]])
+    jest.clearAllMocks()
+    await plugin.identify(identify('user-1', values))
+    expect(user.setEmail).toHaveBeenCalledWith('ada@example.com')
+    expect(user.setGender).toHaveBeenCalledWith('f')
+    expect(user.setDateOfBirth).toHaveBeenCalledWith(1990, 5, 12)
+  })
+
   it('calls changeUser only when the userId changes', async () => {
     const { plugin, ready } = await setup()
     await ready
@@ -216,6 +643,45 @@ describe('Braze destination identify', () => {
       ['postalCode', 'N1'],
       ['state', 'LDN'],
     ])
+  })
+
+  it('normalizes subscription values before caching', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    for (const state of ['opted_in', 'subscribed', 'unsubscribed']) {
+      for (const value of [` \t${state.toUpperCase()}\n`, state]) {
+        await plugin.identify(
+          identify('user-1', { email_subscribe: value, push_subscribe: value })
+        )
+      }
+    }
+    const expected = [['opted_in'], ['subscribed'], ['unsubscribed']]
+    expect(user.setEmailNotificationSubscriptionType.mock.calls).toEqual(
+      expected
+    )
+    expect(user.setPushNotificationSubscriptionType.mock.calls).toEqual(
+      expected
+    )
+  })
+
+  it('ignores invalid subscription values', async () => {
+    const { plugin, ready } = await setup()
+    await ready
+    for (const value of [
+      null,
+      true,
+      1,
+      ' ',
+      ' Maybe ',
+      ' Constructor ',
+      '__proto__',
+    ]) {
+      await plugin.identify(
+        identify('user-1', { email_subscribe: value, push_subscribe: value })
+      )
+    }
+    expect(user.setEmailNotificationSubscriptionType).not.toHaveBeenCalled()
+    expect(user.setPushNotificationSubscriptionType).not.toHaveBeenCalled()
   })
 
   it('treats mParticle names and age as custom attributes', async () => {
@@ -341,8 +807,9 @@ describe('Braze destination track', () => {
         coupon: 'SAVE',
         color: 'blue',
       },
-      { sku: 'SKU2', name: 'Hat', price: '10' },
+      { sku: 'SKU2', name: 'Hat', price: '10', quantity: 1 },
     ],
+    quantity: 1,
   }
 
   it('logs custom events with names and keys unchanged', async () => {
@@ -375,7 +842,12 @@ describe('Braze destination track', () => {
 
     await plugin.track(track('Order Completed', order))
 
-    const shared = { order_id: 'order-1', currency: 'EUR', revenue: 30 }
+    const shared = {
+      order_id: 'order-1',
+      currency: 'EUR',
+      revenue: 30,
+      quantity: 1,
+    }
     expect(braze.logPurchase.mock.calls).toEqual([
       [
         'SKU1',
@@ -397,13 +869,13 @@ describe('Braze destination track', () => {
   })
 
   it('lets product fields win over order fields', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
       track('Order Completed', {
         coupon: 'ORDER',
-        products: [{ sku: 'SKU1', coupon: 'ITEM' }],
+        products: [{ sku: 'SKU1', coupon: 'ITEM', price: 0, quantity: 1 }],
       })
     )
 
@@ -415,15 +887,15 @@ describe('Braze destination track', () => {
 
   it('falls back to product_id, then name, and skips products without either', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
       track('Order Completed', {
         products: [
-          { product_id: 'p1', name: 'Shirt' },
-          { name: 'Hat' },
-          { price: 5 },
+          { product_id: 'p1', name: 'Shirt', price: 0, quantity: 1 },
+          { name: 'Hat', price: 0, quantity: 1 },
+          { price: 5, quantity: 1 },
         ],
       })
     )
@@ -450,18 +922,22 @@ describe('Braze destination track', () => {
   })
 
   it('passes a leading $ in product IDs through', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
     await plugin.track(
-      track('$Order Completed', { products: [{ sku: '$SKU1' }] })
+      track('$Order Completed', {
+        products: [{ sku: '$SKU1', price: 0, quantity: 1 }],
+      })
     )
     await plugin.track(
-      track('Order Completed', { products: [{ sku: '$SKU1' }] })
+      track('Order Completed', {
+        products: [{ sku: '$SKU1', price: 0, quantity: 1 }],
+      })
     )
 
     expect(braze.logCustomEvent).toHaveBeenCalledWith('$Order Completed', {
-      products: [{ sku: '$SKU1' }],
+      products: [{ sku: '$SKU1', price: 0, quantity: 1 }],
     })
     expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual(['$SKU1'])
   })
@@ -480,29 +956,34 @@ describe('Braze destination track', () => {
   })
 
   it('logs a single purchase when there are no products', async () => {
-    const { plugin, ready } = await setup()
+    const { plugin, ready } = await setup({ defaultCurrency: 'USD' })
     await ready
 
-    await plugin.track(track('Completed Order', { total: '15' }))
+    await plugin.track(track('Completed Order', { total: '15', quantity: 1 }))
 
     expect(braze.logPurchase).toHaveBeenCalledWith(
       'Completed Order',
       15,
       'USD',
       1,
-      { total: '15' }
+      { total: '15', quantity: 1 }
     )
   })
 
   it('logs purchases for custom purchase event names', async () => {
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       purchaseDetection: ['Membership Purchased'],
     })
     await ready
 
-    await plugin.track(track('Membership Purchased', { revenue: 5 }))
-    await plugin.track(track('membership purchased', { revenue: 5 }))
-    await plugin.track(track('Order Completed', { revenue: 5 }))
+    await plugin.track(
+      track('Membership Purchased', { revenue: 5, quantity: 1 })
+    )
+    await plugin.track(
+      track('membership purchased', { revenue: 5, quantity: 1 })
+    )
+    await plugin.track(track('Order Completed', { revenue: 5, quantity: 1 }))
 
     expect(braze.logPurchase.mock.calls.map(([id]) => id)).toEqual([
       'Membership Purchased',
@@ -518,12 +999,15 @@ describe('Braze destination track', () => {
       (event) => event.properties?.kind === 'purchase'
     )
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       purchaseDetection,
     })
     await ready
 
-    await plugin.track(track('Renewed', { kind: 'purchase', revenue: 5 }))
-    await plugin.track(track('Upgraded', { revenue: 5 }))
+    await plugin.track(
+      track('Renewed', { kind: 'purchase', revenue: 5, quantity: 1 })
+    )
+    await plugin.track(track('Upgraded', { revenue: 5, quantity: 1 }))
     await plugin.track(track('Order Completed', order))
 
     expect(purchaseDetection).toHaveBeenCalledWith(
@@ -545,11 +1029,12 @@ describe('Braze destination track', () => {
     })
     await ready
 
-    await plugin.track(track('Order Completed', { revenue: 5 }))
+    await plugin.track(track('Order Completed', { revenue: 5, quantity: 1 }))
 
     expect(braze.logPurchase).not.toHaveBeenCalled()
     expect(braze.logCustomEvent).toHaveBeenCalledWith('Order Completed', {
       revenue: 5,
+      quantity: 1,
     })
     expect(warn).toHaveBeenCalled()
   })
@@ -562,7 +1047,9 @@ describe('Braze destination track', () => {
         properties: { ...rest, 'Transaction Id': order_id },
       })
     )
-    const { plugin, ready } = await setup({ transformPurchase })
+    const { plugin, ready } = await setup({
+      transformPurchase,
+    })
     await ready
 
     const event = track('Order Completed', order)
@@ -583,6 +1070,7 @@ describe('Braze destination track', () => {
         sku: 'SKU2',
         name: 'Hat',
         'Transaction Id': 'order-1',
+        quantity: 1,
       },
     ])
   })
@@ -621,6 +1109,7 @@ describe('Braze destination track', () => {
   it('logs the default purchase when transformPurchase throws', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})
     const { plugin, ready } = await setup({
+      defaultCurrency: 'USD',
       transformPurchase: (purchase: { properties: object }) => {
         purchase.properties = {}
         throw new Error('boom')
@@ -628,14 +1117,14 @@ describe('Braze destination track', () => {
     })
     await ready
 
-    await plugin.track(track('Completed Order', { total: '15' }))
+    await plugin.track(track('Completed Order', { total: '15', quantity: 1 }))
 
     expect(braze.logPurchase).toHaveBeenCalledWith(
       'Completed Order',
       15,
       'USD',
       1,
-      { total: '15' }
+      { total: '15', quantity: 1 }
     )
     expect(warn).toHaveBeenCalled()
   })

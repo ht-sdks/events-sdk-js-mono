@@ -6,6 +6,8 @@ import type { HightouchEvent } from '../../core/events/interfaces'
 import type { DestinationFactory } from './types'
 import { LocalStorage } from '../../core/storage/localStorage'
 import { Destination } from './destination'
+import { resolvePurchaseCurrency } from './braze-currency'
+import { purchaseNumber } from './braze-purchase-number'
 
 type Braze = typeof BrazeSdk
 type BrazeUser = BrazeSdk.User
@@ -39,6 +41,9 @@ type StartSettings =
       /**
        * The Braze Web SDK for the destination to initialize, or a function that loads it,
        * e.g. `() => import('@braze/web-sdk')`
+       * Loaders have 30 seconds to resolve. While waiting, up to 1000 operations are
+       * queued; overflow drops the oldest with a warning. Load failure or timeout
+       * discards the queue and disables forwarding for this destination instance.
        */
       sdk: Braze | (() => Promise<Braze>)
 
@@ -75,10 +80,25 @@ type StartSettings =
     }
 
 export type BrazeSettings = StartSettings & {
+  /**
+   * Explicit fallback for missing/invalid purchase currencies; no implicit default.
+   * Codes are trimmed, uppercased, and checked for exactly three ASCII letters,
+   * including after transformPurchase. Braze determines which codes it supports.
+   * Without a valid fallback, the purchase is rejected and the error is logged.
+   */
+  defaultCurrency?: string
   /** Exact event names or a predicate identifying purchases. Defaults to Order Completed and Completed Order. */
   purchaseDetection?: string[] | ((event: HightouchEvent) => boolean)
 
-  /** One purchase per product (SKU by default), or one for the whole order. */
+  /**
+   * One purchase per product (SKU by default), or one for the whole order.
+   * Products require a finite price. Omitted quantities default to 1; supplied
+   * quantities must be integers from 1 to 100.
+   * Whole-order purchases (including events without products) require revenue
+   * (or total if revenue is absent); quantity also defaults to 1.
+   * Complete numeric strings are accepted. Missing prices and invalid values are rejected,
+   * including after transformPurchase; an explicitly supplied zero price is valid.
+   */
   purchaseGrouping?:
     | { mode: 'perProduct'; identifier?: 'sku' | 'name' }
     | { mode: 'perOrder' }
@@ -112,6 +132,28 @@ type AttributeCache = {
 }
 
 const CACHE_KEY = 'htjs_braze_attributes'
+const MAX_PENDING_COUNT = 1000
+const SDK_LOAD_TIMEOUT_MS = 30000
+
+const loadBraze = async (load: () => Promise<Braze>): Promise<Braze> => {
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  try {
+    return await Promise.race([
+      load(),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () =>
+            reject(
+              new Error(`SDK loader timed out after ${SDK_LOAD_TIMEOUT_MS} ms`)
+            ),
+          SDK_LOAD_TIMEOUT_MS
+        )
+      }),
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
 
 const GENDERS = new Map<string, Gender>([
   ['m', 'm'],
@@ -154,11 +196,6 @@ const isPlainObject = (value: unknown): value is Properties =>
   !Array.isArray(value) &&
   !(value instanceof Date)
 
-const toNumber = (value: unknown): number | undefined => {
-  const number = typeof value === 'string' ? parseFloat(value) : value
-  return typeof number === 'number' && isFinite(number) ? number : undefined
-}
-
 const toStringValue = (value: unknown): string => {
   if (typeof value === 'string') return value
   if (value instanceof Date) return value.toISOString()
@@ -195,6 +232,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   purchaseDetection = ['Order Completed', 'Completed Order'],
   purchaseGrouping = { mode: 'perProduct', identifier: 'sku' },
   transformPurchase,
+  defaultCurrency,
   pageTracking = false,
 }) => {
   const storage = new LocalStorage<{ [CACHE_KEY]: AttributeCache }>()
@@ -210,6 +248,12 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   const run = (fn: (braze: Braze) => void) => {
     if (failed) return
     if (!client) {
+      if (pending.length >= MAX_PENDING_COUNT) {
+        pending.shift()
+        warn(
+          `pending queue reached ${MAX_PENDING_COUNT} operations; dropped the oldest operation while waiting for the SDK loader`
+        )
+      }
       pending.push(fn)
       return
     }
@@ -339,7 +383,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
     SUBSCRIPTION_TRAITS.forEach(([setter, key]) => {
       const trait = pick([key])
-      const type = SUBSCRIPTION_TYPES.find((type) => type === trait)
+      const normalized =
+        typeof trait === 'string' ? trait.trim().toLowerCase() : undefined
+      const type = SUBSCRIPTION_TYPES.find((type) => type === normalized)
       if (type) {
         set(setter, type, () => user[setter](type))
       } else if (trait !== undefined) {
@@ -354,11 +400,7 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
   const logPurchase = (braze: Braze, event: HightouchEvent) => {
     const order: Properties = event.properties ?? {}
-    const currency =
-      typeof order.currency === 'string' && order.currency.length === 3
-        ? order.currency
-        : 'USD'
-    const total = toNumber(order.revenue) ?? toNumber(order.total) ?? 0
+    const currency = resolvePurchaseCurrency(order.currency, defaultCurrency)
     const products = Array.isArray(order.products)
       ? order.products.filter(isPlainObject)
       : []
@@ -382,9 +424,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
       }
       braze.logPurchase(
         result.productId,
-        result.price,
-        result.currency,
-        result.quantity,
+        purchaseNumber(result.price, 'price'),
+        resolvePurchaseCurrency(result.currency, defaultCurrency),
+        purchaseNumber(result.quantity, 'quantity'),
         eventProperties(result.properties)
       )
     }
@@ -392,9 +434,15 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
     if (purchaseGrouping.mode === 'perOrder' || !products.length) {
       log({
         productId: event.event ?? '',
-        price: total,
+        price: purchaseNumber(
+          order.revenue === undefined ? order.total : order.revenue,
+          'price'
+        ),
         currency,
-        quantity: 1,
+        quantity: purchaseNumber(
+          order.quantity === undefined ? 1 : order.quantity,
+          'quantity'
+        ),
         properties: { ...order },
       })
       return
@@ -402,22 +450,29 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
 
     const shared = { ...order }
     delete shared.products
-    products.forEach((product) => {
-      const { price, quantity, ...fields } = product
-      const productId =
-        purchaseGrouping.identifier === 'name'
-          ? product.name
-          : (product.sku ?? product.product_id ?? product.name)
-      log(
-        {
-          productId: productId == null ? '' : String(productId),
-          price: toNumber(price) ?? 0,
-          currency,
-          quantity: toNumber(quantity) ?? 1,
-          properties: { ...shared, ...fields },
-        },
-        product
-      )
+    products.forEach((product, index) => {
+      try {
+        const { price, quantity, ...fields } = product
+        const productId =
+          purchaseGrouping.identifier === 'name'
+            ? product.name
+            : (product.sku ?? product.product_id ?? product.name)
+        log(
+          {
+            productId: productId == null ? '' : String(productId),
+            price: purchaseNumber(price, 'price'),
+            currency,
+            quantity: purchaseNumber(
+              quantity === undefined ? 1 : quantity,
+              'quantity'
+            ),
+            properties: { ...shared, ...fields },
+          },
+          product
+        )
+      } catch (error) {
+        warn(`skipped purchase for product at index ${index}`, error)
+      }
     })
   }
 
@@ -444,7 +499,8 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
   }
 
   const start = async (analytics: Analytics) => {
-    const braze = instance ?? (typeof sdk === 'function' ? await sdk() : sdk)
+    const braze =
+      instance ?? (typeof sdk === 'function' ? await loadBraze(sdk) : sdk)
     if (!braze) throw new Error('`sdk` or `instance` is required')
 
     if (!instance) {
@@ -511,8 +567,9 @@ const brazeDestination: DestinationFactory<BrazeSettings> = ({
         })
         start(analytics).catch((error) => {
           failed = true
+          const dropped = pending.length
           pending.length = 0
-          warn('failed to load', error)
+          warn(`failed to load; dropped ${dropped} queued operations`, error)
         })
         return Promise.resolve()
       },
