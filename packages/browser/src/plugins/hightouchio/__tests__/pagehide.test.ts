@@ -125,6 +125,37 @@ describe('Hightouch.io pagehide delivery', () => {
     ).toEqual(['acknowledged', 'pending', 'pending'])
   })
 
+  it.each(['before', 'after'])(
+    'does not replay an event acknowledged %s a deferred checkpoint',
+    async (order) => {
+      const request = createDeferred<Response>()
+      fetch.mockReturnValueOnce(request.promise)
+      fetch.mockReturnValueOnce(createDeferred<Response>().promise)
+      const original = client()
+      const sent = original.track!(event('acknowledged'))
+      void original.track!(event('pending'))
+
+      const lockKey = 'persisted-queue:v1:pagehide:dest-Hightouch.io:lock'
+      localStorage.setItem(lockKey, JSON.stringify(Date.now() + 1000))
+      window.dispatchEvent(new Event('pagehide'))
+      // Release the other tab's lock while the checkpoint awaits its retry.
+      localStorage.removeItem(lockKey)
+      if (order === 'after') await jest.advanceTimersByTimeAsync(50)
+
+      request.resolve(response)
+      await sent
+      await jest.advanceTimersByTimeAsync(50)
+      client()
+      await jest.advanceTimersByTimeAsync(5000)
+
+      expect(
+        fetch.mock.calls.map(
+          ([, init]) => JSON.parse(init!.body as string).messageId
+        )
+      ).toEqual(['acknowledged', 'pending', 'pending'])
+    }
+  )
+
   it('retains a recovery snapshot until an HTTP retry succeeds', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)

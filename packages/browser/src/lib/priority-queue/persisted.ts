@@ -125,7 +125,11 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
         items.forEach((item) => this.persistedIds.add(item.id))
         try {
           mutex(key, () => {
-            persistItems(itemsKey, items)
+            // Requests may be acknowledged while the checkpoint waits for the lock.
+            persistItems(
+              itemsKey,
+              items.filter((item) => this.persistedIds.has(item.id))
+            )
             persistSeen(seenKey, this.seen)
           })
         } catch (err) {
