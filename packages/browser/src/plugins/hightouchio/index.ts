@@ -107,6 +107,10 @@ export function hightouchio(
         (request) =>
           request
             .then((response) => {
+              const { status } = response
+              if (status === 408 || status === 429 || status >= 500) {
+                throw new Error(`Retryable HTTP response: ${status}`)
+              }
               if (response.ok && buffer instanceof PersistedPriorityQueue) {
                 buffer.acknowledge(ctx)
               }

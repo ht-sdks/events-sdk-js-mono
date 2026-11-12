@@ -125,7 +125,7 @@ describe('Hightouch.io pagehide delivery', () => {
     ).toEqual(['acknowledged', 'pending', 'pending'])
   })
 
-  it('does not acknowledge an unsuccessful HTTP response', async () => {
+  it('retains a recovery snapshot until an HTTP retry succeeds', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)
     const original = client()
@@ -134,9 +134,75 @@ describe('Hightouch.io pagehide delivery', () => {
     request.resolve({ ok: false, status: 503 } as Response)
     await sent
 
+    expect(
+      localStorage.getItem(
+        'persisted-queue:v1:pagehide:dest-Hightouch.io:items'
+      )
+    ).toContain('"messageId":"message"')
+    await jest.advanceTimersByTimeAsync(10000)
+    expect(fetch).toHaveBeenCalledTimes(2)
     client()
     await jest.advanceTimersByTimeAsync(5000)
     expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([408, 429, 500, 503, 599])(
+    'retries a standard request returning HTTP %s',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      await client().track!(event())
+      await jest.advanceTimersByTimeAsync(10000)
+
+      expect(
+        fetch.mock.calls.map(
+          ([, init]) => JSON.parse(init!.body as string).messageId
+        )
+      ).toEqual(['message', 'message'])
+    }
+  )
+
+  it.each([400, 401, 403, 413, 422])(
+    'does not retry a standard request returning HTTP %s',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      await client().track!(event())
+      await jest.advanceTimersByTimeAsync(10000)
+
+      expect(fetch).toHaveBeenCalledTimes(1)
+    }
+  )
+
+  it('bounds repeated HTTP retries using the existing attempt limit', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5)
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    await client().track!(event())
+    await jest.advanceTimersByTimeAsync(60000)
+
+    expect(fetch).toHaveBeenCalledTimes(5)
+    expect(jest.getTimerCount()).toBe(0)
+  })
+
+  it('retries every event in a visibilitychange batch returning HTTP 503', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    const original = client({ strategy: 'batching' })
+    await original.track!(event('first'))
+    await original.track!(event('second'))
+    jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    document.dispatchEvent(new Event('visibilitychange'))
+    await jest.advanceTimersByTimeAsync(15000)
+
+    expect(
+      fetch.mock.calls.map(([, init]) =>
+        JSON.parse(init!.body as string).batch.map(
+          (item: { messageId: string }) => item.messageId
+        )
+      )
+    ).toEqual([['first', 'second'], ['first'], ['second']])
+    expect(
+      localStorage.getItem(
+        'persisted-queue:v1:pagehide:dest-Hightouch.io:items'
+      )
+    ).toBeNull()
   })
 
   it('retries a rejected request without leaving a successful retry to replay', async () => {
@@ -179,27 +245,34 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(fetch).toHaveBeenCalledTimes(3)
   })
 
-  it('retries only the failed chunk of a lifecycle flush', async () => {
-    fetch.mockResolvedValueOnce(response)
-    fetch.mockRejectedValueOnce(new TypeError('Network error'))
-    const original = client({ strategy: 'batching' })
-    for (const messageId of ['first', 'second', 'third']) {
-      const ctx = event(messageId)
-      ctx.event.properties = { padding: 'x'.repeat(40000) }
-      await original.track!(ctx)
-    }
-    window.dispatchEvent(new Event('pagehide'))
-    await jest.advanceTimersByTimeAsync(15000)
+  it.each(['network error', 'HTTP 503'])(
+    'retries only the failed chunk of a lifecycle flush (%s)',
+    async (failure) => {
+      fetch.mockResolvedValueOnce(response)
+      if (failure === 'network error') {
+        fetch.mockRejectedValueOnce(new TypeError('Network error'))
+      } else {
+        fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+      }
+      const original = client({ strategy: 'batching' })
+      for (const messageId of ['first', 'second', 'third']) {
+        const ctx = event(messageId)
+        ctx.event.properties = { padding: 'x'.repeat(40000) }
+        await original.track!(ctx)
+      }
+      window.dispatchEvent(new Event('pagehide'))
+      await jest.advanceTimersByTimeAsync(15000)
 
-    expect(
-      fetch.mock.calls.map(([, init]) =>
-        JSON.parse(init!.body as string).batch.map(
-          (item: { messageId: string }) => item.messageId
+      expect(
+        fetch.mock.calls.map(([, init]) =>
+          JSON.parse(init!.body as string).batch.map(
+            (item: { messageId: string }) => item.messageId
+          )
         )
-      )
-    ).toEqual([['first', 'second'], ['third'], ['third']])
-    client()
-    await jest.advanceTimersByTimeAsync(5000)
-    expect(fetch).toHaveBeenCalledTimes(3)
-  })
+      ).toEqual([['first', 'second'], ['third'], ['third']])
+      client()
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(fetch).toHaveBeenCalledTimes(3)
+    }
+  )
 })
