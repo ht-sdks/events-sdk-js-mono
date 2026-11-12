@@ -55,23 +55,17 @@ export function hightouchio(
   settings?: HightouchioSettings,
   integrations?: LegacySettings['integrations']
 ): Plugin {
-  // Attach `pagehide` before buffer is created so that inflight events are added
-  // to the buffer before the buffer persists events in its own `pagehide` handler.
-  window.addEventListener('pagehide', () => {
-    buffer.push(...Array.from(inflightEvents))
-    inflightEvents.clear()
-  })
-
+  const inflightEvents = new Set<Context>()
   const writeKey = settings?.apiKey ?? ''
 
   const buffer = analytics.options.disableClientPersistence
     ? new PriorityQueue<Context>(analytics.queue.queue.maxAttempts, [])
     : new PersistedPriorityQueue(
         analytics.queue.queue.maxAttempts,
-        `${writeKey}:dest-Hightouch.io`
+        `${writeKey}:dest-Hightouch.io`,
+        () => Array.from(inflightEvents)
       )
 
-  const inflightEvents = new Set<Context>()
   const flushing = false
 
   const apiHost = settings?.apiHost ?? HIGHTOUCH_API_HOST
@@ -109,18 +103,26 @@ export function hightouchio(
     return client
       .dispatch(
         `${remote}/v1/${eventType}`,
-        normalize(analytics, json, settings, integrations)
+        normalize(analytics, json, settings, integrations),
+        (request) =>
+          request
+            .then((response) => {
+              if (response.ok && buffer instanceof PersistedPriorityQueue) {
+                buffer.acknowledge(ctx)
+              }
+              return ctx
+            })
+            .catch(() => {
+              buffer.pushWithBackoff(ctx)
+              // eslint-disable-next-line @typescript-eslint/no-use-before-define
+              scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+              return ctx
+            })
+            .finally(() => {
+              inflightEvents.delete(ctx)
+            })
       )
       .then(() => ctx)
-      .catch(() => {
-        buffer.pushWithBackoff(ctx)
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-        return ctx
-      })
-      .finally(() => {
-        inflightEvents.delete(ctx)
-      })
   }
 
   const hightouch: Plugin = {

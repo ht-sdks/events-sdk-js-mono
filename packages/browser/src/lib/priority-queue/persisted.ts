@@ -89,7 +89,13 @@ function mutex(key: string, onUnlock: Function, attempt = 0): void {
 }
 
 export class PersistedPriorityQueue extends PriorityQueue<Context> {
-  constructor(maxAttempts: number, key: string) {
+  private persistedIds = new Set<string>()
+
+  constructor(
+    maxAttempts: number,
+    private key: string,
+    pending: () => Context[] = () => []
+  ) {
     super(maxAttempts, [])
 
     const itemsKey = `persisted-queue:v1:${key}:items`
@@ -113,9 +119,10 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     })
 
     window.addEventListener('pagehide', () => {
-      // we deliberately want to use the less powerful 'pagehide' API to only persist on events where the analytics instance gets destroyed, and not on tab away.
-      if (this.todo > 0) {
-        const items = [...this.queue, ...this.future]
+      // Checkpoint pending requests without adding them to the live retry queue.
+      const items = [...this.queue, ...this.future, ...pending()]
+      if (items.length > 0) {
+        items.forEach((item) => this.persistedIds.add(item.id))
         try {
           mutex(key, () => {
             persistItems(itemsKey, items)
@@ -126,5 +133,21 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
         }
       }
     })
+  }
+
+  acknowledge(item: Context): void {
+    if (!this.persistedIds.delete(item.id)) return
+
+    try {
+      mutex(this.key, () => {
+        const itemsKey = `persisted-queue:v1:${this.key}:items`
+        const remaining = persisted(itemsKey).filter(
+          (ctx) => ctx.id !== item.id
+        )
+        loc.setItem(itemsKey, JSON.stringify(remaining))
+      })
+    } catch (err) {
+      console.error(err)
+    }
   }
 }

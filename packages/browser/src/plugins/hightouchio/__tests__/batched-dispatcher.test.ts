@@ -249,6 +249,34 @@ describe('Batching', () => {
   })
 
   describe('on unload', () => {
+    it.each(['pagehide', 'visibilitychange'] as const)(
+      'does not resend a flushed batch after %s',
+      async (type) => {
+        fetch.mockResolvedValue({ ok: true })
+        const { dispatch } = batch('us-east-1.hightouch-events.com')
+        await dispatch('', { messageId: 'first' })
+
+        jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+        const target = type === 'pagehide' ? window : document
+        target.dispatchEvent(new Event(type))
+        expect(fetch).toHaveBeenCalledTimes(1)
+
+        // A second lifecycle notification and the old timer must not resend it.
+        jest
+          .spyOn(document, 'visibilityState', 'get')
+          .mockReturnValue('visible')
+        document.dispatchEvent(new Event('visibilitychange'))
+        jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+        target.dispatchEvent(new Event(type))
+        await dispatch('', { messageId: 'second' })
+        await jest.advanceTimersByTimeAsync(5000)
+
+        expect(
+          fetch.mock.calls.map(([, init]) => JSON.parse(init.body).batch)
+        ).toEqual([[{ messageId: 'first' }], [{ messageId: 'second' }]])
+      }
+    )
+
     it('flushes the batch', async () => {
       const { dispatch } = batch(`https://us-east-1.hightouch-events.com`)
 

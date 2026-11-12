@@ -1,6 +1,11 @@
 import { fetch } from '../../lib/fetch'
 
-export type Dispatcher = (url: string, body: object) => Promise<unknown>
+export type DeliveryCallback = (request: Promise<Response>) => Promise<unknown>
+export type Dispatcher = (
+  url: string,
+  body: object,
+  onDelivery?: DeliveryCallback
+) => Promise<unknown>
 
 export type StandardDispatcherConfig = {
   keepalive?: boolean
@@ -9,8 +14,8 @@ export type StandardDispatcherConfig = {
 export default function (config?: StandardDispatcherConfig): {
   dispatch: Dispatcher
 } {
-  function dispatch(url: string, body: object): Promise<unknown> {
-    return fetch(url, {
+  const dispatch: Dispatcher = (url, body, onDelivery) => {
+    const request = fetch(url, {
       keepalive: config?.keepalive,
       headers: {
         Accept: 'application/json',
@@ -19,6 +24,7 @@ export default function (config?: StandardDispatcherConfig): {
       method: 'post',
       body: JSON.stringify(body),
     })
+    return onDelivery ? onDelivery(request) : request
   }
 
   return {
