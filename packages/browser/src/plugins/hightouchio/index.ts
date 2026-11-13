@@ -103,30 +103,26 @@ export function hightouchio(
     return client
       .dispatch(
         `${remote}/v1/${eventType}`,
-        normalize(analytics, json, settings, integrations),
-        (request) =>
-          request
-            .then((response) => {
-              const { status } = response
-              if (status === 408 || status === 429 || status >= 500) {
-                throw new Error(`Retryable HTTP response: ${status}`)
-              }
-              if (response.ok && buffer instanceof PersistedPriorityQueue) {
-                buffer.acknowledge(ctx)
-              }
-              return ctx
-            })
-            .catch(() => {
-              buffer.pushWithBackoff(ctx)
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-              return ctx
-            })
-            .finally(() => {
-              inflightEvents.delete(ctx)
-            })
+        normalize(analytics, json, settings, integrations)
       )
-      .then(() => ctx)
+      .then((response) => {
+        if (
+          (response as Response | undefined)?.ok &&
+          buffer instanceof PersistedPriorityQueue
+        ) {
+          buffer.acknowledge(ctx)
+        }
+        return ctx
+      })
+      .catch(() => {
+        buffer.pushWithBackoff(ctx)
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+        return ctx
+      })
+      .finally(() => {
+        inflightEvents.delete(ctx)
+      })
   }
 
   const hightouch: Plugin = {

@@ -1,7 +1,6 @@
 import { HightouchEvent } from '../../core/events'
 import { fetch } from '../../lib/fetch'
 import { onPageChange } from '../../lib/on-page-change'
-import { DeliveryCallback, Dispatcher } from './fetch-dispatcher'
 
 export type BatchingDispatchConfig = {
   size?: number
@@ -50,7 +49,6 @@ export default function batch(
   protocol = 'https'
 ) {
   let buffer: object[] = []
-  const deliveries = new WeakMap<object, DeliveryCallback>()
   let pageUnloaded = false
 
   const limit = config?.size ?? 10
@@ -69,7 +67,7 @@ export default function batch(
       return newEvent
     })
 
-    const request = fetch(`${protocol}://${apiHost}/v1/batch`, {
+    return fetch(`${protocol}://${apiHost}/v1/batch`, {
       keepalive: pageUnloaded,
       headers: {
         Accept: 'application/json',
@@ -82,13 +80,6 @@ export default function batch(
         sentAt: new Date().toISOString(),
       }),
     })
-    return Promise.all(
-      batch.map((event) => {
-        const onDelivery = deliveries.get(event)
-        deliveries.delete(event)
-        return onDelivery ? onDelivery(request) : request
-      })
-    )
   }
 
   async function flush(): Promise<unknown> {
@@ -123,9 +114,8 @@ export default function batch(
     }
   })
 
-  const dispatch: Dispatcher = async (_url, body, onDelivery) => {
+  async function dispatch(_url: string, body: object): Promise<unknown> {
     buffer.push(body)
-    if (onDelivery) deliveries.set(body, onDelivery)
 
     const bufferOverflow =
       buffer.length >= limit || approachingTrackingAPILimit(buffer)

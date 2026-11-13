@@ -38,14 +38,6 @@ describe('Hightouch.io pagehide delivery', () => {
     })
   }
 
-  function failNextRequest(failure: 'network error' | 503) {
-    if (failure === 'network error') {
-      fetch.mockRejectedValueOnce(new TypeError('Network error'))
-    } else {
-      fetch.mockResolvedValueOnce({ ok: false, status: failure } as Response)
-    }
-  }
-
   beforeEach(() => {
     jest.useFakeTimers()
     fetch.mockReset().mockResolvedValue(response)
@@ -72,19 +64,12 @@ describe('Hightouch.io pagehide delivery', () => {
     localStorage.clear()
   })
 
-  it.each([
-    ['standard', false],
-    ['standard', true],
-    ['batching', false],
-    ['batching', true],
-  ] as const)(
-    'does not replay an acknowledged %s request after pagehide (persisted=%s)',
-    async (strategy, persisted) => {
+  it.each([false, true])(
+    'does not replay an acknowledged request after pagehide (persisted=%s)',
+    async (persisted) => {
       const request = createDeferred<Response>()
       fetch.mockReturnValueOnce(request.promise)
-      const original = client(
-        strategy === 'batching' ? { strategy } : { config: { keepalive: true } }
-      )
+      const original = client({ config: { keepalive: true } })
       const sent = original.track!(event())
 
       window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted }))
@@ -134,93 +119,20 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  it.each(['network error', 503] as const)(
-    'retains a recovery snapshot until retry succeeds (%s)',
-    async (failure) => {
-      failNextRequest(failure)
-      const sent = client().track!(event())
-      window.dispatchEvent(new Event('pagehide'))
-      await sent
-      expect(
-        localStorage.getItem(
-          'persisted-queue:v1:pagehide:dest-Hightouch.io:items'
-        )
-      ).toContain('"messageId":"message"')
-      await jest.advanceTimersByTimeAsync(10000)
-      expect(requestIds()).toEqual([['message'], ['message']])
-      client()
-      await jest.advanceTimersByTimeAsync(5000)
-      expect(fetch).toHaveBeenCalledTimes(2)
-    }
-  )
-
-  it.each([
-    [408, 2],
-    [429, 2],
-    [500, 2],
-    [503, 2],
-    [599, 2],
-    [400, 1],
-    [401, 1],
-    [403, 1],
-    [413, 1],
-    [422, 1],
-  ])('HTTP %s results in %s send attempts', async (status, attempts) => {
-    fetch.mockResolvedValueOnce({ ok: false, status } as Response)
-    await client().track!(event())
+  it('retains a recovery snapshot until a network retry succeeds', async () => {
+    fetch.mockRejectedValueOnce(new TypeError('Network error'))
+    const sent = client().track!(event())
+    window.dispatchEvent(new Event('pagehide'))
+    await sent
+    expect(
+      localStorage.getItem(
+        'persisted-queue:v1:pagehide:dest-Hightouch.io:items'
+      )
+    ).toContain('"messageId":"message"')
     await jest.advanceTimersByTimeAsync(10000)
-
-    expect(requestIds()).toEqual(Array(attempts).fill(['message']))
-  })
-
-  it('bounds repeated HTTP retries using the existing attempt limit', async () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.5)
-    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
-    await client().track!(event())
-    await jest.advanceTimersByTimeAsync(60000)
-
-    expect(fetch).toHaveBeenCalledTimes(5)
-    expect(jest.getTimerCount()).toBe(0)
-  })
-
-  it.each([
-    ['pagehide', 'network error'],
-    ['visibilitychange', 503],
-  ] as const)('retries every event after %s with %s', async (type, failure) => {
-    failNextRequest(failure)
-    const original = client({ strategy: 'batching' })
-    await original.track!(event('first'))
-    await original.track!(event('second'))
-    jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
-    const target = type === 'pagehide' ? window : document
-    target.dispatchEvent(new Event(type))
-    await jest.advanceTimersByTimeAsync(15000)
-
-    expect(requestIds()).toEqual([['first', 'second'], ['first'], ['second']])
-
+    expect(requestIds()).toEqual([['message'], ['message']])
     client()
     await jest.advanceTimersByTimeAsync(5000)
-    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenCalledTimes(2)
   })
-
-  it.each(['network error', 503] as const)(
-    'retries only the failed chunk of a lifecycle flush (%s)',
-    async (failure) => {
-      fetch.mockResolvedValueOnce(response)
-      failNextRequest(failure)
-      const original = client({ strategy: 'batching' })
-      for (const messageId of ['first', 'second', 'third']) {
-        const ctx = event(messageId)
-        ctx.event.properties = { padding: 'x'.repeat(40000) }
-        await original.track!(ctx)
-      }
-      window.dispatchEvent(new Event('pagehide'))
-      await jest.advanceTimersByTimeAsync(15000)
-
-      expect(requestIds()).toEqual([['first', 'second'], ['third'], ['third']])
-      client()
-      await jest.advanceTimersByTimeAsync(5000)
-      expect(fetch).toHaveBeenCalledTimes(3)
-    }
-  )
 })
