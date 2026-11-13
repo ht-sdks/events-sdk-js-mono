@@ -13,9 +13,12 @@ describe('Hightouch.io pagehide delivery', () => {
     [EventTarget, string, EventListenerOrEventListenerObject]
   >
 
-  function client(deliveryStrategy?: HightouchioSettings['deliveryStrategy']) {
+  function client(
+    deliveryStrategy?: HightouchioSettings['deliveryStrategy'],
+    retryQueue = true
+  ) {
     return hightouchio(
-      new Analytics({ writeKey: 'pagehide' }, { retryQueue: true }),
+      new Analytics({ writeKey: 'pagehide' }, { retryQueue }),
       { apiKey: 'pagehide', deliveryStrategy }
     )
   }
@@ -119,9 +122,28 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
+  it.each([false, true])(
+    'bounds recovery attempts across page loads (retryQueue=%s)',
+    async (retryQueue) => {
+      fetch.mockReturnValue(createDeferred<Response>().promise)
+      void client(undefined, retryQueue).track!(event())
+
+      for (let page = 0; page < 8; page++) {
+        window.dispatchEvent(new Event('pagehide'))
+        for (const [target, type, listener] of listeners.splice(0)) {
+          target.removeEventListener(type, listener)
+        }
+        client(undefined, retryQueue)
+        await jest.advanceTimersByTimeAsync(5000)
+      }
+
+      expect(requestIds()).toEqual(Array(retryQueue ? 5 : 2).fill(['message']))
+    }
+  )
+
   it('retains a recovery snapshot until a network retry succeeds', async () => {
     fetch.mockRejectedValueOnce(new TypeError('Network error'))
-    const sent = client().track!(event())
+    const sent = client(undefined, false).track!(event())
     window.dispatchEvent(new Event('pagehide'))
     await sent
     expect(

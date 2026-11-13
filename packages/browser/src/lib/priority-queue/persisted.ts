@@ -120,7 +120,13 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
-      const items = [...this.queue, ...this.future, ...pending()]
+      const items = [...this.queue, ...this.future]
+      const attempts = { ...this.seen }
+      // Reserve recovery attempts without consuming the live retry budget.
+      for (const item of pending()) {
+        attempts[item.id] = this.getAttempts(item) + 1
+        if (attempts[item.id] <= this.maxAttempts) items.push(item)
+      }
       if (items.length > 0) {
         items.forEach((item) => this.persistedIds.add(item.id))
         try {
@@ -130,7 +136,10 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
               itemsKey,
               items.filter((item) => this.persistedIds.has(item.id))
             )
-            persistSeen(seenKey, this.seen)
+            for (const id of Object.keys(this.seen)) {
+              attempts[id] = Math.max(attempts[id] ?? 0, this.seen[id])
+            }
+            persistSeen(seenKey, attempts)
           })
         } catch (err) {
           console.error(err)
