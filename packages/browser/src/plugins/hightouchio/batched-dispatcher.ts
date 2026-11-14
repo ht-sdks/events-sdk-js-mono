@@ -107,9 +107,7 @@ export default function batch(
     pageUnloaded = unloaded
 
     if (pageUnloaded && buffer.length) {
-      const batch = buffer
-      buffer = []
-      const reqs = chunks(batch).map(sendBatch)
+      const reqs = chunks(buffer).map(sendBatch)
       Promise.all(reqs).catch(console.error)
     }
   })
