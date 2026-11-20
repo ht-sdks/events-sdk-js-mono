@@ -448,25 +448,55 @@ describe('Event Factory', () => {
     })
   })
 
-  it.each([undefined, 1234567890])(
-    'marks only the first event in a session as sessionStart - manually set session id %s',
-    (manualSessionId) => {
-      user.startManualSession(manualSessionId)
-      const sessionId = user.sessionId()
+  describe('Session context augmentation', () => {
+    it.each([undefined, 1234567890])(
+      'marks only the first event in a session as sessionStart - manually set session id %s',
+      (manualSessionId) => {
+        user.startManualSession(manualSessionId)
+        const sessionId = user.sessionId()
 
-      if (manualSessionId) {
-        expect(sessionId).toEqual(manualSessionId)
-      } else {
-        expect(sessionId).toEqual(expect.any(Number))
+        if (manualSessionId) {
+          expect(sessionId).toEqual(manualSessionId)
+        } else {
+          expect(sessionId).toEqual(expect.any(Number))
+        }
+
+        const event1 = factory.track('foo')
+        expect(event1.context?.sessionStart).toEqual(true)
+        expect(event1.context?.sessionId).toEqual(sessionId)
+
+        const event2 = factory.track('bar')
+        expect(event2.context?.sessionStart).not.toBeDefined()
+        expect(event2.context?.sessionId).toEqual(sessionId)
       }
+    )
 
-      const event1 = factory.track('foo')
-      expect(event1.context?.sessionStart).toEqual(true)
-      expect(event1.context?.sessionId).toEqual(sessionId)
+    it('enriches events with a session object when opted in', () => {
+      user = new User({ sessions: { autoTrack: true, enrich: true } })
+      factory = new EventFactory(user)
 
-      const event2 = factory.track('bar')
-      expect(event2.context?.sessionStart).not.toBeDefined()
-      expect(event2.context?.sessionId).toEqual(sessionId)
-    }
-  )
+      const timestamp = '2026-11-20T12:00:00.000Z'
+      const event1 = factory.track('First event', {}, { timestamp })
+      const event2 = factory.track('Second event')
+
+      expect(event1.context?.session).toEqual({
+        sessionId: event1.context?.sessionId,
+        sessionStart: true,
+        sessionIndex: 0,
+        eventIndex: 0,
+        previousSessionId: null,
+        firstEventId: event1.messageId,
+        firstEventTimestamp: timestamp,
+      })
+
+      expect(event2.context?.session).toEqual({
+        sessionId: event1.context?.sessionId,
+        sessionIndex: 0,
+        eventIndex: 1,
+        previousSessionId: null,
+        firstEventId: event1.messageId,
+        firstEventTimestamp: timestamp,
+      })
+    })
+  })
 })
