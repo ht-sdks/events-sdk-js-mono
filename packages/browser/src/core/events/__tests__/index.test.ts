@@ -447,4 +447,26 @@ describe('Event Factory', () => {
       expect(event.context?.page).toEqual(pageCtx)
     })
   })
+
+  it.each([undefined, 1234567890])(
+    'marks only the first event in a session as sessionStart - manually set session id %s',
+    (manualSessionId) => {
+      user.startManualSession(manualSessionId)
+      const sessionId = user.sessionId()
+
+      if (manualSessionId) {
+        expect(sessionId).toEqual(manualSessionId)
+      } else {
+        expect(sessionId).toEqual(expect.any(Number))
+      }
+
+      const event1 = factory.track('foo')
+      expect(event1.context?.sessionStart).toEqual(true)
+      expect(event1.context?.sessionId).toEqual(sessionId)
+
+      const event2 = factory.track('bar')
+      expect(event2.context?.sessionStart).not.toBeDefined()
+      expect(event2.context?.sessionId).toEqual(sessionId)
+    }
+  )
 })

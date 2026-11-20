@@ -323,9 +323,13 @@ export class User {
       return session
     }
 
+    const isManualSessionStart = session?.manualTrack && session?.sessionStart
     session = updateSessionExpiration(session)
     this.sessionStore.set(this.seshKey, session)
-    return session
+    return {
+      ...session,
+      ...(isManualSessionStart ? { sessionStart: true } : {}),
+    }
   }
 
   getAndUpdateSession(): SessionContext | null {

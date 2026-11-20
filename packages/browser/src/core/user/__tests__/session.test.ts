@@ -90,9 +90,9 @@ describe('user anonymousId migration', () => {
         sessionStart: true,
       })
 
-      // first call sets it as no longer being the start of the session
+      // first call sets it as the start of the session
       const firstCall = user.getAndUpdateSession()
-      expect(firstCall).toEqual({ sessionId })
+      expect(firstCall).toEqual({ sessionId, sessionStart: true })
       // subsequent calls do not change the session
       const secondCall = user.getAndUpdateSession()
       expect(secondCall).toEqual({ sessionId })
