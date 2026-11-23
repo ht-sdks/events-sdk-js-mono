@@ -283,6 +283,20 @@ describe('error handling', () => {
     expect(fetcher).not.toHaveBeenCalled()
   })
 
+  it('probes a rejected source even with ordinary retries disabled', async () => {
+    fetcher.mockReturnValueOnce(createError({ status: 403, statusText: 'Forbidden' }))
+    const { plugin } = createTestNodePlugin({ maxEventsInBatch: 1, maxRetries: 0 })
+    const first = new Context(eventFactory.alias('a', 'b'))
+    const sent = plugin.alias(first)
+    await jest.advanceTimersByTimeAsync(0)
+    const next = plugin.alias(new Context(eventFactory.alias('c', 'd')))
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    await jest.advanceTimersByTimeAsync(2000)
+    expect((await sent).failedDelivery()).toBeUndefined()
+    await next
+    expect(fetcher).toHaveBeenCalledTimes(3)
+  })
+
   it('does not retry 400 errors', async () => {
     fetcher.mockReturnValue(
       createError({ status: 400, statusText: 'Bad Request' })

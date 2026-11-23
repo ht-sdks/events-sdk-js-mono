@@ -46,6 +46,7 @@ export class Publisher {
   private _httpRequestTimeout: number
   private _emitter: NodeEmitter
   private _disable: boolean
+  private sourceRecovery?: Promise<void>
   private _httpClient: HTTPClient
   constructor(
     {
@@ -97,12 +98,11 @@ export class Publisher {
   }
 
   flushAfterClose(pendingItemsCount: number) {
+    this._closeAndFlushPendingItemsCount = pendingItemsCount
     if (!pendingItemsCount) {
       // if number of pending items is 0, there will never be anything else entering the batch, since the app is closed.
       return
     }
-
-    this._closeAndFlushPendingItemsCount = pendingItemsCount
 
     // if batch is empty, there's nothing to flush, and when things come in, enqueue will handle them.
     if (!this._batch) return
@@ -188,73 +188,110 @@ export class Publisher {
     const events = batch.getEvents()
     const maxAttempts = this._maxRetries + 1
 
+    let releaseSource: (() => void) | undefined
+    let probeAttempt = 0
     let currentAttempt = 0
-    while (currentAttempt < maxAttempts) {
-      currentAttempt++
+    try {
+      while (currentAttempt < maxAttempts) {
+        if (this.sourceRecovery && !releaseSource) await this.sourceRecovery
+        currentAttempt++
 
-      let failureReason: unknown
-      try {
-        if (this._disable) {
-          return batch.resolveEvents()
+        let failureReason: unknown
+        try {
+          if (this._disable) {
+            return batch.resolveEvents()
+          }
+
+          const request: HTTPClientRequest = {
+            url: this._url,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Basic ${this._auth}`,
+              'User-Agent': 'events-sdk-js-node/latest',
+            },
+            data: { batch: events, sentAt: new Date() },
+            httpRequestTimeout: this._httpRequestTimeout,
+          }
+
+          this._emitter.emit('http_request', {
+            body: request.data,
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+          })
+
+          const response = await this._httpClient.makeRequest(request)
+
+          if (
+            [401, 403, 404].includes(response.status) &&
+            this._closeAndFlushPendingItemsCount === undefined
+          ) {
+            if (!this.sourceRecovery) {
+              const gate = extractPromiseParts<void>()
+              this.sourceRecovery = gate.promise
+              releaseSource = gate.resolve
+              this._emitter.emit('error', {
+                code: 'unknown',
+                reason: new Error(
+                  `HTTP ${response.status}. Check the write key and endpoint. Retaining queued events.`
+                ),
+              })
+            }
+            if (releaseSource) {
+              await sleep(
+                backoff({
+                  attempt: probeAttempt++,
+                  minTimeout: 1000,
+                  maxTimeout: 60000,
+                })
+              )
+            }
+            currentAttempt--
+            continue
+          }
+          if (response.status >= 200 && response.status < 300) {
+            // Successfully sent events, so exit!
+            batch.resolveEvents()
+            return
+          } else if (response.status === 400) {
+            // Request either malformed or size exceeded - don't retry.
+            resolveFailedBatch(
+              batch,
+              new Error(`[${response.status}] ${response.statusText}`)
+            )
+            return
+          } else {
+            // Treat other errors as transient and retry.
+            failureReason = new Error(
+              `[${response.status}] ${response.statusText}`
+            )
+          }
+        } catch (err) {
+          // Network errors get thrown, retry them.
+          failureReason = err
         }
 
-        const request: HTTPClientRequest = {
-          url: this._url,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Basic ${this._auth}`,
-            'User-Agent': 'events-sdk-js-node/latest',
-          },
-          data: { batch: events, sentAt: new Date() },
-          httpRequestTimeout: this._httpRequestTimeout,
-        }
-
-        this._emitter.emit('http_request', {
-          body: request.data,
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-        })
-
-        const response = await this._httpClient.makeRequest(request)
-
-        if (response.status >= 200 && response.status < 300) {
-          // Successfully sent events, so exit!
-          batch.resolveEvents()
+        // Final attempt failed, update context and resolve events.
+        if (currentAttempt === maxAttempts) {
+          resolveFailedBatch(batch, failureReason)
           return
-        } else if (response.status === 400) {
-          // Request either malformed or size exceeded - don't retry.
-          resolveFailedBatch(
-            batch,
-            new Error(`[${response.status}] ${response.statusText}`)
-          )
-          return
-        } else {
-          // Treat other errors as transient and retry.
-          failureReason = new Error(
-            `[${response.status}] ${response.statusText}`
-          )
         }
-      } catch (err) {
-        // Network errors get thrown, retry them.
-        failureReason = err
-      }
 
-      // Final attempt failed, update context and resolve events.
-      if (currentAttempt === maxAttempts) {
-        resolveFailedBatch(batch, failureReason)
-        return
+        // Retry after attempt-based backoff.
+        await sleep(
+          backoff({
+            attempt: currentAttempt,
+            minTimeout: 25,
+            maxTimeout: 1000,
+          })
+        )
       }
-
-      // Retry after attempt-based backoff.
-      await sleep(
-        backoff({
-          attempt: currentAttempt,
-          minTimeout: 25,
-          maxTimeout: 1000,
-        })
-      )
+    } finally {
+      if (releaseSource) {
+        this.sourceRecovery = undefined
+        releaseSource()
+      }
     }
   }
 }
