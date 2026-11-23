@@ -1,46 +1,15 @@
 import { HightouchEvent } from '../../core/events'
-import { fetch } from '../../lib/fetch'
 import { onPageChange } from '../../lib/on-page-change'
+import { post, byteLength, keepaliveLimit } from './fetch-dispatcher'
 
 export type BatchingDispatchConfig = {
   size?: number
   timeout?: number
 }
 
-const MAX_PAYLOAD_SIZE = 500
-
-function kilobytes(buffer: unknown): number {
-  const size = encodeURI(JSON.stringify(buffer)).split(/%..|./).length - 1
-  return size / 1024
-}
-
-/**
- * Checks if the payload is over or close to
- * the maximum payload size allowed by tracking
- * API.
- */
-function approachingTrackingAPILimit(buffer: unknown): boolean {
-  return kilobytes(buffer) >= MAX_PAYLOAD_SIZE - 50
-}
-
-function chunks(batch: object[]): Array<object[]> {
-  const result: object[][] = []
-  let index = 0
-
-  batch.forEach((item) => {
-    const size = kilobytes(result[index])
-    if (size >= 64) {
-      index++
-    }
-
-    if (result[index]) {
-      result[index].push(item)
-    } else {
-      result[index] = [item]
-    }
-  })
-
-  return result
+type Entry = {
+  data: string
+  onRequest?: (request: Promise<Response>) => Promise<void>
 }
 
 export default function batch(
@@ -48,80 +17,78 @@ export default function batch(
   config?: BatchingDispatchConfig,
   protocol = 'https'
 ) {
-  let buffer: object[] = []
+  let entries: Entry[] = []
+  let bytes = 0
+  let writeKey: string | undefined
   let pageUnloaded = false
+  let timer: ReturnType<typeof setTimeout> | undefined
 
-  const limit = config?.size ?? 10
-  const timeout = config?.timeout ?? 5000
-
-  function sendBatch(batch: object[]) {
-    if (batch.length === 0) {
-      return
+  async function flush(): Promise<void> {
+    clearTimeout(timer)
+    timer = undefined
+    if (!entries.length) return
+    const group = entries
+    entries = []
+    bytes = 0
+    const header =
+      writeKey === undefined ? '' : `"writeKey":${JSON.stringify(writeKey)},`
+    const prefix = `{${header}"batch":[`
+    const suffix = `],"sentAt":"${new Date().toISOString()}"}`
+    const overhead = byteLength(prefix + suffix)
+    let chunk: Entry[] = []
+    let length = overhead
+    const requests: Promise<unknown>[] = []
+    const send = (items: Entry[]): void => {
+      const body = prefix + items.map((item) => item.data).join(',') + suffix
+      const request = post(
+        `${protocol}://${apiHost}/v1/batch`,
+        body,
+        pageUnloaded
+      )
+      for (const { onRequest } of items)
+        requests.push(onRequest ? onRequest(request) : request)
     }
-
-    const writeKey = (batch[0] as HightouchEvent)?.writeKey
-
-    // Remove sentAt from every event as batching only needs a single timestamp
-    const updatedBatch = batch.map((event) => {
-      const { sentAt, ...newEvent } = event as HightouchEvent
-      return newEvent
-    })
-
-    return fetch(`${protocol}://${apiHost}/v1/batch`, {
-      keepalive: pageUnloaded,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      method: 'post',
-      body: JSON.stringify({
-        writeKey,
-        batch: updatedBatch,
-        sentAt: new Date().toISOString(),
-      }),
-    })
-  }
-
-  async function flush(): Promise<unknown> {
-    if (buffer.length) {
-      const batch = buffer
-      buffer = []
-      return sendBatch(batch)
+    for (const item of group) {
+      const size = byteLength(item.data)
+      if (pageUnloaded && chunk.length && length + 1 + size > keepaliveLimit) {
+        send(chunk)
+        chunk = []
+        length = overhead
+      }
+      length += size + (chunk.length ? 1 : 0)
+      chunk.push(item)
     }
-  }
-
-  let schedule: NodeJS.Timeout | undefined
-
-  function scheduleFlush(): void {
-    if (schedule) {
-      return
-    }
-
-    schedule = setTimeout(() => {
-      schedule = undefined
-      flush().catch(console.error)
-    }, timeout)
+    send(chunk)
+    await Promise.all(requests)
   }
 
   onPageChange((unloaded) => {
     pageUnloaded = unloaded
-
-    if (pageUnloaded && buffer.length) {
-      const reqs = chunks(buffer).map(sendBatch)
-      Promise.all(reqs).catch(console.error)
-    }
+    if (unloaded) void flush().catch(console.error)
   })
 
-  async function dispatch(_url: string, body: object): Promise<unknown> {
-    buffer.push(body)
-
-    const bufferOverflow =
-      buffer.length >= limit || approachingTrackingAPILimit(buffer)
-
-    return bufferOverflow || pageUnloaded ? flush() : scheduleFlush()
+  async function dispatch(
+    _url: string,
+    body: object,
+    onRequest?: Entry['onRequest']
+  ): Promise<void> {
+    const { sentAt, ...event } = body as HightouchEvent
+    const data = JSON.stringify(event)
+    if (!entries.length) writeKey = event.writeKey
+    entries.push({ data, onRequest })
+    bytes += byteLength(data) + 1
+    if (
+      pageUnloaded ||
+      entries.length >= (config?.size ?? 10) ||
+      bytes >= 450 * 1024
+    ) {
+      await flush()
+    } else if (!timer) {
+      timer = setTimeout(
+        () => void flush().catch(console.error),
+        config?.timeout ?? 5000
+      )
+    }
   }
-
-  return {
-    dispatch,
-  }
+  return { dispatch }
 }

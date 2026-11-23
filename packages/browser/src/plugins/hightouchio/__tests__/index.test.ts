@@ -87,7 +87,7 @@ describe('Hightouch.io', () => {
       expect(params.keepalive).toBe(true)
     })
 
-    it('should default to no keepalive', async () => {
+    it('uses keepalive by default', async () => {
       const analytics = new Analytics({ writeKey: 'foo' })
 
       const hightouch = await hightouchio(analytics, {
@@ -97,7 +97,7 @@ describe('Hightouch.io', () => {
       await analytics.track('foo')
 
       const [_, params] = spyMock.mock.lastCall
-      expect(params.keepalive).toBeUndefined()
+      expect(params.keepalive).toBe(true)
     })
   })
 

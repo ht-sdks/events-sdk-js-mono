@@ -67,6 +67,27 @@ describe('Hightouch.io pagehide delivery', () => {
     localStorage.clear()
   })
 
+  it('restores a pending request without a pagehide checkpoint', async () => {
+    const pending = createDeferred<Response>()
+    fetch.mockReturnValueOnce(pending.promise)
+    void client().track!(event('unacknowledged'))
+    const key = Object.keys(localStorage).find((key) =>
+      key.startsWith('persisted-queue:v2:')
+    )!
+    expect(JSON.parse(localStorage.getItem(key)!).event.messageId).toBe(
+      'unacknowledged'
+    )
+    const restored = createDeferred<Response>()
+    fetch.mockReturnValueOnce(restored.promise)
+    client()
+    expect(requestIds()).toEqual([['unacknowledged'], ['unacknowledged']])
+    expect(localStorage.getItem(key)).not.toBeNull()
+    restored.resolve(response)
+    await jest.advanceTimersByTimeAsync(0)
+    expect(localStorage.getItem(key)).toBeNull()
+    pending.resolve(response)
+  })
+
   it.each([false, true])(
     'does not replay an acknowledged request after pagehide (persisted=%s)',
     async (persisted) => {

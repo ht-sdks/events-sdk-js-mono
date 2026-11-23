@@ -26,7 +26,10 @@ import type { Plugin } from '../plugin'
 import { EventQueue } from '../queue/event-queue'
 import { Group, ID, User, UserOptions } from '../user'
 import autoBind from '../../lib/bind-all'
-import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
+import {
+  DurablePriorityQueue,
+  PersistedPriorityQueue,
+} from '../../lib/priority-queue/persisted'
 import type { LegacyDestination } from '../../plugins/ajs-destination'
 import type {
   LegacyIntegration,
@@ -78,7 +81,9 @@ function createDefaultQueue(
   const maxAttempts = retryQueue ? 4 : 1
   const priorityQueue = disablePersistance
     ? new PriorityQueue(maxAttempts, [])
-    : new PersistedPriorityQueue(maxAttempts, name)
+    : retryQueue
+      ? new DurablePriorityQueue(maxAttempts, name)
+      : new PersistedPriorityQueue(maxAttempts, name)
   return new EventQueue(priorityQueue)
 }
 
@@ -205,7 +210,9 @@ export class Analytics
       createDefaultQueue(
         `${settings.writeKey}:event-queue`,
         options?.retryQueue,
-        disablePersistance
+        disablePersistance ||
+          (options?.storage !== undefined &&
+            !options.storage.stores.includes('localStorage'))
       )
 
     const storageSetting = options?.storage
@@ -511,6 +518,18 @@ export class Analytics
     this.settings.timeout = timeout
   }
 
+  /** @internal Replay persisted contexts once the delivery plugins are registered. */
+  replayPending(): void {
+    const journal = this.queue.queue
+    if (!(journal instanceof DurablePriorityQueue)) return
+    for (const ctx of journal.restored.splice(0)) {
+      void this.queue
+        .dispatchSingle(ctx)
+        .then(() => journal.acknowledge(ctx))
+        .catch(console.error)
+    }
+  }
+
   private async _dispatch(
     event: HightouchEvent,
     callback?: Callback
@@ -519,11 +538,15 @@ export class Analytics
     if (isOffline() && !this.options.retryQueue) {
       return ctx
     }
-    return await dispatch(ctx, this.queue, this, {
+    const journal = this.queue.queue
+    if (journal instanceof DurablePriorityQueue) journal.retain(ctx)
+    const delivered = await dispatch(ctx, this.queue, this, {
       callback,
       debug: this._debug,
       timeout: this.settings.timeout,
     })
+    if (journal instanceof DurablePriorityQueue) journal.acknowledge(ctx)
+    return delivered
   }
 
   async addSourceMiddleware(fn: MiddlewareFunction): Promise<Analytics> {

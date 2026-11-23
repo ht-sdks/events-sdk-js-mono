@@ -27,6 +27,7 @@ jest.mock('../../core/analytics', () => ({
     setAnonymousId,
     addSourceMiddleware,
     register,
+    replayPending: jest.fn(),
     emit: jest.fn(),
     on,
     queue: new EventQueue(new PersistedPriorityQueue(1, 'event-queue') as any),

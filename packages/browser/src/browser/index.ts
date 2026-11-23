@@ -3,6 +3,7 @@ import { getCDN, setGlobalCDNUrl } from '../lib/parse-cdn'
 
 import { fetch } from '../lib/fetch'
 import { Analytics, AnalyticsSettings, InitOptions } from '../core/analytics'
+import { DurablePriorityQueue } from '../lib/priority-queue/persisted'
 import { Context } from '../core/context'
 import { HTTPCookieService } from '../core/http-cookies'
 import { Plan } from '../core/events'
@@ -452,7 +453,11 @@ async function loadAnalytics(
   // Stats.initRemoteMetrics(legacySettings.metrics)
 
   // needs to be flushed before plugins are registered
+  const ready = createDeferred<void>()
+  analytics.queue.criticalTasks.run(() => ready.promise)
   flushPreBuffer(analytics, preInitBuffer)
+  if (analytics.queue.queue instanceof DurablePriorityQueue)
+    preInitBuffer.startAccepting(analytics)
 
   const ctx = await registerPlugins(
     settings.writeKey,
@@ -464,6 +469,9 @@ async function loadAnalytics(
     classicIntegrations
   )
 
+  await flushAddSourceMiddleware(analytics, preInitBuffer)
+  ready.resolve()
+  analytics.replayPending()
   const search = window.location.search ?? ''
   const hash = window.location.hash ?? ''
 
@@ -473,6 +481,7 @@ async function loadAnalytics(
     await analytics.queryString(term).catch(console.error)
   }
 
+  flushOn(analytics, preInitBuffer)
   analytics.initialized = true
   analytics.emit('initialize', settings, options)
 
@@ -502,17 +511,21 @@ export class HtEventsBrowser extends AnalyticsBuffered {
   ) => void
 
   constructor() {
-    const { promise: loadStart, resolve: resolveLoadStart } =
-      createDeferred<Parameters<HtEventsBrowser['load']>>()
-
-    super((buffer) =>
-      loadStart.then(([settings, options]) =>
-        loadAnalytics(settings, options, buffer)
+    const loaded = createDeferred<[Analytics, Context]>()
+    let buffer: PreInitMethodCallBuffer
+    super((calls) => {
+      buffer = calls
+      return loaded.promise
+    })
+    let started = false
+    this._resolveLoadStart = (settings, options) => {
+      if (started) return
+      started = true
+      void loadAnalytics(settings, options, buffer).then(
+        loaded.resolve,
+        loaded.reject
       )
-    )
-
-    this._resolveLoadStart = (settings, options) =>
-      resolveLoadStart([settings, options])
+    }
   }
 
   /**

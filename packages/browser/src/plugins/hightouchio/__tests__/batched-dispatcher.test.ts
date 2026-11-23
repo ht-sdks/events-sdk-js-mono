@@ -293,7 +293,12 @@ describe('Batching', () => {
 
       window.dispatchEvent(new Event('pagehide'))
 
+      expect(fetch).toHaveBeenCalledTimes(1)
+      await jest.advanceTimersByTimeAsync(0)
       expect(fetch).toHaveBeenCalledTimes(2)
+      for (const [, request] of fetch.mock.calls) {
+        expect(new Blob([request.body]).size).toBeLessThanOrEqual(65536)
+      }
     })
   })
 })

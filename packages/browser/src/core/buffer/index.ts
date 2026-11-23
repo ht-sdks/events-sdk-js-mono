@@ -157,6 +157,32 @@ type SnippetBuffer = SnippetWindowBufferedMethodCall[]
  */
 export class PreInitMethodCallBuffer {
   private _callMap: MethodCallMap = {}
+  private orderedCalls: PreInitMethodCall[] = []
+  private accepting?: Analytics
+
+  startAccepting(analytics: Analytics): void {
+    this.accepting = analytics
+    this._pushSnippetWindowBuffer()
+    this.orderedCalls.forEach((call) => this.accept(call))
+  }
+
+  private accept(call: PreInitMethodCall): void {
+    if (
+      this.accepting &&
+      [
+        'track',
+        'screen',
+        'alias',
+        'group',
+        'page',
+        'identify',
+        'setAnonymousId',
+        'reset',
+      ].includes(call.method)
+    ) {
+      void callAnalyticsMethod(this.accepting, call)
+    }
+  }
 
   constructor(...calls: PreInitMethodCall[]) {
     this.push(...calls)
@@ -200,6 +226,8 @@ export class PreInitMethodCallBuffer {
       } else {
         this.calls[call.method] = [call]
       }
+      this.orderedCalls.push(call)
+      this.accept(call)
     })
   }
 
@@ -208,6 +236,7 @@ export class PreInitMethodCallBuffer {
     this._pushSnippetWindowBuffer()
     // clear calls in this instance
     this.calls = {}
+    this.orderedCalls = []
   }
 
   toArray(): PreInitMethodCall[] {

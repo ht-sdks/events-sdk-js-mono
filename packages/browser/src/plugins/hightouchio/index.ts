@@ -3,9 +3,13 @@ import { Analytics } from '../../core/analytics'
 import { LegacySettings } from '../../browser'
 import { isOffline } from '../../core/connection'
 import { Context } from '../../core/context'
+import { HightouchEvent } from '../../core/events'
 import { Plugin } from '../../core/plugin'
 import { PriorityQueue } from '../../lib/priority-queue'
-import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
+import {
+  DurablePriorityQueue,
+  PersistedPriorityQueue,
+} from '../../lib/priority-queue/persisted'
 import { toFacade } from '../../lib/to-facade'
 import batch, { BatchingDispatchConfig } from './batched-dispatcher'
 import standard, { StandardDispatcherConfig } from './fetch-dispatcher'
@@ -56,15 +60,25 @@ export function hightouchio(
   integrations?: LegacySettings['integrations']
 ): Plugin {
   const inflightEvents = new Set<Context>()
+  const snapshots = new WeakMap<Context, HightouchEvent>()
   const writeKey = settings?.apiKey ?? ''
 
-  const buffer = analytics.options.disableClientPersistence
-    ? new PriorityQueue<Context>(analytics.queue.queue.maxAttempts, [])
-    : new PersistedPriorityQueue(
-        analytics.queue.queue.maxAttempts,
-        `${writeKey}:dest-Hightouch.io`,
-        () => Array.from(inflightEvents)
-      )
+  const buffer =
+    analytics.options.disableClientPersistence ||
+    (analytics.options.storage !== undefined &&
+      !analytics.options.storage.stores.includes('localStorage'))
+      ? new PriorityQueue<Context>(analytics.queue.queue.maxAttempts, [])
+      : analytics.options.retryQueue
+        ? new DurablePriorityQueue(
+            analytics.queue.queue.maxAttempts,
+            `${writeKey}:dest-Hightouch.io`,
+            snapshots
+          )
+        : new PersistedPriorityQueue(
+            analytics.queue.queue.maxAttempts,
+            `${writeKey}:dest-Hightouch.io`,
+            () => Array.from(inflightEvents)
+          )
 
   const flushing = false
 
@@ -73,23 +87,15 @@ export function hightouchio(
   const remote = `${protocol}://${apiHost}`
 
   const deliveryStrategy = settings?.deliveryStrategy
-  const client =
+  const batched =
     deliveryStrategy?.strategy === 'batching'
       ? batch(apiHost, deliveryStrategy.config, protocol)
-      : standard(deliveryStrategy?.config as StandardDispatcherConfig)
+      : undefined
+  const client = standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
-  async function send(ctx: Context): Promise<Context> {
-    if (isOffline()) {
-      buffer.push(ctx)
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-      return ctx
-    }
-
-    inflightEvents.add(ctx)
-
-    const eventType = ctx.event.type
-
+  function snapshot(ctx: Context): HightouchEvent {
+    const existing = snapshots.get(ctx)
+    if (existing) return existing
     let json = toFacade(ctx.event).json()
 
     if (ctx.event.type === 'track') {
@@ -100,29 +106,53 @@ export function hightouchio(
       json = onAlias(analytics, json)
     }
 
-    return client
-      .dispatch(
-        `${remote}/v1/${eventType}`,
-        normalize(analytics, json, settings, integrations)
-      )
-      .then((response) => {
-        if (
-          (response as Response | undefined)?.ok &&
-          buffer instanceof PersistedPriorityQueue
-        ) {
+    const event = {
+      type: ctx.event.type,
+      ...normalize(analytics, json, settings, integrations),
+    }
+    if (buffer instanceof DurablePriorityQueue) snapshots.set(ctx, event)
+    return event
+  }
+
+  async function send(ctx: Context): Promise<Context> {
+    const event = snapshot(ctx)
+    if (buffer instanceof DurablePriorityQueue && buffer.retain(ctx)) {
+      const previous = analytics.queue.queue
+      if (previous instanceof DurablePriorityQueue) previous.acknowledge(ctx)
+    }
+    if (isOffline()) {
+      buffer.push(ctx)
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+      return ctx
+    }
+
+    inflightEvents.add(ctx)
+    async function handle(request: Promise<unknown>): Promise<void> {
+      try {
+        const result = (await request) as Response | undefined
+        if (result && buffer instanceof DurablePriorityQueue)
           buffer.acknowledge(ctx)
+        else if (result?.ok && buffer instanceof PersistedPriorityQueue)
+          buffer.acknowledge(ctx)
+        snapshots.delete(ctx)
+      } catch {
+        if (buffer.pushWithBackoff(ctx)) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+        } else if (buffer instanceof DurablePriorityQueue) {
+          buffer.acknowledge(ctx)
+          snapshots.delete(ctx)
         }
-        return ctx
-      })
-      .catch(() => {
-        buffer.pushWithBackoff(ctx)
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-        return ctx
-      })
-      .finally(() => {
+      } finally {
         inflightEvents.delete(ctx)
-      })
+      }
+    }
+    const url = `${remote}/v1/${event.type}`
+    const body = { ...event, sentAt: new Date() }
+    if (batched) await batched.dispatch(url, body, handle)
+    else await handle(client.dispatch(url, body))
+    return ctx
   }
 
   const hightouch: Plugin = {
@@ -141,6 +171,9 @@ export function hightouchio(
 
   // Buffer may already have items if they were previously stored in localStorage.
   // Start flushing them immediately.
+  if (buffer instanceof DurablePriorityQueue) {
+    for (const ctx of buffer.restored.splice(0)) void send(ctx)
+  }
   if (buffer.todo) {
     scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
   }
