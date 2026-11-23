@@ -56,6 +56,10 @@ export function hightouchio(
   integrations?: LegacySettings['integrations']
 ): Plugin {
   const inflightEvents = new Set<Context>()
+  const held = new Set<Context>()
+  let sourcePaused = false
+  let probeScheduled = false
+  let probeDelay = 1000
   const writeKey = settings?.apiKey ?? ''
 
   const buffer = analytics.options.disableClientPersistence
@@ -63,7 +67,7 @@ export function hightouchio(
     : new PersistedPriorityQueue(
         analytics.queue.queue.maxAttempts,
         `${writeKey}:dest-Hightouch.io`,
-        () => Array.from(inflightEvents)
+        () => Array.from(inflightEvents).concat(Array.from(held))
       )
 
   const flushing = false
@@ -78,7 +82,28 @@ export function hightouchio(
       ? batch(apiHost, deliveryStrategy.config, protocol)
       : standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
-  async function send(ctx: Context): Promise<Context> {
+  function pauseSource(ctx: Context): void {
+    sourcePaused = true
+    held.add(ctx)
+    if (probeScheduled) return
+    probeScheduled = true
+    setTimeout(() => {
+      probeScheduled = false
+      const first = held.values().next().value
+      if (first) void send(first, true)
+    }, probeDelay)
+    probeDelay = Math.min(probeDelay * 2, 60000)
+  }
+
+  async function send(ctx: Context, probe = false): Promise<Context> {
+    if (sourcePaused && !probe) {
+      held.add(ctx)
+      return ctx
+    }
+    if (probe && isOffline()) {
+      pauseSource(ctx)
+      return ctx
+    }
     if (isOffline()) {
       buffer.push(ctx)
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -106,16 +131,51 @@ export function hightouchio(
         normalize(analytics, json, settings, integrations)
       )
       .then((response) => {
-        if (
-          (response as Response | undefined)?.ok &&
-          buffer instanceof PersistedPriorityQueue
-        ) {
+        const result = response as Response | undefined
+        if (result && [401, 403, 404].includes(result.status)) {
+          ctx.log(
+            'error',
+            `HTTP ${result.status}. Check the write key and endpoint. Retaining event ${ctx.event.messageId}.`
+          )
+          pauseSource(ctx)
+          return ctx
+        }
+        if (probe && result) {
+          sourcePaused = false
+          probeDelay = 1000
+          held.delete(ctx)
+          const ready = Array.from(held)
+          held.clear()
+          ready.forEach((item) => void send(item))
+        }
+        if (result?.ok === false) {
+          const { status } = result
+          const reason = `HTTP ${status} for message ${ctx.event.messageId}`
+          if (
+            status === 408 ||
+            status === 429 ||
+            (status >= 500 && status < 600)
+          ) {
+            throw new Error(reason)
+          }
+          ctx.setFailedDelivery({ reason })
+          ctx.log('error', reason)
+        }
+        if (result && buffer instanceof PersistedPriorityQueue) {
           buffer.acknowledge(ctx)
         }
         return ctx
       })
-      .catch(() => {
-        buffer.pushWithBackoff(ctx)
+      .catch((error) => {
+        if (probe && sourcePaused) {
+          pauseSource(ctx)
+          return ctx
+        }
+        if (!buffer.pushWithBackoff(ctx)) {
+          ctx.setFailedDelivery({ reason: error })
+          if (buffer instanceof PersistedPriorityQueue) buffer.acknowledge(ctx)
+          return ctx
+        }
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
         return ctx
@@ -131,12 +191,12 @@ export function hightouchio(
     version: '0.1.0',
     isLoaded: (): boolean => true,
     load: (): Promise<void> => Promise.resolve(),
-    track: send,
-    identify: send,
-    page: send,
-    alias: send,
-    group: send,
-    screen: send,
+    track: (ctx) => send(ctx),
+    identify: (ctx) => send(ctx),
+    page: (ctx) => send(ctx),
+    alias: (ctx) => send(ctx),
+    group: (ctx) => send(ctx),
+    screen: (ctx) => send(ctx),
   }
 
   // Buffer may already have items if they were previously stored in localStorage.

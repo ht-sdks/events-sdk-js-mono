@@ -67,6 +67,45 @@ describe('Hightouch.io pagehide delivery', () => {
     localStorage.clear()
   })
 
+  it.each([408, 429, 503, 522])(
+    'retries a live HTTP %s response',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      await client().track!(event())
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(requestIds()).toEqual([['message'], ['message']])
+    }
+  )
+
+  it('holds later events while one request probes a rejected source', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 401 } as Response)
+    fetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response)
+    const plugin = client()
+    await plugin.track!(event('first'))
+    await plugin.track!(event('second'))
+    expect(requestIds()).toEqual([['first']])
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(requestIds()).toEqual([['first'], ['first']])
+    await jest.advanceTimersByTimeAsync(2000)
+    expect(requestIds()).toEqual([['first'], ['first'], ['first'], ['second']])
+  })
+
+  it('reports the rejected message and clears its checkpoint', async () => {
+    const request = createDeferred<Response>()
+    fetch.mockReturnValueOnce(request.promise)
+    const ctx = event('rejected')
+    const sent = client().track!(ctx)
+    window.dispatchEvent(new Event('pagehide'))
+    request.resolve({ ok: false, status: 400 } as Response)
+    await sent
+    expect(ctx.failedDelivery()?.reason).toEqual(
+      'HTTP 400 for message rejected'
+    )
+    client()
+    await jest.advanceTimersByTimeAsync(5000)
+    expect(requestIds()).toEqual([['rejected']])
+  })
+
   it.each([false, true])(
     'does not replay an acknowledged request after pagehide (persisted=%s)',
     async (persisted) => {
