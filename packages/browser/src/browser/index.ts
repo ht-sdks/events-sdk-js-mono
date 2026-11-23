@@ -454,7 +454,7 @@ async function loadAnalytics(
 
   // needs to be flushed before plugins are registered
   const ready = createDeferred<void>()
-  analytics.queue.criticalTasks.run(() => ready.promise)
+  void analytics.queue.criticalTasks.run(() => ready.promise)
   flushPreBuffer(analytics, preInitBuffer)
   if (analytics.queue.queue instanceof DurablePriorityQueue)
     preInitBuffer.startAccepting(analytics)
