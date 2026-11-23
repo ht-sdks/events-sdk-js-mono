@@ -267,7 +267,10 @@ export class EventFactory {
     }
     addPageContext(newEvent, pageCtx)
 
-    const session = this.user.getAndUpdateSession()
+    const session = this.user.getAndUpdateSession({
+      messageId: newEvent.messageId!,
+      timestamp: newEvent.timestamp!,
+    })
     if (session != null) {
       newEvent.context = {
         ...newEvent.context,

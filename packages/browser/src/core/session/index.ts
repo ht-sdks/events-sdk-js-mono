@@ -1,6 +1,8 @@
 // https://github.com/rudderlabs/rudder-sdk-js/blob/3a818accd24e6b3667c75a6b60fb12aba36bdf7e/packages/analytics-js/LICENSE
 // MIT License
 
+import { Timestamp } from '@ht-sdks/events-sdk-js-core'
+
 // Copyright (c) 2021 RudderStack
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,11 +30,29 @@ export type SessionInfo = {
   expiresAt?: number
   id?: number
   sessionStart?: boolean
+  enrichment?: SessionEnrichment
 }
 
-export type SessionContext = {
+export type BaseSessionContext = {
   sessionId?: number
   sessionStart?: boolean
+}
+
+export type SessionContext = BaseSessionContext & {
+  session?: BaseSessionContext & SessionEnrichment
+}
+
+export type SessionEnrichment = {
+  sessionIndex: number
+  eventIndex: number
+  previousSessionId: number | null
+  firstEventId: string
+  firstEventTimestamp: Timestamp
+}
+
+export type SessionEvent = {
+  messageId: string
+  timestamp: Timestamp
 }
 
 /**

@@ -9,7 +9,8 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "types": ["jest"]
   },
   "ts-node": {
     "transpileOnly": true,

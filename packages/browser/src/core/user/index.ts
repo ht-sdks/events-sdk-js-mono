@@ -15,6 +15,7 @@ import {
 import { decryptRudderValue, decryptRudderHtValue } from './migrate'
 import {
   SessionContext,
+  SessionEvent,
   SessionInfo,
   generateAutoTrackingSession,
   generateManualTrackingSession,
@@ -50,6 +51,7 @@ export interface UserOptions {
   sessions?: {
     autoTrack?: boolean
     timeout?: number // milliseconds
+    enrich?: boolean
   }
 
   /**
@@ -70,6 +72,7 @@ const defaults = {
   },
   sessions: {
     autoTrack: true,
+    enrich: false,
   },
 }
 
@@ -109,7 +112,11 @@ export class User {
   options: UserOptions = {}
 
   constructor(options: UserOptions = defaults, cookieOptions?: CookieOptions) {
-    this.options = { ...defaults, ...options }
+    this.options = {
+      ...defaults,
+      ...options,
+      sessions: { ...defaults.sessions, ...options.sessions },
+    }
     this.cookieOptions = cookieOptions
 
     this.idKey = options.cookie?.key ?? defaults.cookie.key
@@ -301,7 +308,7 @@ export class User {
     this.sessionStore.clear(this.seshKey)
   }
 
-  private getAndUpdateSessionInfo(): SessionInfo | null {
+  private getAndUpdateSessionInfo(event: SessionEvent): SessionInfo | null {
     if (this.options.disable) {
       return null
     }
@@ -311,6 +318,13 @@ export class User {
     if (session == null) {
       if (this.options?.sessions?.autoTrack) {
         session = generateAutoTrackingSession(this.options?.sessions?.timeout)
+        session.enrichment = {
+          sessionIndex: 0,
+          eventIndex: 0,
+          previousSessionId: null,
+          firstEventId: event.messageId,
+          firstEventTimestamp: event.timestamp,
+        }
         this.sessionStore.set(this.seshKey, session)
         return session
       }
@@ -319,6 +333,13 @@ export class User {
 
     if (session?.autoTrack && hasSessionExpired(session.expiresAt!)) {
       session = generateAutoTrackingSession(this.options?.sessions?.timeout)
+      session.enrichment = {
+        sessionIndex: session.enrichment?.sessionIndex ?? 0 + 1,
+        eventIndex: 0,
+        previousSessionId: session.id ?? null,
+        firstEventId: event.messageId,
+        firstEventTimestamp: event.timestamp,
+      }
       this.sessionStore.set(this.seshKey, session)
       return session
     }
@@ -332,12 +353,13 @@ export class User {
     }
   }
 
-  getAndUpdateSession(): SessionContext | null {
-    const sessionInfo = this.getAndUpdateSessionInfo()
+  getAndUpdateSession(event: SessionEvent): SessionContext | null {
+    const sessionInfo = this.getAndUpdateSessionInfo(event)
     const session: SessionContext = {}
     if (sessionInfo?.id) session.sessionId = sessionInfo.id
     if (sessionInfo?.sessionStart)
       session.sessionStart = sessionInfo.sessionStart
+
     return session
   }
 
