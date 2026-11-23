@@ -67,7 +67,8 @@ export function hightouchio(
     : new PersistedPriorityQueue(
         analytics.queue.queue.maxAttempts,
         `${writeKey}:dest-Hightouch.io`,
-        () => Array.from(inflightEvents).concat(Array.from(held))
+        () => Array.from(inflightEvents),
+        () => Array.from(held)
       )
 
   const flushing = false
@@ -85,12 +86,20 @@ export function hightouchio(
   function pauseSource(ctx: Context): void {
     sourcePaused = true
     held.add(ctx)
-    if (probeScheduled) return
+    scheduleProbe()
+  }
+
+  function scheduleProbe(): void {
+    if (probeScheduled || !sourcePaused) return
     probeScheduled = true
-    setTimeout(() => {
-      probeScheduled = false
-      const first = held.values().next().value
-      if (first) void send(first, true)
+    setTimeout(async () => {
+      try {
+        const first = held.values().next().value
+        if (first) await send(first, true)
+      } finally {
+        probeScheduled = false
+        scheduleProbe()
+      }
     }, probeDelay)
     probeDelay = Math.min(probeDelay * 2, 60000)
   }
@@ -140,14 +149,6 @@ export function hightouchio(
           pauseSource(ctx)
           return ctx
         }
-        if (probe && result) {
-          sourcePaused = false
-          probeDelay = 1000
-          held.delete(ctx)
-          const ready = Array.from(held)
-          held.clear()
-          ready.forEach((item) => void send(item))
-        }
         if (result?.ok === false) {
           const { status } = result
           const reason = `HTTP ${status} for message ${ctx.event.messageId}`
@@ -161,17 +162,29 @@ export function hightouchio(
           ctx.setFailedDelivery({ reason })
           ctx.log('error', reason)
         }
+        if (probe && result) {
+          sourcePaused = false
+          probeDelay = 1000
+          held.delete(ctx)
+          const ready = Array.from(held)
+          held.clear()
+          ready.forEach((item) => void send(item))
+        }
         if (result && buffer instanceof PersistedPriorityQueue) {
           buffer.acknowledge(ctx)
         }
         return ctx
       })
       .catch((error) => {
-        if (probe && sourcePaused) {
+        if (sourcePaused) {
           pauseSource(ctx)
           return ctx
         }
         if (!buffer.pushWithBackoff(ctx)) {
+          if (analytics.options.retryQueue) {
+            pauseSource(ctx)
+            return ctx
+          }
           ctx.setFailedDelivery({ reason: error })
           if (buffer instanceof PersistedPriorityQueue) buffer.acknowledge(ctx)
           return ctx

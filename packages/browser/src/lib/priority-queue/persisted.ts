@@ -94,7 +94,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
   constructor(
     maxAttempts: number,
     private key: string,
-    pending: () => Context[] = () => []
+    pending: () => Context[] = () => [],
+    deferred: () => Context[] = () => []
   ) {
     super(maxAttempts, [])
 
@@ -120,7 +121,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
-      const items = [...this.queue, ...this.future]
+      const items = [...this.queue, ...this.future, ...deferred()]
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {

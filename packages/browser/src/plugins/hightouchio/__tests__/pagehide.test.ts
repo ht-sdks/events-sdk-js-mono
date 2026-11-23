@@ -90,6 +90,44 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([['first'], ['first'], ['first'], ['second']])
   })
 
+  it('keeps one probe in flight across late rejections and transient probe failures', async () => {
+    const late = createDeferred<Response>()
+    const probe = createDeferred<Response>()
+    fetch.mockReturnValueOnce(late.promise)
+    fetch.mockResolvedValueOnce({ ok: false, status: 401 } as Response)
+    fetch.mockReturnValueOnce(probe.promise)
+    const plugin = client()
+    const lateSend = plugin.track!(event('late'))
+    await plugin.track!(event('first'))
+    await jest.advanceTimersByTimeAsync(1000)
+    late.resolve({ ok: false, status: 403 } as Response)
+    await lateSend
+    await jest.advanceTimersByTimeAsync(60000)
+    expect(requestIds()).toEqual([['late'], ['first'], ['first']])
+    probe.resolve({ ok: false, status: 503 } as Response)
+    await jest.advanceTimersByTimeAsync(2000)
+    expect(requestIds()).toEqual([
+      ['late'],
+      ['first'],
+      ['first'],
+      ['first'],
+      ['late'],
+    ])
+  })
+
+  it('delivers the same message after transient retries run out', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    const ctx = event()
+    await client().track!(ctx)
+    await jest.advanceTimersByTimeAsync(300000)
+    expect(fetch.mock.calls.length).toBeGreaterThan(5)
+    expect(ctx.failedDelivery()).toBeFalsy()
+    fetch.mockResolvedValue(response)
+    const count = fetch.mock.calls.length
+    await jest.advanceTimersByTimeAsync(120000)
+    expect(requestIds()).toEqual(Array(count + 1).fill(['message']))
+  })
+
   it('reports the rejected message and clears its checkpoint', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)

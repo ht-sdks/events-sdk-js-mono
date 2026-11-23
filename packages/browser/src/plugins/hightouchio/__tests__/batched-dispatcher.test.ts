@@ -63,7 +63,7 @@ describe('Batching', () => {
   it('does not send requests right away', async () => {
     const { dispatch } = batch(`https://us-east-1.hightouch-events.com`)
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       hello: 'world',
     })
 
@@ -75,17 +75,17 @@ describe('Batching', () => {
       size: 3,
     })
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'first',
     })
     expect(fetch).not.toHaveBeenCalled()
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'second',
     })
     expect(fetch).not.toHaveBeenCalled()
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'third',
     })
 
@@ -113,7 +113,7 @@ describe('Batching', () => {
 
     // fatEvent is about ~1kb in size
     for (let i = 0; i < 250; i++) {
-      await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+      void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
         event: 'fat event',
         properties: fatEvent,
       })
@@ -121,7 +121,7 @@ describe('Batching', () => {
     expect(fetch).not.toHaveBeenCalled()
 
     for (let i = 0; i < 250; i++) {
-      await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+      void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
         event: 'fat event',
         properties: fatEvent,
       })
@@ -137,12 +137,12 @@ describe('Batching', () => {
       timeout: 10000, // 10 seconds
     })
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'first',
     })
     expect(fetch).not.toHaveBeenCalled()
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/i`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/i`, {
       event: 'second',
     })
 
@@ -171,13 +171,13 @@ describe('Batching', () => {
       timeout: 10000, // 10 seconds
     })
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'first',
     })
 
     jest.advanceTimersByTime(11000) // 11 seconds
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/i`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/i`, {
       event: 'second',
     })
 
@@ -221,12 +221,12 @@ describe('Batching', () => {
       size: 2,
     })
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'first',
       sentAt: new Date('11 Jun 1993 00:01:00Z'),
     })
 
-    await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+    void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
       event: 'second',
       sentAt: new Date('11 Jun 1993 00:02:00Z'),
     })
@@ -283,7 +283,7 @@ describe('Batching', () => {
 
       // fatEvent is about ~1kb in size
       for (let i = 0; i < 80; i++) {
-        await dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
+        void dispatch(`https://us-east-1.hightouch-events.com/v1/t`, {
           event: 'fat event',
           properties: fatEvent,
         })
