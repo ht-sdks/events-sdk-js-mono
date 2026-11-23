@@ -5,7 +5,6 @@ import { createTestAnalytics } from './test-helpers/create-test-analytics'
 import { isValidDate } from './test-helpers/is-valid-date'
 import { pick } from 'lodash'
 import nock from 'nock'
-import { CoreContext } from '@ht-sdks/events-sdk-js-core'
 
 const isoDateRegEx = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
@@ -350,7 +349,10 @@ describe('Client: requestTimeout', () => {
       await resolveCtx(ajs, 'track')
       throw Error('fail test')
     } catch (err: any) {
-      expect(err.ctx).toBeInstanceOf(CoreContext)
+      expect(err.code).toBe('unknown')
+      expect(err.reason).toBeInstanceOf(Error)
+    } finally {
+      await ajs.closeAndFlush()
     }
   })
 })

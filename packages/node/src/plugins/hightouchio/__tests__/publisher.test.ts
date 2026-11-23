@@ -328,7 +328,6 @@ describe('error handling', () => {
   })
 
   it.each([
-    { status: 500, statusText: 'Internal Server Error' },
     { status: 300, statusText: 'Multiple Choices' },
     { status: 100, statusText: 'Continue' },
   ])('retries non-400 errors: %p', async (response) => {
@@ -358,58 +357,24 @@ describe('error handling', () => {
       expect.stringContaining(response.status.toString())
     )
   })
-  it('retries fetch errors', async () => {
-    // Jest kept timing out when using fake timers despite advancing time.
-    jest.useRealTimers()
-
-    fetcher.mockRejectedValue(new Error('Connection Error'))
-
-    const { plugin: hightouchPlugin } = createTestNodePlugin({
-      maxRetries: 2,
-      maxEventsInBatch: 1,
-    })
-
-    const context = new Context(eventFactory.alias('my', 'from'))
-
-    const pendingContext = hightouchPlugin.alias(context)
-    const updatedContext = await pendingContext
-
-    expect(fetcher).toHaveBeenCalledTimes(3)
-    validateFetcherInputs(context)
-
-    expect(updatedContext).toBe(context)
-    expect(updatedContext.failedDelivery()).toBeTruthy()
-    expect(updatedContext.failedDelivery()).toMatchInlineSnapshot(`
-      {
-        "reason": [Error: Connection Error],
-      }
-    `)
-  })
-
-  it('should fetch only once if maxRetries is 0', async () => {
-    // Jest kept timing out when using fake timers despite advancing time.
-    jest.useRealTimers()
-
-    fetcher.mockRejectedValue(new Error('Connection Error'))
-    const { plugin: hightouchPlugin } = createTestNodePlugin({
-      maxRetries: 0,
-      maxEventsInBatch: 1,
-    })
-
-    const fn = jest.fn()
-    emitter.on('http_request', fn)
-
-    await hightouchPlugin.track(
-      new Context(
-        eventFactory.track(
-          'test event',
-          { foo: 'bar' },
-          { userId: 'foo-user-id' }
-        )
-      )
-    )
-    expect(fetcher).toHaveBeenCalledTimes(1)
-  })
+  it.each([0, 2])(
+    'defers a transient failure after %s fast retries',
+    async (maxRetries) => {
+      const { plugin } = createTestNodePlugin({
+        maxRetries,
+        maxEventsInBatch: 1,
+      })
+      for (let i = 0; i <= maxRetries; i++)
+        fetcher.mockReturnValueOnce(createError({ status: 503 }))
+      fetcher.mockRejectedValueOnce(new Error('Connection Error'))
+      const ctx = new Context(eventFactory.alias('my', 'from'))
+      const sent = plugin.alias(ctx)
+      await jest.advanceTimersByTimeAsync(15000)
+      expect(await sent).toBe(ctx)
+      expect(ctx.failedDelivery()).toBeUndefined()
+      expect(fetcher).toHaveBeenCalledTimes(maxRetries + 3)
+    }
+  )
 })
 
 describe('http_request emitter event', () => {

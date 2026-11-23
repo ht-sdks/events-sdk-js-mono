@@ -54,8 +54,8 @@ describe('Error handling', () => {
 
   it('should emit on an error', async () => {
     const err = createError({
-      statusText: 'Service Unavailable',
-      status: 503,
+      statusText: 'Bad Request',
+      status: 400,
     })
     const analytics = createTestAnalytics({
       maxRetries: 0,
@@ -67,7 +67,7 @@ describe('Error handling', () => {
       await promise
       throw new Error('fail')
     } catch (err: any) {
-      expect(err.reason).toEqual(new Error('[503] Service Unavailable'))
+      expect(err.reason).toEqual(new Error('[400] Bad Request'))
       expect(err.code).toMatch(/delivery_failure/)
     }
   })

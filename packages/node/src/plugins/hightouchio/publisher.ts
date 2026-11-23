@@ -47,6 +47,7 @@ export class Publisher {
   private _emitter: NodeEmitter
   private _disable: boolean
   private sourceRecovery?: Promise<void>
+  private wakeProbe?: () => void
   private _httpClient: HTTPClient
   constructor(
     {
@@ -99,6 +100,7 @@ export class Publisher {
 
   flushAfterClose(pendingItemsCount: number) {
     this._closeAndFlushPendingItemsCount = pendingItemsCount
+    this.wakeProbe?.()
     if (!pendingItemsCount) {
       // if number of pending items is 0, there will never be anything else entering the batch, since the app is closed.
       return
@@ -193,10 +195,12 @@ export class Publisher {
     let currentAttempt = 0
     try {
       while (currentAttempt < maxAttempts) {
-        if (this.sourceRecovery && !releaseSource) await this.sourceRecovery
+        while (this.sourceRecovery && !releaseSource) await this.sourceRecovery
         currentAttempt++
 
         let failureReason: unknown
+        let sourceRejected = false
+        let recoverable = false
         try {
           if (this._disable) {
             return batch.resolveEvents()
@@ -223,33 +227,12 @@ export class Publisher {
 
           const response = await this._httpClient.makeRequest(request)
 
-          if (
-            [401, 403, 404].includes(response.status) &&
-            this._closeAndFlushPendingItemsCount === undefined
-          ) {
-            if (!this.sourceRecovery) {
-              const gate = extractPromiseParts<void>()
-              this.sourceRecovery = gate.promise
-              releaseSource = gate.resolve
-              this._emitter.emit('error', {
-                code: 'unknown',
-                reason: new Error(
-                  `HTTP ${response.status}. Check the write key and endpoint. Retaining queued events.`
-                ),
-              })
-            }
-            if (releaseSource) {
-              await sleep(
-                backoff({
-                  attempt: probeAttempt++,
-                  minTimeout: 1000,
-                  maxTimeout: 60000,
-                })
-              )
-            }
-            currentAttempt--
-            continue
-          }
+          sourceRejected = [401, 403, 404].includes(response.status)
+          recoverable =
+            sourceRejected ||
+            response.status === 408 ||
+            response.status === 429 ||
+            (response.status >= 500 && response.status < 600)
           if (response.status >= 200 && response.status < 300) {
             // Successfully sent events, so exit!
             batch.resolveEvents()
@@ -270,6 +253,47 @@ export class Publisher {
         } catch (err) {
           // Network errors get thrown, retry them.
           failureReason = err
+          recoverable = true
+        }
+
+        if (
+          this._closeAndFlushPendingItemsCount === undefined &&
+          recoverable &&
+          (sourceRejected || currentAttempt === maxAttempts || releaseSource)
+        ) {
+          if (!this.sourceRecovery) {
+            const gate = extractPromiseParts<void>()
+            this.sourceRecovery = gate.promise
+            releaseSource = gate.resolve
+            this._emitter.emit('error', {
+              code: 'unknown',
+              reason: sourceRejected
+                ? new Error(
+                    `${String(failureReason)}. Check the write key and endpoint. Retaining queued events.`
+                  )
+                : (failureReason as Error),
+            })
+          }
+          if (
+            releaseSource &&
+            this._closeAndFlushPendingItemsCount === undefined
+          ) {
+            const delay = backoff({
+              attempt: probeAttempt++,
+              minTimeout: 1000,
+              maxTimeout: 60000,
+            })
+            await new Promise<void>((resolve) => {
+              const timer = setTimeout(resolve, delay)
+              this.wakeProbe = () => {
+                clearTimeout(timer)
+                resolve()
+              }
+            })
+            this.wakeProbe = undefined
+          }
+          currentAttempt--
+          continue
         }
 
         // Final attempt failed, update context and resolve events.
