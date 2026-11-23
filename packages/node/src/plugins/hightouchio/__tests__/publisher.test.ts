@@ -284,8 +284,13 @@ describe('error handling', () => {
   })
 
   it('probes a rejected source even with ordinary retries disabled', async () => {
-    fetcher.mockReturnValueOnce(createError({ status: 403, statusText: 'Forbidden' }))
-    const { plugin } = createTestNodePlugin({ maxEventsInBatch: 1, maxRetries: 0 })
+    fetcher.mockReturnValueOnce(
+      createError({ status: 403, statusText: 'Forbidden' })
+    )
+    const { plugin } = createTestNodePlugin({
+      maxEventsInBatch: 1,
+      maxRetries: 0,
+    })
     const first = new Context(eventFactory.alias('a', 'b'))
     const sent = plugin.alias(first)
     await jest.advanceTimersByTimeAsync(0)
