@@ -105,6 +105,113 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([[ctx.event.messageId], [ctx.event.messageId]])
   })
 
+  it.each([401, 403, 404])(
+    'completes a live HTTP %s without retry',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      const ctx = event()
+      const sent = client().track!(ctx)
+      window.dispatchEvent(new Event('pagehide'))
+      await sent
+      client()
+      await jest.advanceTimersByTimeAsync(60000)
+      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(ctx.failedDelivery()).toBeFalsy()
+    }
+  )
+
+  it.each([200, 401, 403, 404])(
+    'finishes deferred delivery after HTTP %s',
+    async (status) => {
+      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+      const ctx = event()
+      await client().track!(ctx)
+      await jest.advanceTimersByTimeAsync(300000)
+      expect(fetch.mock.calls.length).toBeGreaterThan(5)
+      expect(ctx.failedDelivery()).toBeFalsy()
+      window.dispatchEvent(new Event('pagehide'))
+      fetch.mockResolvedValue({ ok: status === 200, status } as Response)
+      const count = fetch.mock.calls.length
+      await jest.advanceTimersByTimeAsync(120000)
+      client()
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(requestIds()).toEqual(Array(count + 1).fill(['message']))
+    }
+  )
+
+  it.each([false, true])(
+    'preserves deferred identity (reload=%s)',
+    async (reload) => {
+      const analytics = new Analytics(
+        { writeKey: 'pagehide' },
+        { retryQueue: true }
+      )
+      analytics.reset()
+      analytics.setAnonymousId('original')
+      const original = client(undefined, true, analytics)
+      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+      await original.track!(event('first'))
+      await jest.advanceTimersByTimeAsync(300000)
+      await original.track!(event('second'))
+      analytics.user().id('later-user')
+      analytics.setAnonymousId('later-anonymous')
+      if (reload) {
+        window.dispatchEvent(new Event('pagehide'))
+        jest.clearAllTimers()
+        client()
+      }
+      fetch.mockClear().mockResolvedValue(response)
+      await jest.advanceTimersByTimeAsync(120000)
+      expect(requestIds().flat().sort()).toEqual(['first', 'second'])
+      for (const [, init] of fetch.mock.calls) {
+        expect(JSON.parse(init!.body as string)).toMatchObject({
+          anonymousId: 'original',
+          userId: null,
+        })
+      }
+      analytics.reset()
+    }
+  )
+
+  it('reports the rejected message and clears its checkpoint', async () => {
+    const request = createDeferred<Response>()
+    fetch.mockReturnValueOnce(request.promise)
+    const ctx = event('rejected')
+    const sent = client().track!(ctx)
+    window.dispatchEvent(new Event('pagehide'))
+    request.resolve({ ok: false, status: 400 } as Response)
+    await sent
+    expect(ctx.failedDelivery()?.reason).toEqual(
+      'HTTP 400 for message rejected'
+    )
+    client()
+    await jest.advanceTimersByTimeAsync(5000)
+    expect(requestIds()).toEqual([['rejected']])
+  })
+
+  it('bounds deferred events and drains them one at a time past a failing event', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    const dest = client()
+    await dest.track!(event('failing'))
+    await jest.advanceTimersByTimeAsync(300000)
+    for (let i = 1; i < 100; i++) await dest.track!(event(String(i)))
+    const overflow = event('overflow')
+    await dest.track!(overflow)
+    expect(overflow.failedDelivery()?.reason).toContain('queue is full')
+
+    const pending = createDeferred<Response>()
+    fetch
+      .mockClear()
+      .mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValue(response)
+    await jest.advanceTimersByTimeAsync(180000)
+    expect(requestIds()).toEqual([['failing'], ['1']])
+    pending.resolve(response)
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(requestIds()).toEqual([['failing'], ['1'], ['2']])
+  })
+
   it.each([false, true])(
     'does not replay an acknowledged request after pagehide (persisted=%s)',
     async (persisted) => {

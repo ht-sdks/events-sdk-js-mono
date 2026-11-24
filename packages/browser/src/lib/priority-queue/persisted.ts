@@ -1,5 +1,6 @@
 import { PriorityQueue } from '@ht-sdks/events-sdk-js-core'
 import { Context, SerializedContext } from '../../core/context'
+import { HightouchEvent } from '../../core/events'
 import { isBrowser } from '../../core/environment'
 
 let loc:
@@ -16,14 +17,14 @@ try {
   console.warn('Unable to access localStorage', err)
 }
 
-function persisted(key: string): Context[] {
+type Checkpoint = SerializedContext & { normalized?: boolean }
+
+function persisted(key: string): Checkpoint[] {
   const items = loc.getItem(key)
-  return (items ? JSON.parse(items) : []).map(
-    (p: SerializedContext) => new Context(p.event, p.id)
-  )
+  return items ? JSON.parse(items) : []
 }
 
-function persistItems(key: string, items: Context[]): void {
+function persistItems(key: string, items: Checkpoint[]): void {
   const existing = persisted(key)
   const all = [...items, ...existing]
 
@@ -34,7 +35,7 @@ function persistItems(key: string, items: Context[]): void {
         [item.id]: item,
       }
     },
-    {} as Record<string, Context>
+    {} as Record<string, Checkpoint>
   )
 
   loc.setItem(key, JSON.stringify(Object.values(merged)))
@@ -94,7 +95,9 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
   constructor(
     maxAttempts: number,
     private key: string,
-    pending: () => Context[] = () => []
+    pending: () => Context[] = () => [],
+    deferred: () => Context[] = () => [],
+    snapshots?: WeakMap<Context, HightouchEvent>
   ) {
     super(maxAttempts, [])
 
@@ -106,7 +109,11 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     mutex(key, () => {
       try {
-        saved = persisted(itemsKey)
+        saved = persisted(itemsKey).map(({ event, id, normalized }) => {
+          const ctx = new Context(event, id)
+          if (normalized) snapshots?.set(ctx, event)
+          return ctx
+        })
         lastSeen = seen(seenKey)
         remove(itemsKey)
         remove(seenKey)
@@ -120,7 +127,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
-      const items = [...this.queue, ...this.future]
+      const items = [...this.queue, ...this.future, ...deferred()]
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {
@@ -134,7 +141,13 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
-              items.filter((item) => this.persistedIds.has(item.id))
+              items
+                .filter((item) => this.persistedIds.has(item.id))
+                .map((item) => {
+                  const event = snapshots?.get(item)
+                  const stored = item.toJSON()
+                  return event ? { ...stored, event, normalized: true } : stored
+                })
             )
             for (const id of Object.keys(this.seen)) {
               attempts[id] = Math.max(attempts[id] ?? 0, this.seen[id])
