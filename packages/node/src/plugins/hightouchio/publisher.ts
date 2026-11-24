@@ -194,6 +194,29 @@ export class Publisher {
     let probeAttempt = 0
     let currentAttempt = 0
     try {
+      const makeRequest = () => {
+        const request: HTTPClientRequest = {
+          url: this._url,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Basic ${this._auth}`,
+            'User-Agent': 'events-sdk-js-node/latest',
+          },
+          data: { batch: events, sentAt: new Date() },
+          httpRequestTimeout: this._httpRequestTimeout,
+        }
+
+        this._emitter.emit('http_request', {
+          body: request.data,
+          method: request.method,
+          url: request.url,
+          headers: request.headers,
+        })
+
+        return this._httpClient.makeRequest(request)
+      }
+
       while (currentAttempt < maxAttempts) {
         while (this.sourceRecovery && !releaseSource) await this.sourceRecovery
         currentAttempt++
@@ -205,26 +228,7 @@ export class Publisher {
             return batch.resolveEvents()
           }
 
-          const request: HTTPClientRequest = {
-            url: this._url,
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Basic ${this._auth}`,
-              'User-Agent': 'events-sdk-js-node/latest',
-            },
-            data: { batch: events, sentAt: new Date() },
-            httpRequestTimeout: this._httpRequestTimeout,
-          }
-
-          this._emitter.emit('http_request', {
-            body: request.data,
-            method: request.method,
-            url: request.url,
-            headers: request.headers,
-          })
-
-          const response = await this._httpClient.makeRequest(request)
+          const response = await makeRequest()
 
           recoverable =
             response.status === 408 ||
