@@ -7,6 +7,11 @@ export type BatchingDispatchConfig = {
   timeout?: number
 }
 
+type Entry = {
+  body: object
+  onRequest?: (request: Promise<Response>) => Promise<void>
+}
+
 const MAX_PAYLOAD_SIZE = 500
 
 function kilobytes(buffer: unknown): number {
@@ -23,12 +28,12 @@ function approachingTrackingAPILimit(buffer: unknown): boolean {
   return kilobytes(buffer) >= MAX_PAYLOAD_SIZE - 50
 }
 
-function chunks(batch: object[]): Array<object[]> {
-  const result: object[][] = []
+function chunks(batch: Entry[]): Entry[][] {
+  const result: Entry[][] = []
   let index = 0
 
   batch.forEach((item) => {
-    const size = kilobytes(result[index])
+    const size = kilobytes(result[index]?.map((entry) => entry.body))
     if (size >= 64) {
       index++
     }
@@ -48,17 +53,13 @@ export default function batch(
   config?: BatchingDispatchConfig,
   protocol = 'https'
 ) {
-  let buffer: object[] = []
+  let buffer: Entry[] = []
   let pageUnloaded = false
 
   const limit = config?.size ?? 10
   const timeout = config?.timeout ?? 5000
 
-  function sendBatch(batch: object[]) {
-    if (batch.length === 0) {
-      return
-    }
-
+  async function upload(batch: object[]) {
     const writeKey = (batch[0] as HightouchEvent)?.writeKey
 
     // Remove sentAt from every event as batching only needs a single timestamp
@@ -80,6 +81,13 @@ export default function batch(
         sentAt: new Date().toISOString(),
       }),
     })
+  }
+
+  function sendBatch(batch: Entry[]) {
+    const request = upload(batch.map((entry) => entry.body))
+    return Promise.all(
+      batch.map(({ onRequest }) => (onRequest ? onRequest(request) : request))
+    )
   }
 
   async function flush(): Promise<unknown> {
@@ -108,15 +116,21 @@ export default function batch(
 
     if (pageUnloaded && buffer.length) {
       const reqs = chunks(buffer).map(sendBatch)
+      buffer = []
       Promise.all(reqs).catch(console.error)
     }
   })
 
-  async function dispatch(_url: string, body: object): Promise<unknown> {
-    buffer.push(body)
+  async function dispatch(
+    _url: string,
+    body: object,
+    onRequest?: Entry['onRequest']
+  ): Promise<unknown> {
+    buffer.push({ body, onRequest })
 
     const bufferOverflow =
-      buffer.length >= limit || approachingTrackingAPILimit(buffer)
+      buffer.length >= limit ||
+      approachingTrackingAPILimit(buffer.map((entry) => entry.body))
 
     return bufferOverflow || pageUnloaded ? flush() : scheduleFlush()
   }

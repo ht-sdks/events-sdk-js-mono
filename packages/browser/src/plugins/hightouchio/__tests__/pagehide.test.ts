@@ -15,12 +15,10 @@ describe('Hightouch.io pagehide delivery', () => {
 
   function client(
     deliveryStrategy?: HightouchioSettings['deliveryStrategy'],
-    retryQueue = true
+    retryQueue = true,
+    analytics = new Analytics({ writeKey: 'pagehide' }, { retryQueue })
   ) {
-    return hightouchio(
-      new Analytics({ writeKey: 'pagehide' }, { retryQueue }),
-      { apiKey: 'pagehide', deliveryStrategy }
-    )
+    return hightouchio(analytics, { apiKey: 'pagehide', deliveryStrategy })
   }
 
   function event(messageId = 'message') {
@@ -65,6 +63,46 @@ describe('Hightouch.io pagehide delivery', () => {
     jest.clearAllTimers()
     jest.useRealTimers()
     localStorage.clear()
+  })
+
+  it.each([408, 429, 503, 522])(
+    'retries a live HTTP %s response',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      await client().track!(event())
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(requestIds()).toEqual([['message'], ['message']])
+    }
+  )
+
+  it('does not retry a transient HTTP response when retries are disabled', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    const ctx = event()
+    await client(undefined, false).track!(ctx)
+    await jest.advanceTimersByTimeAsync(60000)
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(ctx.failedDelivery()?.reason).toContain('HTTP 503')
+  })
+
+  it('completes a buffered track before the batch timer and retries its HTTP failure', async () => {
+    const analytics = new Analytics(
+      { writeKey: 'pagehide' },
+      { retryQueue: true }
+    )
+    await analytics.register(
+      client(
+        { strategy: 'batching', config: { timeout: 1000 } },
+        true,
+        analytics
+      )
+    )
+    fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    const tracked = analytics.track('buffered')
+    await jest.advanceTimersByTimeAsync(50)
+    const ctx = await tracked
+    expect(fetch).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(10000)
+    expect(requestIds()).toEqual([[ctx.event.messageId], [ctx.event.messageId]])
   })
 
   it.each([false, true])(

@@ -73,10 +73,11 @@ export function hightouchio(
   const remote = `${protocol}://${apiHost}`
 
   const deliveryStrategy = settings?.deliveryStrategy
-  const client =
+  const batched =
     deliveryStrategy?.strategy === 'batching'
       ? batch(apiHost, deliveryStrategy.config, protocol)
-      : standard(deliveryStrategy?.config as StandardDispatcherConfig)
+      : undefined
+  const client = standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
   async function send(ctx: Context): Promise<Context> {
     if (isOffline()) {
@@ -100,29 +101,41 @@ export function hightouchio(
       json = onAlias(analytics, json)
     }
 
-    return client
-      .dispatch(
-        `${remote}/v1/${eventType}`,
-        normalize(analytics, json, settings, integrations)
-      )
-      .then((response) => {
-        if (
-          (response as Response | undefined)?.ok &&
-          buffer instanceof PersistedPriorityQueue
-        ) {
-          buffer.acknowledge(ctx)
+    async function handle(request: Promise<unknown>): Promise<void> {
+      try {
+        const result = (await request) as Response | undefined
+        if (result?.ok === false) {
+          const { status } = result
+          if (
+            status === 408 ||
+            status === 429 ||
+            (status >= 500 && status < 600)
+          ) {
+            const reason = `HTTP ${status} for message ${ctx.event.messageId}`
+            if (analytics.options.retryQueue) throw new Error(reason)
+            ctx.setFailedDelivery({ reason })
+            ctx.log('error', reason)
+          }
         }
-        return ctx
-      })
-      .catch(() => {
-        buffer.pushWithBackoff(ctx)
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-        return ctx
-      })
-      .finally(() => {
+        if (result?.ok && buffer instanceof PersistedPriorityQueue)
+          buffer.acknowledge(ctx)
+      } catch (error) {
+        if (buffer.pushWithBackoff(ctx)) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+        } else {
+          ctx.setFailedDelivery({ reason: error })
+        }
+      } finally {
         inflightEvents.delete(ctx)
-      })
+      }
+    }
+
+    const url = `${remote}/v1/${eventType}`
+    const body = normalize(analytics, json, settings, integrations)
+    if (batched) await batched.dispatch(url, body, handle)
+    else await handle(client.dispatch(url, body))
+    return ctx
   }
 
   const hightouch: Plugin = {
