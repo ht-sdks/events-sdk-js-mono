@@ -77,43 +77,17 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  it('holds later events while one request probes a rejected source', async () => {
-    fetch.mockResolvedValueOnce({ ok: false, status: 401 } as Response)
-    fetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response)
-    const plugin = client()
-    await plugin.track!(event('first'))
-    await plugin.track!(event('second'))
-    expect(requestIds()).toEqual([['first']])
-    await jest.advanceTimersByTimeAsync(1000)
-    expect(requestIds()).toEqual([['first'], ['first']])
-    await jest.advanceTimersByTimeAsync(2000)
-    expect(requestIds()).toEqual([['first'], ['first'], ['first'], ['second']])
-  })
-
-  it('keeps one probe in flight across late rejections and transient probe failures', async () => {
-    const late = createDeferred<Response>()
-    const probe = createDeferred<Response>()
-    fetch.mockReturnValueOnce(late.promise)
-    fetch.mockResolvedValueOnce({ ok: false, status: 401 } as Response)
-    fetch.mockReturnValueOnce(probe.promise)
-    const plugin = client()
-    const lateSend = plugin.track!(event('late'))
-    await plugin.track!(event('first'))
-    await jest.advanceTimersByTimeAsync(1000)
-    late.resolve({ ok: false, status: 403 } as Response)
-    await lateSend
-    await jest.advanceTimersByTimeAsync(60000)
-    expect(requestIds()).toEqual([['late'], ['first'], ['first']])
-    probe.resolve({ ok: false, status: 503 } as Response)
-    await jest.advanceTimersByTimeAsync(2000)
-    expect(requestIds()).toEqual([
-      ['late'],
-      ['first'],
-      ['first'],
-      ['first'],
-      ['late'],
-    ])
-  })
+  it.each([401, 403, 404])(
+    'completes a live HTTP %s without retry',
+    async (status) => {
+      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      const ctx = event()
+      await client().track!(ctx)
+      await jest.advanceTimersByTimeAsync(60000)
+      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(ctx.failedDelivery()).toBeFalsy()
+    }
+  )
 
   it('delivers the same message after transient retries run out', async () => {
     fetch.mockResolvedValue({ ok: false, status: 503 } as Response)

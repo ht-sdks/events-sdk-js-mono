@@ -141,14 +141,7 @@ export function hightouchio(
       )
       .then((response) => {
         const result = response as Response | undefined
-        if (result && [401, 403, 404].includes(result.status)) {
-          ctx.log(
-            'error',
-            `HTTP ${result.status}. Check the write key and endpoint. Retaining event ${ctx.event.messageId}.`
-          )
-          pauseSource(ctx)
-          return ctx
-        }
+        const sourceRejected = result && [401, 403, 404].includes(result.status)
         if (result?.ok === false) {
           const { status } = result
           const reason = `HTTP ${status} for message ${ctx.event.messageId}`
@@ -159,8 +152,10 @@ export function hightouchio(
           ) {
             throw new Error(reason)
           }
-          ctx.setFailedDelivery({ reason })
-          ctx.log('error', reason)
+          if (!sourceRejected) {
+            ctx.setFailedDelivery({ reason })
+            ctx.log('error', reason)
+          }
         }
         if (probe && result) {
           sourcePaused = false
@@ -170,7 +165,11 @@ export function hightouchio(
           held.clear()
           ready.forEach((item) => void send(item))
         }
-        if (result && buffer instanceof PersistedPriorityQueue) {
+        if (
+          result &&
+          !sourceRejected &&
+          buffer instanceof PersistedPriorityQueue
+        ) {
           buffer.acknowledge(ctx)
         }
         return ctx
