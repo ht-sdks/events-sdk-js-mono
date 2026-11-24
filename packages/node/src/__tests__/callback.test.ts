@@ -42,6 +42,6 @@ describe('Callback behavior', () => {
     )
     expect(ctx.event.event).toBe('event name')
     expect(ctx.event.anonymousId).toBe('bar')
-    expect(err).toEqual(new Error('[302] Found'))
+    expect(err).toEqual(new Error('[404] Not Found'))
   })
 })

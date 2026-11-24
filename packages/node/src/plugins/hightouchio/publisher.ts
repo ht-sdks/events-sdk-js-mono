@@ -199,7 +199,6 @@ export class Publisher {
         currentAttempt++
 
         let failureReason: unknown
-        let sourceRejected = false
         let recoverable = false
         try {
           if (this._disable) {
@@ -227,9 +226,7 @@ export class Publisher {
 
           const response = await this._httpClient.makeRequest(request)
 
-          sourceRejected = [401, 403, 404].includes(response.status)
           recoverable =
-            sourceRejected ||
             response.status === 408 ||
             response.status === 429 ||
             (response.status >= 500 && response.status < 600)
@@ -259,7 +256,7 @@ export class Publisher {
         if (
           this._closeAndFlushPendingItemsCount === undefined &&
           recoverable &&
-          (sourceRejected || currentAttempt === maxAttempts || releaseSource)
+          (currentAttempt === maxAttempts || releaseSource)
         ) {
           if (!this.sourceRecovery) {
             const gate = extractPromiseParts<void>()
@@ -267,11 +264,7 @@ export class Publisher {
             releaseSource = gate.resolve
             this._emitter.emit('error', {
               code: 'unknown',
-              reason: sourceRejected
-                ? new Error(
-                    `${String(failureReason)}. Check the write key and endpoint. Retaining queued events.`
-                  )
-                : (failureReason as Error),
+              reason: failureReason as Error,
             })
           }
           if (

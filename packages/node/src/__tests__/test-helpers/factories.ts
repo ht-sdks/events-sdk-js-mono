@@ -10,8 +10,8 @@ export const createSuccess = (body?: any) => {
 export const createError = (overrides: Partial<Response> = {}) => {
   return Promise.resolve({
     ok: false,
-    status: 302,
-    statusText: 'Found',
+    status: 404,
+    statusText: 'Not Found',
     ...overrides,
   }) as Promise<Response>
 }
