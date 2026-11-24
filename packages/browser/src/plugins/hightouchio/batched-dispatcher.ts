@@ -1,5 +1,4 @@
 import { HightouchEvent } from '../../core/events'
-import { createDeferred } from '../../lib/create-deferred'
 import { fetch } from '../../lib/fetch'
 import { onPageChange } from '../../lib/on-page-change'
 
@@ -10,7 +9,7 @@ export type BatchingDispatchConfig = {
 
 type Entry = {
   body: object
-  receipt: ReturnType<typeof createDeferred<Response>>
+  onRequest?: (request: Promise<Response>) => Promise<void>
 }
 
 const MAX_PAYLOAD_SIZE = 500
@@ -60,20 +59,16 @@ export default function batch(
   const limit = config?.size ?? 10
   const timeout = config?.timeout ?? 5000
 
-  function sendBatch(batch: Entry[]) {
-    if (batch.length === 0) {
-      return
-    }
-
-    const writeKey = (batch[0].body as HightouchEvent)?.writeKey
+  async function upload(batch: object[]) {
+    const writeKey = (batch[0] as HightouchEvent)?.writeKey
 
     // Remove sentAt from every event as batching only needs a single timestamp
-    const updatedBatch = batch.map(({ body }) => {
-      const { sentAt, ...newEvent } = body as HightouchEvent
+    const updatedBatch = batch.map((event) => {
+      const { sentAt, ...newEvent } = event as HightouchEvent
       return newEvent
     })
 
-    const request = fetch(`${protocol}://${apiHost}/v1/batch`, {
+    return fetch(`${protocol}://${apiHost}/v1/batch`, {
       keepalive: pageUnloaded,
       headers: {
         Accept: 'application/json',
@@ -86,9 +81,12 @@ export default function batch(
         sentAt: new Date().toISOString(),
       }),
     })
-    return Promise.resolve(request).then(
-      (response) => batch.forEach(({ receipt }) => receipt.resolve(response)),
-      (error) => batch.forEach(({ receipt }) => receipt.reject(error))
+  }
+
+  function sendBatch(batch: Entry[]) {
+    const request = upload(batch.map((entry) => entry.body))
+    return Promise.all(
+      batch.map(({ onRequest }) => (onRequest ? onRequest(request) : request))
     )
   }
 
@@ -123,17 +121,21 @@ export default function batch(
     }
   })
 
-  async function dispatch(_url: string, body: object): Promise<unknown> {
-    const receipt = createDeferred<Response>()
-    buffer.push({ body, receipt })
+  async function dispatch(
+    _url: string,
+    body: object,
+    onRequest?: Entry['onRequest'],
+    flushNow = false
+  ): Promise<unknown> {
+    buffer.push({ body, onRequest })
 
     const bufferOverflow =
       buffer.length >= limit ||
       approachingTrackingAPILimit(buffer.map((entry) => entry.body))
 
-    if (bufferOverflow || pageUnloaded) void flush()
-    else scheduleFlush()
-    return receipt.promise
+    return bufferOverflow || pageUnloaded || flushNow
+      ? flush()
+      : scheduleFlush()
   }
 
   return {

@@ -84,6 +84,27 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(ctx.failedDelivery()?.reason).toContain('HTTP 503')
   })
 
+  it('completes a buffered track before the batch timer and retries its HTTP failure', async () => {
+    const analytics = new Analytics(
+      { writeKey: 'pagehide' },
+      { retryQueue: true }
+    )
+    await analytics.register(
+      client(
+        { strategy: 'batching', config: { timeout: 1000 } },
+        true,
+        analytics
+      )
+    )
+    fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    const tracked = analytics.track('buffered')
+    await jest.advanceTimersByTimeAsync(50)
+    const ctx = await tracked
+    expect(fetch).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(10000)
+    expect(requestIds()).toEqual([[ctx.event.messageId], [ctx.event.messageId]])
+  })
+
   it.each([401, 403, 404])(
     'completes a live HTTP %s without retry',
     async (status) => {

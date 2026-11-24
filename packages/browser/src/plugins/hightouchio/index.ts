@@ -82,10 +82,11 @@ export function hightouchio(
   const remote = `${protocol}://${apiHost}`
 
   const deliveryStrategy = settings?.deliveryStrategy
-  const client =
+  const batched =
     deliveryStrategy?.strategy === 'batching'
       ? batch(apiHost, deliveryStrategy.config, protocol)
-      : standard(deliveryStrategy?.config as StandardDispatcherConfig)
+      : undefined
+  const client = standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
   function defer(ctx: Context): void {
     // A failed probe goes to the back so another message can make progress.
@@ -155,22 +156,16 @@ export function hightouchio(
     }
 
     inflightEvents.add(ctx)
-    return client
-      .dispatch(`${remote}/v1/${event.type}`, { ...event, sentAt: new Date() })
-      .then((response) => {
-        const result = response as Response | undefined
-        const sourceRejected = result && [401, 403, 404].includes(result.status)
+    async function handle(request: Promise<unknown>): Promise<void> {
+      try {
+        const result = (await request) as Response | undefined
         if (result?.ok === false) {
           const { status } = result
           const reason = `HTTP ${status} for message ${ctx.event.messageId}`
-          if (
-            status === 408 ||
-            status === 429 ||
-            (status >= 500 && status < 600)
-          ) {
-            if (analytics.options.retryQueue) throw new Error(reason)
-          }
-          if (!sourceRejected) {
+          const transient =
+            status === 408 || status === 429 || (status >= 500 && status < 600)
+          if (transient && analytics.options.retryQueue) throw new Error(reason)
+          if (![401, 403, 404].includes(status)) {
             ctx.setFailedDelivery({ reason })
             ctx.log('error', reason)
           }
@@ -179,33 +174,31 @@ export function hightouchio(
           probeDelay = 1000
           held.delete(ctx)
         }
-        if (result && buffer instanceof PersistedPriorityQueue) {
+        if (result && buffer instanceof PersistedPriorityQueue)
           buffer.acknowledge(ctx)
-        }
         snapshots.delete(ctx)
-        return ctx
-      })
-      .catch((error) => {
-        if (held.size > 0) {
+      } catch (error) {
+        if (held.size) {
           defer(ctx)
-          return ctx
-        }
-        if (!buffer.pushWithBackoff(ctx)) {
-          if (analytics.options.retryQueue) {
-            defer(ctx)
-            return ctx
-          }
+        } else if (buffer.pushWithBackoff(ctx)) {
+          // eslint-disable-next-line @typescript-eslint/no-use-before-define
+          scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+        } else if (analytics.options.retryQueue) {
+          defer(ctx)
+        } else {
           ctx.setFailedDelivery({ reason: error })
           if (buffer instanceof PersistedPriorityQueue) buffer.acknowledge(ctx)
-          return ctx
+          snapshots.delete(ctx)
         }
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
-        return ctx
-      })
-      .finally(() => {
+      } finally {
         inflightEvents.delete(ctx)
-      })
+      }
+    }
+    const url = `${remote}/v1/${event.type}`
+    const body = { ...event, sentAt: new Date() }
+    if (batched) await batched.dispatch(url, body, handle, probe)
+    else await handle(client.dispatch(url, body))
+    return ctx
   }
 
   const hightouch: Plugin = {
