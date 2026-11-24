@@ -124,8 +124,7 @@ export default function batch(
   async function dispatch(
     _url: string,
     body: object,
-    onRequest?: Entry['onRequest'],
-    flushNow = false
+    onRequest?: Entry['onRequest']
   ): Promise<unknown> {
     buffer.push({ body, onRequest })
 
@@ -133,9 +132,7 @@ export default function batch(
       buffer.length >= limit ||
       approachingTrackingAPILimit(buffer.map((entry) => entry.body))
 
-    return bufferOverflow || pageUnloaded || flushNow
-      ? flush()
-      : scheduleFlush()
+    return bufferOverflow || pageUnloaded ? flush() : scheduleFlush()
   }
 
   return {
