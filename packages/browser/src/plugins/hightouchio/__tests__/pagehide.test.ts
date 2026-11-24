@@ -162,6 +162,29 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([['rejected']])
   })
 
+  it('bounds deferred events and drains them one at a time past a failing event', async () => {
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    const dest = client()
+    await dest.track!(event('failing'))
+    await jest.advanceTimersByTimeAsync(300000)
+    for (let i = 1; i < 100; i++) await dest.track!(event(String(i)))
+    const overflow = event('overflow')
+    await dest.track!(overflow)
+    expect(overflow.failedDelivery()?.reason).toContain('queue is full')
+
+    const pending = createDeferred<Response>()
+    fetch
+      .mockClear()
+      .mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+      .mockReturnValueOnce(pending.promise)
+      .mockResolvedValue(response)
+    await jest.advanceTimersByTimeAsync(180000)
+    expect(requestIds()).toEqual([['failing'], ['1']])
+    pending.resolve(response)
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(requestIds()).toEqual([['failing'], ['1'], ['2']])
+  })
+
   it.each([false, true])(
     'does not replay an acknowledged request after pagehide (persisted=%s)',
     async (persisted) => {

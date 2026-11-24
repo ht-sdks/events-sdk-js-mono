@@ -41,6 +41,8 @@ export type HightouchioSettings = {
 
 type JSON = ReturnType<Facade['json']>
 
+const MAX_DEFERRED_EVENTS = 100
+
 function onAlias(analytics: Analytics, json: JSON): JSON {
   const user = analytics.user()
   json.previousId =
@@ -85,7 +87,14 @@ export function hightouchio(
       ? batch(apiHost, deliveryStrategy.config, protocol)
       : standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
-  function pauseSource(ctx: Context): void {
+  function defer(ctx: Context): void {
+    // A failed probe goes to the back so another message can make progress.
+    if (!held.delete(ctx) && held.size >= MAX_DEFERRED_EVENTS) {
+      ctx.setFailedDelivery({ reason: 'Deferred delivery queue is full' })
+      if (buffer instanceof PersistedPriorityQueue) buffer.acknowledge(ctx)
+      snapshots.delete(ctx)
+      return
+    }
     held.add(ctx)
     scheduleProbe()
   }
@@ -131,11 +140,11 @@ export function hightouchio(
   async function deliver(ctx: Context, probe: boolean): Promise<Context> {
     const event = snapshot(ctx)
     if (held.size > 0 && !probe) {
-      held.add(ctx)
+      defer(ctx)
       return ctx
     }
     if (probe && isOffline()) {
-      pauseSource(ctx)
+      defer(ctx)
       return ctx
     }
     if (isOffline()) {
@@ -166,26 +175,24 @@ export function hightouchio(
             ctx.log('error', reason)
           }
         }
-        if (probe && result) {
+        if (probe) {
           probeDelay = 1000
           held.delete(ctx)
-          const ready = Array.from(held)
-          held.clear()
-          ready.forEach((item) => void send(item))
         }
         if (result && buffer instanceof PersistedPriorityQueue) {
           buffer.acknowledge(ctx)
         }
+        snapshots.delete(ctx)
         return ctx
       })
       .catch((error) => {
         if (held.size > 0) {
-          pauseSource(ctx)
+          defer(ctx)
           return ctx
         }
         if (!buffer.pushWithBackoff(ctx)) {
           if (analytics.options.retryQueue) {
-            pauseSource(ctx)
+            defer(ctx)
             return ctx
           }
           ctx.setFailedDelivery({ reason: error })
