@@ -15,12 +15,10 @@ describe('Hightouch.io pagehide delivery', () => {
 
   function client(
     deliveryStrategy?: HightouchioSettings['deliveryStrategy'],
-    retryQueue = true
+    retryQueue = true,
+    analytics = new Analytics({ writeKey: 'pagehide' }, { retryQueue })
   ) {
-    return hightouchio(
-      new Analytics({ writeKey: 'pagehide' }, { retryQueue }),
-      { apiKey: 'pagehide', deliveryStrategy }
-    )
+    return hightouchio(analytics, { apiKey: 'pagehide', deliveryStrategy })
   }
 
   function event(messageId = 'message') {
@@ -113,6 +111,40 @@ describe('Hightouch.io pagehide delivery', () => {
     await jest.advanceTimersByTimeAsync(120000)
     expect(requestIds()).toEqual(Array(count + 1).fill(['message']))
   })
+
+  it.each([false, true])(
+    'preserves deferred identity (reload=%s)',
+    async (reload) => {
+      const analytics = new Analytics(
+        { writeKey: 'pagehide' },
+        { retryQueue: true }
+      )
+      analytics.reset()
+      analytics.setAnonymousId('original')
+      const original = client(undefined, true, analytics)
+      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+      await original.track!(event('first'))
+      await jest.advanceTimersByTimeAsync(300000)
+      await original.track!(event('second'))
+      analytics.user().id('later-user')
+      analytics.setAnonymousId('later-anonymous')
+      if (reload) {
+        window.dispatchEvent(new Event('pagehide'))
+        jest.clearAllTimers()
+        client()
+      }
+      fetch.mockClear().mockResolvedValue(response)
+      await jest.advanceTimersByTimeAsync(120000)
+      expect(requestIds().flat().sort()).toEqual(['first', 'second'])
+      for (const [, init] of fetch.mock.calls) {
+        expect(JSON.parse(init!.body as string)).toMatchObject({
+          anonymousId: 'original',
+          userId: null,
+        })
+      }
+      analytics.reset()
+    }
+  )
 
   it('reports the rejected message and clears its checkpoint', async () => {
     const request = createDeferred<Response>()

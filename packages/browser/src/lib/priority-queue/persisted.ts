@@ -1,5 +1,6 @@
 import { PriorityQueue } from '@ht-sdks/events-sdk-js-core'
 import { Context, SerializedContext } from '../../core/context'
+import { HightouchEvent } from '../../core/events'
 import { isBrowser } from '../../core/environment'
 
 let loc:
@@ -23,7 +24,11 @@ function persisted(key: string): Context[] {
   )
 }
 
-function persistItems(key: string, items: Context[]): void {
+function persistItems(
+  key: string,
+  items: Context[],
+  eventFor: (ctx: Context) => HightouchEvent
+): void {
   const existing = persisted(key)
   const all = [...items, ...existing]
 
@@ -37,7 +42,15 @@ function persistItems(key: string, items: Context[]): void {
     {} as Record<string, Context>
   )
 
-  loc.setItem(key, JSON.stringify(Object.values(merged)))
+  loc.setItem(
+    key,
+    JSON.stringify(
+      Object.values(merged).map((ctx) => ({
+        ...ctx.toJSON(),
+        event: eventFor(ctx),
+      }))
+    )
+  )
 }
 
 function seen(key: string): Record<string, number> {
@@ -95,7 +108,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     maxAttempts: number,
     private key: string,
     pending: () => Context[] = () => [],
-    deferred: () => Context[] = () => []
+    deferred: () => Context[] = () => [],
+    eventFor: (item: Context) => HightouchEvent = (item) => item.event
   ) {
     super(maxAttempts, [])
 
@@ -135,7 +149,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
-              items.filter((item) => this.persistedIds.has(item.id))
+              items.filter((item) => this.persistedIds.has(item.id)),
+              eventFor
             )
             for (const id of Object.keys(this.seen)) {
               attempts[id] = Math.max(attempts[id] ?? 0, this.seen[id])

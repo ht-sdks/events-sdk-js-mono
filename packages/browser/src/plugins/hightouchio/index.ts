@@ -3,6 +3,7 @@ import { Analytics } from '../../core/analytics'
 import { LegacySettings } from '../../browser'
 import { isOffline } from '../../core/connection'
 import { Context } from '../../core/context'
+import { HightouchEvent } from '../../core/events'
 import { Plugin } from '../../core/plugin'
 import { PriorityQueue } from '../../lib/priority-queue'
 import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
@@ -57,6 +58,7 @@ export function hightouchio(
 ): Plugin {
   const inflightEvents = new Set<Context>()
   const held = new Set<Context>()
+  const snapshots = new WeakMap<Context, HightouchEvent>()
   let probeScheduled = false
   let probeDelay = 1000
   const writeKey = settings?.apiKey ?? ''
@@ -67,7 +69,8 @@ export function hightouchio(
         analytics.queue.queue.maxAttempts,
         `${writeKey}:dest-Hightouch.io`,
         () => Array.from(inflightEvents),
-        () => Array.from(held)
+        () => Array.from(held),
+        (ctx) => snapshots.get(ctx) ?? ctx.event
       )
 
   const flushing = false
@@ -104,7 +107,29 @@ export function hightouchio(
 
   const send = (ctx: Context): Promise<Context> => deliver(ctx, false)
 
+  function snapshot(ctx: Context): HightouchEvent {
+    const existing = snapshots.get(ctx)
+    if (existing) return existing
+    let json = toFacade(ctx.event).json()
+
+    if (ctx.event.type === 'track') {
+      delete json.traits
+    }
+
+    if (ctx.event.type === 'alias') {
+      json = onAlias(analytics, json)
+    }
+
+    const event = {
+      type: ctx.event.type,
+      ...normalize(analytics, json, settings, integrations),
+    }
+    snapshots.set(ctx, event)
+    return event
+  }
+
   async function deliver(ctx: Context, probe: boolean): Promise<Context> {
+    const event = snapshot(ctx)
     if (held.size > 0 && !probe) {
       held.add(ctx)
       return ctx
@@ -121,24 +146,8 @@ export function hightouchio(
     }
 
     inflightEvents.add(ctx)
-
-    const eventType = ctx.event.type
-
-    let json = toFacade(ctx.event).json()
-
-    if (ctx.event.type === 'track') {
-      delete json.traits
-    }
-
-    if (ctx.event.type === 'alias') {
-      json = onAlias(analytics, json)
-    }
-
     return client
-      .dispatch(
-        `${remote}/v1/${eventType}`,
-        normalize(analytics, json, settings, integrations)
-      )
+      .dispatch(`${remote}/v1/${event.type}`, { ...event, sentAt: new Date() })
       .then((response) => {
         const result = response as Response | undefined
         const sourceRejected = result && [401, 403, 404].includes(result.status)
