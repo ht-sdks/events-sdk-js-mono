@@ -77,12 +77,24 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
+  it('does not retry a transient HTTP response when retries are disabled', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    const ctx = event()
+    await client(undefined, false).track!(ctx)
+    await jest.advanceTimersByTimeAsync(60000)
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(ctx.failedDelivery()?.reason).toContain('HTTP 503')
+  })
+
   it.each([401, 403, 404])(
     'completes a live HTTP %s without retry',
     async (status) => {
       fetch.mockResolvedValueOnce({ ok: false, status } as Response)
       const ctx = event()
-      await client().track!(ctx)
+      const sent = client().track!(ctx)
+      window.dispatchEvent(new Event('pagehide'))
+      await sent
+      client()
       await jest.advanceTimersByTimeAsync(60000)
       expect(fetch).toHaveBeenCalledTimes(1)
       expect(ctx.failedDelivery()).toBeFalsy()

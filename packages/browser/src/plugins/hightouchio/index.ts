@@ -150,7 +150,7 @@ export function hightouchio(
             status === 429 ||
             (status >= 500 && status < 600)
           ) {
-            throw new Error(reason)
+            if (analytics.options.retryQueue) throw new Error(reason)
           }
           if (!sourceRejected) {
             ctx.setFailedDelivery({ reason })
@@ -164,11 +164,7 @@ export function hightouchio(
           held.clear()
           ready.forEach((item) => void send(item))
         }
-        if (
-          result &&
-          !sourceRejected &&
-          buffer instanceof PersistedPriorityQueue
-        ) {
+        if (result && buffer instanceof PersistedPriorityQueue) {
           buffer.acknowledge(ctx)
         }
         return ctx
