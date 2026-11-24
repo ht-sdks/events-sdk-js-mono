@@ -73,21 +73,20 @@ export default function batch(
       return newEvent
     })
 
-    return Promise.resolve(
-      fetch(`${protocol}://${apiHost}/v1/batch`, {
-        keepalive: pageUnloaded,
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        method: 'post',
-        body: JSON.stringify({
-          writeKey,
-          batch: updatedBatch,
-          sentAt: new Date().toISOString(),
-        }),
-      })
-    ).then(
+    const request = fetch(`${protocol}://${apiHost}/v1/batch`, {
+      keepalive: pageUnloaded,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'post',
+      body: JSON.stringify({
+        writeKey,
+        batch: updatedBatch,
+        sentAt: new Date().toISOString(),
+      }),
+    })
+    return Promise.resolve(request).then(
       (response) => batch.forEach(({ receipt }) => receipt.resolve(response)),
       (error) => batch.forEach(({ receipt }) => receipt.reject(error))
     )

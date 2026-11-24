@@ -57,7 +57,6 @@ export function hightouchio(
 ): Plugin {
   const inflightEvents = new Set<Context>()
   const held = new Set<Context>()
-  let sourcePaused = false
   let probeScheduled = false
   let probeDelay = 1000
   const writeKey = settings?.apiKey ?? ''
@@ -84,18 +83,17 @@ export function hightouchio(
       : standard(deliveryStrategy?.config as StandardDispatcherConfig)
 
   function pauseSource(ctx: Context): void {
-    sourcePaused = true
     held.add(ctx)
     scheduleProbe()
   }
 
   function scheduleProbe(): void {
-    if (probeScheduled || !sourcePaused) return
+    if (probeScheduled || held.size === 0) return
     probeScheduled = true
     setTimeout(async () => {
       try {
         const first = held.values().next().value
-        if (first) await send(first, true)
+        if (first) await deliver(first, true)
       } finally {
         probeScheduled = false
         scheduleProbe()
@@ -104,8 +102,10 @@ export function hightouchio(
     probeDelay = Math.min(probeDelay * 2, 60000)
   }
 
-  async function send(ctx: Context, probe = false): Promise<Context> {
-    if (sourcePaused && !probe) {
+  const send = (ctx: Context): Promise<Context> => deliver(ctx, false)
+
+  async function deliver(ctx: Context, probe: boolean): Promise<Context> {
+    if (held.size > 0 && !probe) {
       held.add(ctx)
       return ctx
     }
@@ -158,7 +158,6 @@ export function hightouchio(
           }
         }
         if (probe && result) {
-          sourcePaused = false
           probeDelay = 1000
           held.delete(ctx)
           const ready = Array.from(held)
@@ -175,7 +174,7 @@ export function hightouchio(
         return ctx
       })
       .catch((error) => {
-        if (sourcePaused) {
+        if (held.size > 0) {
           pauseSource(ctx)
           return ctx
         }
@@ -203,12 +202,12 @@ export function hightouchio(
     version: '0.1.0',
     isLoaded: (): boolean => true,
     load: (): Promise<void> => Promise.resolve(),
-    track: (ctx) => send(ctx),
-    identify: (ctx) => send(ctx),
-    page: (ctx) => send(ctx),
-    alias: (ctx) => send(ctx),
-    group: (ctx) => send(ctx),
-    screen: (ctx) => send(ctx),
+    track: send,
+    identify: send,
+    page: send,
+    alias: send,
+    group: send,
+    screen: send,
   }
 
   // Buffer may already have items if they were previously stored in localStorage.
