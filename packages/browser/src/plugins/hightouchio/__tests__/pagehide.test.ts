@@ -120,18 +120,24 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  it('delivers the same message after transient retries run out', async () => {
-    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
-    const ctx = event()
-    await client().track!(ctx)
-    await jest.advanceTimersByTimeAsync(300000)
-    expect(fetch.mock.calls.length).toBeGreaterThan(5)
-    expect(ctx.failedDelivery()).toBeFalsy()
-    fetch.mockResolvedValue(response)
-    const count = fetch.mock.calls.length
-    await jest.advanceTimersByTimeAsync(120000)
-    expect(requestIds()).toEqual(Array(count + 1).fill(['message']))
-  })
+  it.each([200, 401, 403, 404])(
+    'finishes deferred delivery after HTTP %s',
+    async (status) => {
+      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+      const ctx = event()
+      await client().track!(ctx)
+      await jest.advanceTimersByTimeAsync(300000)
+      expect(fetch.mock.calls.length).toBeGreaterThan(5)
+      expect(ctx.failedDelivery()).toBeFalsy()
+      window.dispatchEvent(new Event('pagehide'))
+      fetch.mockResolvedValue({ ok: status === 200, status } as Response)
+      const count = fetch.mock.calls.length
+      await jest.advanceTimersByTimeAsync(120000)
+      client()
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(requestIds()).toEqual(Array(count + 1).fill(['message']))
+    }
+  )
 
   it.each([false, true])(
     'preserves deferred identity (reload=%s)',

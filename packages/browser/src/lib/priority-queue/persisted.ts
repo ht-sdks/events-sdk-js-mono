@@ -17,18 +17,14 @@ try {
   console.warn('Unable to access localStorage', err)
 }
 
-function persisted(key: string): Context[] {
+type Checkpoint = SerializedContext & { normalized?: boolean }
+
+function persisted(key: string): Checkpoint[] {
   const items = loc.getItem(key)
-  return (items ? JSON.parse(items) : []).map(
-    (p: SerializedContext) => new Context(p.event, p.id)
-  )
+  return items ? JSON.parse(items) : []
 }
 
-function persistItems(
-  key: string,
-  items: Context[],
-  eventFor: (ctx: Context) => HightouchEvent
-): void {
+function persistItems(key: string, items: Checkpoint[]): void {
   const existing = persisted(key)
   const all = [...items, ...existing]
 
@@ -39,18 +35,10 @@ function persistItems(
         [item.id]: item,
       }
     },
-    {} as Record<string, Context>
+    {} as Record<string, Checkpoint>
   )
 
-  loc.setItem(
-    key,
-    JSON.stringify(
-      Object.values(merged).map((ctx) => ({
-        ...ctx.toJSON(),
-        event: eventFor(ctx),
-      }))
-    )
-  )
+  loc.setItem(key, JSON.stringify(Object.values(merged)))
 }
 
 function seen(key: string): Record<string, number> {
@@ -109,7 +97,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     private key: string,
     pending: () => Context[] = () => [],
     deferred: () => Context[] = () => [],
-    eventFor: (item: Context) => HightouchEvent = (item) => item.event
+    snapshots?: WeakMap<Context, HightouchEvent>
   ) {
     super(maxAttempts, [])
 
@@ -121,7 +109,11 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     mutex(key, () => {
       try {
-        saved = persisted(itemsKey)
+        saved = persisted(itemsKey).map(({ event, id, normalized }) => {
+          const ctx = new Context(event, id)
+          if (normalized) snapshots?.set(ctx, event)
+          return ctx
+        })
         lastSeen = seen(seenKey)
         remove(itemsKey)
         remove(seenKey)
@@ -149,8 +141,13 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
-              items.filter((item) => this.persistedIds.has(item.id)),
-              eventFor
+              items
+                .filter((item) => this.persistedIds.has(item.id))
+                .map((item) => {
+                  const event = snapshots?.get(item)
+                  const stored = item.toJSON()
+                  return event ? { ...stored, event, normalized: true } : stored
+                })
             )
             for (const id of Object.keys(this.seen)) {
               attempts[id] = Math.max(attempts[id] ?? 0, this.seen[id])

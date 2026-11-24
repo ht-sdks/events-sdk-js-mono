@@ -72,7 +72,7 @@ export function hightouchio(
         `${writeKey}:dest-Hightouch.io`,
         () => Array.from(inflightEvents),
         () => Array.from(held),
-        (ctx) => snapshots.get(ctx) ?? ctx.event
+        snapshots
       )
 
   const flushing = false
