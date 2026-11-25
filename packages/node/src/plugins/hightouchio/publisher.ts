@@ -13,6 +13,8 @@ function sleep(timeoutInMs: number): Promise<void> {
 
 function noop() {}
 
+const MAX_DEFERRED_BATCHES = 100
+
 interface PendingItem {
   resolver: (ctx: Context) => void
   context: Context
@@ -47,6 +49,7 @@ export class Publisher {
   private _emitter: NodeEmitter
   private _disable: boolean
   private sourceRecovery?: Promise<void>
+  private recoveryCount = 0
   private recoveryDeadline = 0
   private recoveryAttempt = 0
   private _httpClient: HTTPClient
@@ -183,13 +186,19 @@ export class Publisher {
     }
   }
 
-  private recoveryTurn() {
+  private recoveryTurn(batch: ContextBatch, rotating = false) {
+    if (!rotating && this.recoveryCount >= MAX_DEFERRED_BATCHES) {
+      resolveFailedBatch(batch, new Error('Deferred delivery queue is full'))
+      return
+    }
+    this.recoveryCount++
     const previous = this.sourceRecovery
     const gate = extractPromiseParts<void>()
     this.sourceRecovery = gate.promise
     return {
       previous,
       release: () => {
+        this.recoveryCount--
         if (this.sourceRecovery === gate.promise) {
           this.sourceRecovery = undefined
           this.recoveryAttempt = 0
@@ -233,7 +242,10 @@ export class Publisher {
       }
 
       while (currentAttempt < maxAttempts) {
-        if (this.sourceRecovery && !turn) turn = this.recoveryTurn()
+        if (this.sourceRecovery && !turn) {
+          turn = this.recoveryTurn(batch)
+          if (!turn) return
+        }
         if (turn) {
           await turn.previous
           const remaining = this.recoveryDeadline - Date.now()
@@ -294,7 +306,8 @@ export class Publisher {
               })
           }
           const previous = turn
-          turn = this.recoveryTurn()
+          turn = this.recoveryTurn(batch, !!previous)
+          if (!turn) return
           previous?.release()
           if (!previous) {
             try {

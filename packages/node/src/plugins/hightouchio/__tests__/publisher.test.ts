@@ -379,6 +379,29 @@ describe('error handling', () => {
     expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
+  it('fails new overflow and retains all 100 admitted batches across rotation', async () => {
+    const { plugin } = createTestNodePlugin({ maxRetries: 0 })
+    fetcher.mockReturnValueOnce(createError({ status: 503 }))
+    fetcher.mockReturnValueOnce(createError({ status: 429 }))
+    const accepted = [
+      plugin.alias(new Context(eventFactory.alias('to', 'from'))),
+    ]
+    await jest.advanceTimersByTimeAsync(0)
+    for (let i = 1; i < 100; i++)
+      accepted.push(plugin.alias(new Context(eventFactory.alias('to', 'from'))))
+    const overflow = await plugin.alias(
+      new Context(eventFactory.alias('to', 'from'))
+    )
+    expect(overflow.failedDelivery()?.reason).toEqual(
+      new Error('Deferred delivery queue is full')
+    )
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    await jest.advanceTimersByTimeAsync(15000)
+    for (const ctx of await Promise.all(accepted))
+      expect(ctx.failedDelivery()).toBeUndefined()
+    expect(fetcher).toHaveBeenCalledTimes(102)
+  })
+
   it.each([0, 2])(
     'defers a transient failure after %s fast retries',
     async (maxRetries) => {
