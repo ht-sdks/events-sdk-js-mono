@@ -250,6 +250,45 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
+  it('preserves the latest probe rotation across repeated checkpoints', async () => {
+    const dest = client()
+    await exhaustRetries(dest, event('A'))
+    await dest.track!(event('B'))
+    window.dispatchEvent(new Event('pagehide'))
+    fetch.mockClear()
+    await jest.advanceTimersToNextTimerAsync()
+    expect(requestIds()).toEqual([['A']])
+    navigate()
+    fetch.mockClear().mockResolvedValue(response)
+    await jest.advanceTimersByTimeAsync(60100)
+    expect(requestIds()).toEqual([['B'], ['A']])
+  })
+
+  it('drains merged checkpoints through 100 live recovery slots', async () => {
+    const tabs = [client(), client()]
+    const ids = Array.from({ length: 200 }, (_, i) => String(i))
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    for (const index of [0, 1])
+      await tabs[index].track!(event(ids[index * 100]))
+    await jest.advanceTimersByTimeAsync(300000)
+    for (const index of [0, 1]) {
+      for (const id of ids.slice(index * 100 + 1, (index + 1) * 100))
+        await tabs[index].track!(event(id))
+    }
+    const dest = navigate()
+    const key = 'persisted-queue:v1:pagehide:dest-Hightouch.io:items:overflow'
+    expect(JSON.parse(localStorage.getItem(key)!)).toHaveLength(100)
+    const fresh = event('overflow')
+    await dest.track!(fresh)
+    expect(fresh.failedDelivery()?.reason).toBe(
+      'Deferred delivery queue is full'
+    )
+    fetch.mockClear().mockResolvedValue(response)
+    await jest.advanceTimersByTimeAsync(60500)
+    expect(requestIds().flat()).toEqual(ids)
+    expect(localStorage.getItem(key)).toBeNull()
+  })
+
   it('applies the current retry setting to new events after restoring a cooldown', async () => {
     await exhaustRetries(client(), event('saved'))
     const restored = navigate(false, false)

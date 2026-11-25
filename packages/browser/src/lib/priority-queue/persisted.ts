@@ -30,19 +30,11 @@ function persisted(key: string): Checkpoint[] {
 
 function persistItems(key: string, items: Checkpoint[]): void {
   const existing = persisted(key)
-  const all = [...existing, ...items]
-
-  const merged = all.reduce(
-    (acc, item) => {
-      return {
-        ...acc,
-        [item.id]: item,
-      }
-    },
-    {} as Record<string, Checkpoint>
-  )
-
-  loc.setItem(key, JSON.stringify(Object.values(merged)))
+  const latest = new Map(items.map((item) => [item.id, item]))
+  const merged = existing
+    .filter((item) => !latest.has(item.id))
+    .concat(Array.from(latest.values()))
+  loc.setItem(key, JSON.stringify(merged))
 }
 
 function seen(key: string): Record<string, number> {
@@ -100,6 +92,7 @@ function mutex(
 export class PersistedPriorityQueue extends PriorityQueue<Context> {
   readonly waiting = new Set<Context>()
   restoring?: Promise<void>
+  refill?: () => Promise<void> | undefined
   retryAt = 0
   private persistedIds = new Set<string>()
 
@@ -108,7 +101,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     private key: string,
     pending: () => Context[] = () => [],
     held?: Set<Context>,
-    snapshots?: WeakMap<Context, HightouchEvent>
+    snapshots?: WeakMap<Context, HightouchEvent>,
+    maxHeld = Infinity
   ) {
     super(maxAttempts, [])
 
@@ -117,8 +111,31 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     const waitingPrefix = `${itemsKey}:waiting:`
 
     const wasDeferred = new WeakSet<Context>()
-    const saved: Context[] = []
-    let lastSeen: Record<string, number> = {}
+    const overflowKey = `${itemsKey}:overflow`
+    const restoreItems = (items: Checkpoint[]) => {
+      const saved: Context[] = []
+      const overflow = items.concat(persisted(overflowKey)).filter((item) => {
+        const { event, id, normalized, deferred, retryAt } = item
+        if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
+        if (this.persistedIds.has(id)) return false
+        if (deferred && held && held.size >= maxHeld) return true
+        const ctx = new Context(event, id)
+        if (normalized) snapshots?.set(ctx, event)
+        if (deferred && held) {
+          held.add(ctx)
+          wasDeferred.add(ctx)
+        } else saved.push(ctx)
+        return false
+      })
+      this.queue = [...saved, ...this.queue]
+      if (overflow.length) {
+        loc.setItem(overflowKey, JSON.stringify(overflow))
+        this.refill = () => mutex(key, () => restoreItems([]))
+      } else {
+        remove(overflowKey)
+        this.refill = undefined
+      }
+    }
 
     this.restoring = mutex(key, () => {
       try {
@@ -128,24 +145,10 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
           persistItems(itemsKey, persisted(entry))
           remove(entry)
         }
-        for (const { event, id, normalized, deferred, retryAt } of persisted(
-          itemsKey
-        )) {
-          if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
-          if (this.persistedIds.has(id)) continue // Already waiting on this page.
-          const ctx = new Context(event, id)
-          if (normalized) snapshots?.set(ctx, event)
-          if (deferred && held) {
-            held.add(ctx)
-            wasDeferred.add(ctx)
-          } else saved.push(ctx)
-        }
-        lastSeen = seen(seenKey)
+        restoreItems(persisted(itemsKey))
+        this.seen = { ...seen(seenKey), ...this.seen }
         remove(itemsKey)
         remove(seenKey)
-
-        this.queue = [...saved, ...this.queue]
-        this.seen = { ...lastSeen, ...this.seen }
       } catch (err) {
         console.error(err)
       }

@@ -72,7 +72,8 @@ export function hightouchio(
         `${writeKey}:dest-Hightouch.io`,
         () => Array.from(inflightEvents),
         held,
-        snapshots
+        snapshots,
+        MAX_DEFERRED_EVENTS
       )
 
   const flushing = false
@@ -117,6 +118,12 @@ export function hightouchio(
       try {
         if (first) await deliver(first, true)
       } finally {
+        if (
+          buffer instanceof PersistedPriorityQueue &&
+          held.size < MAX_DEFERRED_EVENTS &&
+          buffer.refill
+        )
+          await buffer.refill()
         probeScheduled = false
         scheduleProbe(first && !held.has(first))
       }
