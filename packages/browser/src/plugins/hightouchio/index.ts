@@ -103,6 +103,7 @@ export function hightouchio(
   function scheduleProbe(immediate = false): void {
     if (probeScheduled || held.size === 0) return
     probeScheduled = true
+    const delay = immediate ? 0 : probeDelay
     setTimeout(async () => {
       const first = held.values().next().value
       try {
@@ -111,7 +112,7 @@ export function hightouchio(
         probeScheduled = false
         scheduleProbe(first && !held.has(first))
       }
-    }, immediate ? 0 : probeDelay)
+    }, delay)
     if (!immediate) probeDelay = Math.min(probeDelay * 2, 60000)
   }
 
