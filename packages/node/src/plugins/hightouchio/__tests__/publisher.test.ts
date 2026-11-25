@@ -284,30 +284,26 @@ describe('error handling', () => {
     expect(fetcher).not.toHaveBeenCalled()
   })
 
-  it('does not retry 400 errors', async () => {
-    fetcher.mockReturnValue(
-      createError({ status: 400, statusText: 'Bad Request' })
-    )
+  it.each(['resolves', 'rejects'])(
+    'does not retry HTTP 400 when the adapter %s',
+    async (outcome) => {
+      const response = { status: 400, statusText: 'Bad Request' }
+      if (outcome === 'rejects') fetcher.mockRejectedValueOnce({ response })
+      else fetcher.mockReturnValueOnce(createError(response))
 
-    const { plugin: hightouchPlugin } = createTestNodePlugin({
-      maxEventsInBatch: 1,
-    })
+      const { plugin } = createTestNodePlugin({ maxRetries: 2 })
+      const ctx = new Context(eventFactory.alias('to', 'from'))
+      const sent = plugin.alias(ctx)
+      await jest.advanceTimersByTimeAsync(15000)
 
-    const context = new Context(eventFactory.alias('to', 'from'))
-
-    const updatedContext = await hightouchPlugin.alias(context)
-
-    expect(fetcher).toHaveBeenCalledTimes(1)
-    validateFetcherInputs(context)
-
-    expect(updatedContext).toBe(context)
-    expect(updatedContext.failedDelivery()).toBeTruthy()
-    expect(updatedContext.failedDelivery()).toMatchInlineSnapshot(`
-      {
-        "reason": [Error: [400] Bad Request],
-      }
-    `)
-  })
+      expect(await sent).toBe(ctx)
+      expect(fetcher).toHaveBeenCalledTimes(1)
+      validateFetcherInputs(ctx)
+      expect(ctx.failedDelivery()?.reason).toEqual(
+        new Error('[400] Bad Request')
+      )
+    }
+  )
 
   it.each([
     ...[401, 403, 404].map((status) => ({ status, statusText: 'Rejected' })),
@@ -396,25 +392,18 @@ describe('error handling', () => {
     expect((await sent).failedDelivery()?.reason).toBe(error)
   })
 
-  it.each([400, 503])(
-    'classifies an HTTP %s rejected by the adapter',
-    async (status) => {
-      const { plugin } = createTestNodePlugin({ maxRetries: 0 })
-      fetcher.mockRejectedValueOnce({
-        response: { status, statusText: 'Rejected' },
-      })
-      const ctx = new Context(eventFactory.alias('to', 'from'))
-      const sent = plugin.alias(ctx)
-      await jest.advanceTimersByTimeAsync(15000)
-      expect(await sent).toBe(ctx)
-      expect(fetcher).toHaveBeenCalledTimes(status === 400 ? 1 : 2)
-      if (status === 400)
-        expect(ctx.failedDelivery()?.reason).toEqual(
-          new Error('[400] Rejected')
-        )
-      else expect(ctx.failedDelivery()).toBeUndefined()
-    }
-  )
+  it('recovers after the adapter rejects with HTTP 503', async () => {
+    const { plugin } = createTestNodePlugin({ maxRetries: 0 })
+    fetcher.mockRejectedValueOnce({
+      response: { status: 503, statusText: 'Service Unavailable' },
+    })
+    const ctx = new Context(eventFactory.alias('to', 'from'))
+    const sent = plugin.alias(ctx)
+    await jest.advanceTimersByTimeAsync(15000)
+    expect(await sent).toBe(ctx)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(ctx.failedDelivery()).toBeUndefined()
+  })
 
   it.each([
     ['ftp://collector', 'Collector URL must use HTTP or HTTPS'],
