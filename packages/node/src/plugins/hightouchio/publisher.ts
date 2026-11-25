@@ -47,7 +47,8 @@ export class Publisher {
   private _emitter: NodeEmitter
   private _disable: boolean
   private sourceRecovery?: Promise<void>
-  private wakeProbe?: () => void
+  private recoveryDeadline = 0
+  private recoveryAttempt = 0
   private _httpClient: HTTPClient
   constructor(
     {
@@ -100,7 +101,6 @@ export class Publisher {
 
   flushAfterClose(pendingItemsCount: number) {
     this._closeAndFlushPendingItemsCount = pendingItemsCount
-    this.wakeProbe?.()
     if (!pendingItemsCount) {
       // if number of pending items is 0, there will never be anything else entering the batch, since the app is closed.
       return
@@ -183,6 +183,22 @@ export class Publisher {
     }
   }
 
+  private recoveryTurn() {
+    const previous = this.sourceRecovery
+    const gate = extractPromiseParts<void>()
+    this.sourceRecovery = gate.promise
+    return {
+      previous,
+      release: () => {
+        if (this.sourceRecovery === gate.promise) {
+          this.sourceRecovery = undefined
+          this.recoveryAttempt = 0
+        }
+        gate.resolve()
+      },
+    }
+  }
+
   private async send(batch: ContextBatch) {
     if (this._closeAndFlushPendingItemsCount) {
       this._closeAndFlushPendingItemsCount -= batch.length
@@ -190,8 +206,7 @@ export class Publisher {
     const events = batch.getEvents()
     const maxAttempts = this._maxRetries + 1
 
-    let releaseSource: (() => void) | undefined
-    let probeAttempt = 0
+    let turn: ReturnType<Publisher['recoveryTurn']> | undefined
     let currentAttempt = 0
     try {
       const makeRequest = () => {
@@ -218,7 +233,14 @@ export class Publisher {
       }
 
       while (currentAttempt < maxAttempts) {
-        while (this.sourceRecovery && !releaseSource) await this.sourceRecovery
+        if (this.sourceRecovery && !turn) turn = this.recoveryTurn()
+        if (turn) {
+          await turn.previous
+          const remaining = this.recoveryDeadline - Date.now()
+          if (remaining > 0) await sleep(remaining)
+          if (this._closeAndFlushPendingItemsCount !== undefined)
+            currentAttempt = maxAttempts - 1
+        }
         currentAttempt++
 
         let failureReason: unknown
@@ -260,34 +282,25 @@ export class Publisher {
         if (
           this._closeAndFlushPendingItemsCount === undefined &&
           recoverable &&
-          (currentAttempt === maxAttempts || releaseSource)
+          (currentAttempt === maxAttempts || turn)
         ) {
-          if (!this.sourceRecovery) {
-            const gate = extractPromiseParts<void>()
-            this.sourceRecovery = gate.promise
-            releaseSource = gate.resolve
+          if (!this.sourceRecovery || turn) {
+            this.recoveryDeadline =
+              Date.now() +
+              backoff({
+                attempt: this.recoveryAttempt++,
+                minTimeout: 1000,
+                maxTimeout: 60000,
+              })
+          }
+          const previous = turn
+          turn = this.recoveryTurn()
+          previous?.release()
+          if (!previous) {
             this._emitter.emit('error', {
               code: 'unknown',
               reason: failureReason as Error,
             })
-          }
-          if (
-            releaseSource &&
-            this._closeAndFlushPendingItemsCount === undefined
-          ) {
-            const delay = backoff({
-              attempt: probeAttempt++,
-              minTimeout: 1000,
-              maxTimeout: 60000,
-            })
-            await new Promise<void>((resolve) => {
-              const timer = setTimeout(resolve, delay)
-              this.wakeProbe = () => {
-                clearTimeout(timer)
-                resolve()
-              }
-            })
-            this.wakeProbe = undefined
           }
           currentAttempt--
           continue
@@ -309,10 +322,7 @@ export class Publisher {
         )
       }
     } finally {
-      if (releaseSource) {
-        this.sourceRecovery = undefined
-        releaseSource()
-      }
+      turn?.release()
     }
   }
 }

@@ -339,6 +339,30 @@ describe('error handling', () => {
       expect.stringContaining(response.status.toString())
     )
   })
+  it('lets a queued batch pass a failing batch after the source cooldown', async () => {
+    const { plugin } = createTestNodePlugin({ maxRetries: 0 })
+    const a = new Context(eventFactory.alias('a', 'from'))
+    const b = new Context(eventFactory.alias('b', 'from'))
+    fetcher.mockReturnValueOnce(createError({ status: 503 }))
+    fetcher.mockReturnValueOnce(createError({ status: 429 }))
+
+    const first = plugin.alias(a)
+    await jest.advanceTimersByTimeAsync(0)
+    const second = plugin.alias(b)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    await jest.advanceTimersToNextTimerAsync()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    validateFetcherInputs(a)
+    await jest.advanceTimersByTimeAsync(1999)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    await jest.advanceTimersToNextTimerAsync()
+    expect(await second).toBe(b)
+    expect(await first).toBe(a)
+    expect(
+      fetcher.mock.calls.map(([request]) => request.data.batch[0].messageId)
+    ).toEqual([a, a, b, a].map((ctx) => ctx.event.messageId))
+  })
+
   it.each([0, 2])(
     'defers a transient failure after %s fast retries',
     async (maxRetries) => {
