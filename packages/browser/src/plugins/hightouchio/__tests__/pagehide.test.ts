@@ -112,18 +112,20 @@ describe('Hightouch.io pagehide delivery', () => {
     await jest.advanceTimersByTimeAsync(300000)
   }
 
-  it.each([401, 403, 404])(
-    'completes a live HTTP %s without retry',
+  it.each([400, 401, 403, 404])(
+    'clears the checkpoint after a live HTTP %s without retrying',
     async (status) => {
-      fetch.mockResolvedValueOnce({ ok: false, status } as Response)
+      const request = createDeferred<Response>()
+      fetch.mockReturnValueOnce(request.promise)
       const ctx = event()
       const sent = client().track!(ctx)
       window.dispatchEvent(new Event('pagehide'))
+      request.resolve({ ok: false, status } as Response)
       await sent
+      expect(ctx.failedDelivery()).toBeUndefined()
       client()
       await jest.advanceTimersByTimeAsync(60000)
-      expect(fetch).toHaveBeenCalledTimes(1)
-      expect(ctx.failedDelivery()).toBeFalsy()
+      expect(requestIds()).toEqual([[ctx.event.messageId]])
     }
   )
 
@@ -366,20 +368,6 @@ describe('Hightouch.io pagehide delivery', () => {
     await analytics.register(dest)
     await jest.advanceTimersByTimeAsync(1000)
     expect(requestIds()).toEqual([['buffered']])
-  })
-
-  it('clears the checkpoint after a terminal response', async () => {
-    const request = createDeferred<Response>()
-    fetch.mockReturnValueOnce(request.promise)
-    const ctx = event('rejected')
-    const sent = client().track!(ctx)
-    window.dispatchEvent(new Event('pagehide'))
-    request.resolve({ ok: false, status: 400 } as Response)
-    await sent
-    expect(ctx.failedDelivery()).toBeUndefined()
-    client()
-    await jest.advanceTimersByTimeAsync(5000)
-    expect(requestIds()).toEqual([['rejected']])
   })
 
   it.each(['standard', 'batching'] as const)(
