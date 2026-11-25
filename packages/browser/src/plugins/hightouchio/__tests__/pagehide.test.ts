@@ -260,8 +260,12 @@ describe('Hightouch.io pagehide delivery', () => {
     await jest.advanceTimersByTimeAsync(180000)
     expect(requestIds()).toEqual([['failing'], ['1']])
     pending.resolve(response)
-    await jest.advanceTimersByTimeAsync(1000)
-    expect(requestIds()).toEqual([['failing'], ['1'], ['2']])
+    await jest.advanceTimersByTimeAsync(200)
+    expect(requestIds().flat()).toEqual([
+      'failing',
+      ...Array.from({ length: 99 }, (_, i) => String(i + 1)),
+      'failing',
+    ])
   })
 
   it.each([false, true])(

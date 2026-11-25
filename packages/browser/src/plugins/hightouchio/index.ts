@@ -100,19 +100,19 @@ export function hightouchio(
     scheduleProbe()
   }
 
-  function scheduleProbe(): void {
+  function scheduleProbe(immediate = false): void {
     if (probeScheduled || held.size === 0) return
     probeScheduled = true
     setTimeout(async () => {
+      const first = held.values().next().value
       try {
-        const first = held.values().next().value
         if (first) await deliver(first, true)
       } finally {
         probeScheduled = false
-        scheduleProbe()
+        scheduleProbe(first && !held.has(first))
       }
-    }, probeDelay)
-    probeDelay = Math.min(probeDelay * 2, 60000)
+    }, immediate ? 0 : probeDelay)
+    if (!immediate) probeDelay = Math.min(probeDelay * 2, 60000)
   }
 
   const send = (ctx: Context): Promise<Context> => deliver(ctx, false)
