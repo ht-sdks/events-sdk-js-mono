@@ -68,7 +68,11 @@ function remove(key: string): void {
 
 const now = (): number => new Date().getTime()
 
-function mutex(key: string, onUnlock: Function, attempt = 0): void {
+function mutex(
+  key: string,
+  onUnlock: Function,
+  attempt = 0
+): Promise<void> | undefined {
   const lockTimeout = 50
   const lockKey = `persisted-queue:v1:${key}:lock`
 
@@ -85,15 +89,16 @@ function mutex(key: string, onUnlock: Function, attempt = 0): void {
   }
 
   if (!allowed && attempt < 3) {
-    setTimeout(() => {
-      mutex(key, onUnlock, attempt + 1)
-    }, lockTimeout)
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(mutex(key, onUnlock, attempt + 1)), lockTimeout)
+    })
   } else {
     console.error('Unable to retrieve lock')
   }
 }
 
 export class PersistedPriorityQueue extends PriorityQueue<Context> {
+  readonly restoring?: Promise<void>
   retryAt = 0
   private persistedIds = new Set<string>()
 
@@ -101,7 +106,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     maxAttempts: number,
     private key: string,
     pending: () => Context[] = () => [],
-    deferred: () => Context[] = () => [],
+    held?: Set<Context>,
     snapshots?: WeakMap<Context, HightouchEvent>
   ) {
     super(maxAttempts, [])
@@ -110,20 +115,22 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     const seenKey = `persisted-queue:v1:${key}:seen`
 
     const wasDeferred = new WeakSet<Context>()
-    let saved: Context[] = []
+    const saved: Context[] = []
     let lastSeen: Record<string, number> = {}
 
-    mutex(key, () => {
+    this.restoring = mutex(key, () => {
       try {
-        saved = persisted(itemsKey).map(
-          ({ event, id, normalized, deferred, retryAt }) => {
-            if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
-            const ctx = new Context(event, id)
-            if (deferred) wasDeferred.add(ctx)
-            if (normalized) snapshots?.set(ctx, event)
-            return ctx
-          }
-        )
+        for (const { event, id, normalized, deferred, retryAt } of persisted(
+          itemsKey
+        )) {
+          if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
+          const ctx = new Context(event, id)
+          if (normalized) snapshots?.set(ctx, event)
+          if (deferred && held) {
+            held.add(ctx)
+            wasDeferred.add(ctx)
+          } else saved.push(ctx)
+        }
         lastSeen = seen(seenKey)
         remove(itemsKey)
         remove(seenKey)
@@ -137,9 +144,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
-      const held = deferred()
-      held.forEach((ctx) => wasDeferred.add(ctx))
-      const items = [...this.queue, ...this.future, ...held]
+      held?.forEach((ctx) => wasDeferred.add(ctx))
+      const items = [...this.queue, ...this.future, ...Array.from(held ?? [])]
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {

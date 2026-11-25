@@ -172,7 +172,7 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  function navigate() {
+  function navigate(lockOnRestore = false) {
     window.dispatchEvent(new Event('pagehide'))
     for (const [target, type, listener] of listeners)
       target.removeEventListener(type, listener)
@@ -180,6 +180,11 @@ describe('Hightouch.io pagehide delivery', () => {
     const now = Date.now()
     jest.clearAllTimers()
     jest.setSystemTime(now)
+    if (lockOnRestore)
+      localStorage.setItem(
+        'persisted-queue:v1:pagehide:dest-Hightouch.io:lock',
+        String(now + 1)
+      )
     return client()
   }
 
@@ -200,6 +205,27 @@ describe('Hightouch.io pagehide delivery', () => {
     await jest.advanceTimersByTimeAsync(10)
     expect(requestIds().flat().sort()).toEqual(['A', 'B', 'C'])
   })
+
+  it.each([false, true])(
+    'restores all admitted events before fresh work (locked=%s)',
+    async (locked) => {
+      const dest = client()
+      const ids = Array.from({ length: 100 }, (_, i) => String(i))
+      await exhaustRetries(dest, event(ids[0]))
+      for (const id of ids.slice(1)) await dest.track!(event(id))
+      fetch.mockClear().mockResolvedValue(response)
+      const restored = navigate(locked)
+      const fresh = event('fresh')
+      const sent = restored.track!(fresh)
+      await jest.advanceTimersByTimeAsync(50)
+      await sent
+      expect(fresh.failedDelivery()?.reason).toBe(
+        'Deferred delivery queue is full'
+      )
+      await jest.advanceTimersByTimeAsync(60100)
+      expect(requestIds().flat()).toEqual(ids)
+    }
+  )
 
   it('checkpoints a deferred replay interrupted by a second navigation', async () => {
     await exhaustRetries(client(), event('deferred'))

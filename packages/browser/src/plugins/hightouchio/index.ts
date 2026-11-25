@@ -71,7 +71,7 @@ export function hightouchio(
         analytics.queue.queue.maxAttempts,
         `${writeKey}:dest-Hightouch.io`,
         () => Array.from(inflightEvents),
-        () => Array.from(held),
+        held,
         snapshots
       )
 
@@ -124,7 +124,10 @@ export function hightouchio(
     if (!immediate) probeDelay = Math.min(probeDelay * 2, 60000)
   }
 
-  const send = (ctx: Context): Promise<Context> => deliver(ctx, false)
+  const restoring =
+    buffer instanceof PersistedPriorityQueue ? buffer.restoring : undefined
+  const send = (ctx: Context): Promise<Context> =>
+    restoring ? restoring.then(() => deliver(ctx, false)) : deliver(ctx, false)
 
   function snapshot(ctx: Context): HightouchEvent {
     const existing = snapshots.get(ctx)
@@ -229,9 +232,12 @@ export function hightouchio(
 
   // Buffer may already have items if they were previously stored in localStorage.
   // Start flushing them immediately.
-  if (buffer.todo) {
-    scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+  function resume(): void {
+    scheduleProbe(true)
+    if (buffer.todo) scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
   }
+  if (restoring) void restoring.then(resume)
+  else resume()
 
   return hightouch
 }
