@@ -8,6 +8,7 @@ export type BatchingDispatchConfig = {
 }
 
 type Entry = {
+  deferIfPaused?: () => boolean
   body: object
   onRequest?: (request: Promise<Response>) => Promise<void>
 }
@@ -83,7 +84,9 @@ export default function batch(
     })
   }
 
-  function sendBatch(batch: Entry[]) {
+  function sendBatch(entries: Entry[]) {
+    const batch = entries.filter((entry) => !entry.deferIfPaused?.())
+    if (!batch.length) return Promise.resolve([])
     const request = upload(batch.map((entry) => entry.body))
     return Promise.all(
       batch.map(({ onRequest }) => (onRequest ? onRequest(request) : request))
@@ -125,9 +128,10 @@ export default function batch(
     _url: string,
     body: object,
     onRequest?: Entry['onRequest'],
-    flushNow = false
+    flushNow = false,
+    deferIfPaused?: Entry['deferIfPaused']
   ): Promise<unknown> {
-    buffer.push({ body, onRequest })
+    buffer.push({ body, onRequest, deferIfPaused })
 
     const bufferOverflow =
       buffer.length >= limit ||

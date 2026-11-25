@@ -140,10 +140,13 @@ export function hightouchio(
 
   async function deliver(ctx: Context, probe: boolean): Promise<Context> {
     const event = snapshot(ctx)
-    if (held.size > 0 && !probe) {
+    function deferIfPaused(): boolean {
+      if (probe || held.size === 0) return false
+      inflightEvents.delete(ctx)
       defer(ctx)
-      return ctx
+      return true
     }
+    if (deferIfPaused()) return ctx
     if (probe && isOffline()) {
       defer(ctx)
       return ctx
@@ -196,7 +199,7 @@ export function hightouchio(
     }
     const url = `${remote}/v1/${event.type}`
     const body = { ...event, sentAt: new Date() }
-    if (batched) await batched.dispatch(url, body, handle, probe)
+    if (batched) await batched.dispatch(url, body, handle, probe, deferIfPaused)
     else await handle(client.dispatch(url, body))
     return ctx
   }

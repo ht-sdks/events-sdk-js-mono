@@ -1,4 +1,5 @@
 import unfetch from 'unfetch'
+import { PriorityQueue } from '../../../lib/priority-queue'
 import { hightouchio, HightouchioSettings } from '..'
 import { Analytics } from '../../../core/analytics'
 import { Context } from '../../../core/context'
@@ -214,6 +215,31 @@ describe('Hightouch.io pagehide delivery', () => {
       expect(requestIds()).toEqual([['failing'], ['healthy']])
       await jest.advanceTimersByTimeAsync(1000)
       expect(requestIds()).toEqual([['failing'], ['healthy'], ['failing']])
+    }
+  )
+
+  it.each(['timer', 'pagehide'])(
+    'defers a partial batch when a cooldown begins before its %s flush',
+    async (trigger) => {
+      jest
+        .spyOn(PriorityQueue.prototype, 'pushWithBackoff')
+        .mockReturnValue(false)
+      const dest = client({
+        strategy: 'batching',
+        config: { size: 2, timeout: 100 },
+      })
+      const lastAttempt = createDeferred<Response>()
+      fetch.mockReturnValueOnce(lastAttempt.promise)
+      await dest.track!(event('A'))
+      await jest.advanceTimersByTimeAsync(100)
+      await dest.track!(event('B'))
+      lastAttempt.resolve({ ok: false, status: 429 } as Response)
+      await jest.advanceTimersByTimeAsync(0)
+      if (trigger === 'pagehide') window.dispatchEvent(new Event('pagehide'))
+      await jest.advanceTimersByTimeAsync(999)
+      expect(requestIds()).toEqual([['A']])
+      await jest.advanceTimersByTimeAsync(1001)
+      expect(requestIds()).toEqual([['A'], ['A'], ['B']])
     }
   )
 
