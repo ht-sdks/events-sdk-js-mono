@@ -194,11 +194,13 @@ export function hightouchio(
         const result = (await request) as Response | undefined
         if (result?.ok === false) {
           const { status } = result
-          const reason = `HTTP ${status} for message ${ctx.event.messageId}`
-          const transient =
-            status === 408 || status === 429 || (status >= 500 && status < 600)
-          if (transient && analytics.options.retryQueue) throw new Error(reason)
-          if (![401, 403, 404].includes(status)) {
+          if (
+            status === 408 ||
+            status === 429 ||
+            (status >= 500 && status < 600)
+          ) {
+            const reason = `HTTP ${status} for message ${ctx.event.messageId}`
+            if (analytics.options.retryQueue) throw new Error(reason)
             ctx.setFailedDelivery({ reason })
             ctx.log('error', reason)
           }

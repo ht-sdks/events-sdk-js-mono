@@ -368,7 +368,7 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([['buffered']])
   })
 
-  it('reports the rejected message and clears its checkpoint', async () => {
+  it('clears the checkpoint after a terminal response', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)
     const ctx = event('rejected')
@@ -376,9 +376,7 @@ describe('Hightouch.io pagehide delivery', () => {
     window.dispatchEvent(new Event('pagehide'))
     request.resolve({ ok: false, status: 400 } as Response)
     await sent
-    expect(ctx.failedDelivery()?.reason).toEqual(
-      'HTTP 400 for message rejected'
-    )
+    expect(ctx.failedDelivery()).toBeUndefined()
     client()
     await jest.advanceTimersByTimeAsync(5000)
     expect(requestIds()).toEqual([['rejected']])
