@@ -100,10 +100,18 @@ export function hightouchio(
     scheduleProbe()
   }
 
+  function remainingCooldown(): number {
+    return buffer instanceof PersistedPriorityQueue
+      ? Math.max(0, buffer.retryAt - Date.now())
+      : 0
+  }
+
   function scheduleProbe(immediate = false): void {
     if (probeScheduled || held.size === 0) return
     probeScheduled = true
-    const delay = immediate ? 0 : probeDelay
+    const delay = remainingCooldown() || (immediate ? 0 : probeDelay)
+    if (buffer instanceof PersistedPriorityQueue)
+      buffer.retryAt = Date.now() + delay
     setTimeout(async () => {
       const first = held.values().next().value
       try {
@@ -142,7 +150,7 @@ export function hightouchio(
   async function deliver(ctx: Context, probe: boolean): Promise<Context> {
     const event = snapshot(ctx)
     function deferIfPaused(): boolean {
-      if (probe || held.size === 0) return false
+      if (probe || (held.size === 0 && !remainingCooldown())) return false
       inflightEvents.delete(ctx)
       defer(ctx)
       return true

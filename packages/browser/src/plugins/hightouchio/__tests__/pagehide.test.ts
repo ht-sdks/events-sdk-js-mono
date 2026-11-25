@@ -158,11 +158,7 @@ describe('Hightouch.io pagehide delivery', () => {
       await original.track!(event('second'))
       analytics.user().id('later-user')
       analytics.setAnonymousId('later-anonymous')
-      if (reload) {
-        window.dispatchEvent(new Event('pagehide'))
-        jest.clearAllTimers()
-        client()
-      }
+      if (reload) navigate()
       fetch.mockClear().mockResolvedValue(response)
       await jest.advanceTimersByTimeAsync(120000)
       expect(requestIds().flat().sort()).toEqual(['first', 'second'])
@@ -176,20 +172,40 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  it('checkpoints a deferred replay interrupted by a second navigation', async () => {
-    function navigate() {
-      window.dispatchEvent(new Event('pagehide'))
-      for (const [target, type, listener] of listeners)
-        target.removeEventListener(type, listener)
-      listeners = []
-      jest.clearAllTimers()
-      client()
-    }
+  function navigate() {
+    window.dispatchEvent(new Event('pagehide'))
+    for (const [target, type, listener] of listeners)
+      target.removeEventListener(type, listener)
+    listeners = []
+    const now = Date.now()
+    jest.clearAllTimers()
+    jest.setSystemTime(now)
+    return client()
+  }
 
+  it('restores the remaining source cooldown for saved and fresh work', async () => {
+    const dest = client()
+    await exhaustRetries(dest, event('A'))
+    const probe = createDeferred<Response>()
+    fetch.mockReturnValueOnce(probe.promise)
+    await jest.advanceTimersByTimeAsync(60000)
+    await dest.track!(event('B'))
+    probe.resolve({ ok: false, status: 429 } as Response)
+    await jest.advanceTimersByTimeAsync(10000)
+    fetch.mockClear().mockResolvedValue(response)
+    const restored = navigate()
+    await restored.track!(event('C'))
+    await jest.advanceTimersByTimeAsync(49999)
+    expect(fetch).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(10)
+    expect(requestIds().flat().sort()).toEqual(['A', 'B', 'C'])
+  })
+
+  it('checkpoints a deferred replay interrupted by a second navigation', async () => {
     await exhaustRetries(client(), event('deferred'))
     fetch.mockClear().mockReturnValueOnce(createDeferred<Response>().promise)
     navigate()
-    await jest.advanceTimersByTimeAsync(5000)
+    await jest.advanceTimersByTimeAsync(60000)
     expect(requestIds()).toEqual([['deferred']])
     fetch.mockResolvedValue(response)
     navigate()

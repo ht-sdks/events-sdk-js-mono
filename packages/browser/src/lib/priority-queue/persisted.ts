@@ -20,6 +20,7 @@ try {
 type Checkpoint = SerializedContext & {
   normalized?: boolean
   deferred?: boolean
+  retryAt?: number
 }
 
 function persisted(key: string): Checkpoint[] {
@@ -93,6 +94,7 @@ function mutex(key: string, onUnlock: Function, attempt = 0): void {
 }
 
 export class PersistedPriorityQueue extends PriorityQueue<Context> {
+  retryAt = 0
   private persistedIds = new Set<string>()
 
   constructor(
@@ -114,7 +116,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     mutex(key, () => {
       try {
         saved = persisted(itemsKey).map(
-          ({ event, id, normalized, deferred }) => {
+          ({ event, id, normalized, deferred, retryAt }) => {
+            if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
             const ctx = new Context(event, id)
             if (deferred) wasDeferred.add(ctx)
             if (normalized) snapshots?.set(ctx, event)
@@ -161,6 +164,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
                   const stored = {
                     ...item.toJSON(),
                     deferred: wasDeferred.has(item) || undefined,
+                    retryAt: this.retryAt > now() ? this.retryAt : undefined,
                   }
                   return event ? { ...stored, event, normalized: true } : stored
                 })
