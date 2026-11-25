@@ -416,21 +416,28 @@ describe('error handling', () => {
     }
   )
 
-  it('finishes an unsupported default collector protocol after ordinary retries', async () => {
-    const httpClient = new FetchHTTPClient()
-    const attempts = jest.spyOn(httpClient, 'makeRequest')
-    const { plugin } = createTestNodePlugin({
-      host: 'ftp://collector',
-      httpClient,
-      maxRetries: 1,
-    })
-    const sent = plugin.alias(new Context(eventFactory.alias('to', 'from')))
-    await jest.advanceTimersByTimeAsync(60000)
-    expect(attempts).toHaveBeenCalledTimes(2)
-    expect((await sent).failedDelivery()?.reason).toEqual(
-      new Error('Collector URL must use HTTP or HTTPS')
-    )
-  })
+  it.each([
+    ['ftp://collector', 'Collector URL must use HTTP or HTTPS'],
+    [
+      'https://user:password@collector',
+      'Collector URL cannot include credentials',
+    ],
+  ])(
+    'finishes invalid default collector URLs after ordinary retries (%#)',
+    async (host, reason) => {
+      const httpClient = new FetchHTTPClient()
+      const attempts = jest.spyOn(httpClient, 'makeRequest')
+      const { plugin } = createTestNodePlugin({
+        host,
+        httpClient,
+        maxRetries: 1,
+      })
+      const sent = plugin.alias(new Context(eventFactory.alias('to', 'from')))
+      await jest.advanceTimersByTimeAsync(60000)
+      expect(attempts).toHaveBeenCalledTimes(2)
+      expect((await sent).failedDelivery()?.reason).toEqual(new Error(reason))
+    }
+  )
 
   it('continues deferred delivery when an error listener throws', async () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 0 })

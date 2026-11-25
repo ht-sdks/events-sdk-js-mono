@@ -4,7 +4,7 @@ import { tryCreateFormattedUrl } from '../../lib/create-url'
 import { extractPromiseParts } from '../../lib/extract-promise-parts'
 import { ContextBatch } from './context-batch'
 import { NodeEmitter } from '../../app/emitter'
-import { UnsupportedProtocolError } from '../../lib/fetch'
+import { InvalidCollectorUrlError } from '../../lib/fetch'
 import { b64encode } from '../../lib/base-64-encode'
 import {
   HTTPClient,
@@ -302,7 +302,7 @@ export class Publisher {
           }
         } catch (err) {
           failureReason = err
-          if (err instanceof UnsupportedProtocolError) recoverable = false
+          if (err instanceof InvalidCollectorUrlError) recoverable = false
         }
 
         if (recoverable && (currentAttempt === maxAttempts || turn)) {
