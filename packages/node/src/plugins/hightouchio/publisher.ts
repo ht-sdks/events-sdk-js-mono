@@ -297,10 +297,14 @@ export class Publisher {
           turn = this.recoveryTurn()
           previous?.release()
           if (!previous) {
-            this._emitter.emit('error', {
-              code: 'unknown',
-              reason: failureReason as Error,
-            })
+            try {
+              this._emitter.emit('error', {
+                code: 'unknown',
+                reason: failureReason as Error,
+              })
+            } catch {
+              // An application listener must not interrupt delivery of a retained batch.
+            }
           }
           currentAttempt--
           continue

@@ -363,6 +363,22 @@ describe('error handling', () => {
     ).toEqual([a, a, b, a].map((ctx) => ctx.event.messageId))
   })
 
+  it('continues deferred delivery when an error listener throws', async () => {
+    const { plugin } = createTestNodePlugin({ maxRetries: 0 })
+    const listener = jest.fn(() => {
+      throw new Error('listener failed')
+    })
+    emitter.on('error', listener)
+    fetcher.mockReturnValueOnce(createError({ status: 503 }))
+    const ctx = new Context(eventFactory.alias('to', 'from'))
+    const pending = plugin.alias(ctx)
+    await jest.advanceTimersByTimeAsync(15000)
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(await pending).toBe(ctx)
+    expect(ctx.failedDelivery()).toBeUndefined()
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
   it.each([0, 2])(
     'defers a transient failure after %s fast retries',
     async (maxRetries) => {
