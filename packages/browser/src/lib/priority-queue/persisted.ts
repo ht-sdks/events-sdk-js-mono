@@ -95,6 +95,10 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
   refill?: () => Promise<void> | undefined
   retryAt = 0
   private persistedIds = new Set<string>()
+  private readonly checkpoint: () => Promise<void> | void
+  private readonly onPageHide = () => {
+    void this.checkpoint()
+  }
 
   constructor(
     maxAttempts: number,
@@ -159,13 +163,14 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
         this.restoring = undefined
       })
 
-    window.addEventListener('pagehide', () => {
+    this.checkpoint = () => {
       // Checkpoint pending requests without adding them to the live retry queue.
       held?.forEach((ctx) => wasDeferred.add(ctx))
       const items = [...this.queue, ...this.future, ...Array.from(held ?? [])]
       // A closing page cannot wait for another tab's storage lock.
       const waiting = Array.from(this.waiting)
-      if (waiting.length) {
+      if (!this.restoring) items.push(...waiting)
+      else if (waiting.length) {
         const records = waiting.map((ctx) => {
           this.persistedIds.add(ctx.id)
           return {
@@ -174,7 +179,11 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
             normalized: !!snapshots?.has(ctx),
           }
         })
-        loc.setItem(waitingPrefix + waiting[0].id, JSON.stringify(records))
+        try {
+          loc.setItem(waitingPrefix + waiting[0].id, JSON.stringify(records))
+        } catch (err) {
+          console.error(err)
+        }
       }
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
@@ -189,7 +198,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
       if (items.length > 0) {
         items.forEach((item) => this.persistedIds.add(item.id))
         try {
-          void mutex(key, () => {
+          return mutex(key, () => {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
@@ -214,7 +223,17 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
           console.error(err)
         }
       }
-    })
+    }
+    this.resume()
+  }
+
+  resume(): void {
+    window.addEventListener('pagehide', this.onPageHide)
+  }
+
+  pause(): Promise<void> | void {
+    window.removeEventListener('pagehide', this.onPageHide)
+    return this.checkpoint()
   }
 
   acknowledge(item: Context): void {

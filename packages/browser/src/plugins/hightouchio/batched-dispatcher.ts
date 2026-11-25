@@ -114,7 +114,7 @@ export default function batch(
     }, timeout)
   }
 
-  onPageChange((unloaded) => {
+  const pageChanged = (unloaded: boolean) => {
     pageUnloaded = unloaded
 
     if (pageUnloaded && buffer.length) {
@@ -122,7 +122,8 @@ export default function batch(
       buffer = []
       Promise.all(reqs).catch(console.error)
     }
-  })
+  }
+  let stopWatching = onPageChange(pageChanged)
 
   async function dispatch(
     _url: string,
@@ -144,5 +145,15 @@ export default function batch(
 
   return {
     dispatch,
+    pause() {
+      stopWatching()
+      clearTimeout(schedule)
+      schedule = undefined
+    },
+    resume() {
+      pageUnloaded = false
+      stopWatching = onPageChange(pageChanged)
+      if (buffer.length) scheduleFlush()
+    },
   }
 }

@@ -10,14 +10,14 @@
 export const onPageChange = (cb: (unloaded: boolean) => void) => {
   let unloaded = false // prevents double firing if both are supported
 
-  window.addEventListener('pagehide', () => {
+  function hide() {
     if (unloaded) return
     unloaded = true
     cb(unloaded)
-  })
+  }
 
   // using document instead of window because of bug affecting browsers before safari 14 (detail in footnotes https://caniuse.com/?search=visibilitychange)
-  document.addEventListener('visibilitychange', () => {
+  function visibilityChanged() {
     if (document.visibilityState == 'hidden') {
       if (unloaded) return
       unloaded = true
@@ -25,5 +25,11 @@ export const onPageChange = (cb: (unloaded: boolean) => void) => {
       unloaded = false
     }
     cb(unloaded)
-  })
+  }
+  window.addEventListener('pagehide', hide)
+  document.addEventListener('visibilitychange', visibilityChanged)
+  return () => {
+    window.removeEventListener('pagehide', hide)
+    document.removeEventListener('visibilitychange', visibilityChanged)
+  }
 }

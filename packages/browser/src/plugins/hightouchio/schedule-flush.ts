@@ -15,7 +15,7 @@ async function flushQueue(
   }
 
   await pWhile(
-    () => queue.length > 0 && !isOffline(),
+    () => xt.isLoaded() && queue.length > 0 && !isOffline(),
     async () => {
       const ctx = queue.pop()
       if (!ctx) {
@@ -46,6 +46,7 @@ export function scheduleFlush(
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
+    if (!xt.isLoaded()) return
     let isFlushing = true
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const newBuffer = await flushQueue(xt, buffer)

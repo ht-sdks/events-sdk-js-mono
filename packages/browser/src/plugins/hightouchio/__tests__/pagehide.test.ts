@@ -316,6 +316,58 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([['deferred'], ['deferred']])
   })
 
+  it.each([false, true])(
+    'stops probes after deregistration (in flight=%s)',
+    async (inFlight) => {
+      const analytics = new Analytics(
+        { writeKey: 'pagehide' },
+        { retryQueue: true }
+      )
+      const dest = client(undefined, true, analytics)
+      await analytics.register(dest)
+      await exhaustRetries(dest, event('retained'))
+      const probe = createDeferred<Response>()
+      if (inFlight) {
+        fetch.mockReturnValueOnce(probe.promise)
+        await jest.advanceTimersByTimeAsync(60000)
+      }
+      await analytics.deregister('Hightouch.io')
+      fetch.mockClear().mockResolvedValue(response)
+      probe.resolve({ ok: false, status: 503 } as Response)
+      await jest.advanceTimersByTimeAsync(180000)
+      expect(fetch).not.toHaveBeenCalled()
+      await analytics.register(
+        inFlight ? dest : client(undefined, true, analytics)
+      )
+      await jest.advanceTimersByTimeAsync(60000)
+      expect(requestIds()).toEqual([['retained']])
+      navigate()
+      await jest.advanceTimersByTimeAsync(60000)
+      expect(fetch).toHaveBeenCalledTimes(1)
+    }
+  )
+
+  it('pauses a partial batch across its timer and pagehide until re-registration', async () => {
+    const analytics = new Analytics(
+      { writeKey: 'pagehide' },
+      { retryQueue: true }
+    )
+    const dest = client(
+      { strategy: 'batching', config: { timeout: 1000 } },
+      true,
+      analytics
+    )
+    await analytics.register(dest)
+    await dest.track!(event('buffered'))
+    await analytics.deregister('Hightouch.io')
+    window.dispatchEvent(new Event('pagehide'))
+    await jest.advanceTimersByTimeAsync(2000)
+    expect(fetch).not.toHaveBeenCalled()
+    await analytics.register(dest)
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(requestIds()).toEqual([['buffered']])
+  })
+
   it('reports the rejected message and clears its checkpoint', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)

@@ -61,6 +61,7 @@ export function hightouchio(
   const inflightEvents = new Set<Context>()
   const held = new Set<Context>()
   const snapshots = new WeakMap<Context, HightouchEvent>()
+  let active = true
   let probeScheduled = false
   let probeDelay = 1000
   const writeKey = settings?.apiKey ?? ''
@@ -108,7 +109,7 @@ export function hightouchio(
   }
 
   function scheduleProbe(immediate = false): void {
-    if (probeScheduled || held.size === 0) return
+    if (!active || probeScheduled || held.size === 0) return
     probeScheduled = true
     const delay = remainingCooldown() || (immediate ? 0 : probeDelay)
     if (buffer instanceof PersistedPriorityQueue)
@@ -116,9 +117,10 @@ export function hightouchio(
     setTimeout(async () => {
       const first = held.values().next().value
       try {
-        if (first) await deliver(first, true)
+        if (active && first) await deliver(first, true)
       } finally {
         if (
+          active &&
           buffer instanceof PersistedPriorityQueue &&
           held.size < MAX_DEFERRED_EVENTS &&
           buffer.refill
@@ -134,10 +136,12 @@ export function hightouchio(
   const restoring =
     buffer instanceof PersistedPriorityQueue ? buffer.restoring : undefined
   const send = async (ctx: Context): Promise<Context> => {
+    if (!active) return ctx
     if (buffer instanceof PersistedPriorityQueue && buffer.restoring) {
       snapshot(ctx)
       buffer.waiting.add(ctx)
       await buffer.restoring
+      if (!active) return ctx
       buffer.waiting.delete(ctx)
     }
     return deliver(ctx, false)
@@ -235,8 +239,29 @@ export function hightouchio(
     name: 'Hightouch.io',
     type: 'after',
     version: '0.1.0',
-    isLoaded: (): boolean => true,
-    load: (): Promise<void> => Promise.resolve(),
+    isLoaded: (): boolean => active,
+    load: () => {
+      if (active) return Promise.resolve()
+      active = true
+      if (buffer instanceof PersistedPriorityQueue) {
+        buffer.resume()
+        for (const ctx of Array.from(buffer.waiting)) {
+          buffer.waiting.delete(ctx)
+          void send(ctx)
+        }
+      }
+      batched?.resume()
+      resume()
+      return Promise.resolve()
+    },
+    unload: async () => {
+      active = false
+      batched?.pause()
+      if (buffer instanceof PersistedPriorityQueue) {
+        if (buffer.restoring) await buffer.restoring
+        await buffer.pause()
+      }
+    },
     track: send,
     identify: send,
     page: send,
@@ -248,6 +273,7 @@ export function hightouchio(
   // Buffer may already have items if they were previously stored in localStorage.
   // Start flushing them immediately.
   function resume(): void {
+    if (!active) return
     scheduleProbe(true)
     if (buffer.todo) scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
   }
