@@ -249,7 +249,10 @@ export class Publisher {
       }
 
       while (currentAttempt < maxAttempts) {
-        if (this.recoveryQueue.length && !turn) {
+        if (
+          (this.recoveryQueue.length || this.recoveryDeadline > Date.now()) &&
+          !turn
+        ) {
           turn = this.recoveryTurn(batch)
           if (!turn) return
         }
@@ -300,11 +303,7 @@ export class Publisher {
           failureReason = err
         }
 
-        if (
-          this._closeAndFlushPendingItemsCount === undefined &&
-          recoverable &&
-          (currentAttempt === maxAttempts || turn)
-        ) {
+        if (recoverable && (currentAttempt === maxAttempts || turn)) {
           if (!this.recoveryQueue.length || turn) {
             this.recoveryDeadline =
               Date.now() +
@@ -313,6 +312,10 @@ export class Publisher {
                 minTimeout: 1000,
                 maxTimeout: 60000,
               })
+          }
+          if (this._closeAndFlushPendingItemsCount !== undefined) {
+            resolveFailedBatch(batch, failureReason)
+            return
           }
           const rotating = !!turn
           turn = this.recoveryTurn(batch, rotating)

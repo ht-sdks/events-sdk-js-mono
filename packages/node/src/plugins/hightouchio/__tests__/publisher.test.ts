@@ -363,6 +363,23 @@ describe('error handling', () => {
     ).toEqual([a, a, b, a].map((ctx) => ctx.event.messageId))
   })
 
+  it('renews the source cooldown after a failed final probe during close', async () => {
+    const { plugin, publisher } = createTestNodePlugin({ maxRetries: 0 })
+    fetcher.mockReturnValueOnce(createError({ status: 429 }))
+    fetcher.mockReturnValueOnce(createError({ status: 429 }))
+    const first = plugin.alias(new Context(eventFactory.alias('a', 'from')))
+    await jest.advanceTimersByTimeAsync(0)
+    const second = plugin.alias(new Context(eventFactory.alias('b', 'from')))
+    publisher.flushAfterClose(2)
+    await jest.advanceTimersToNextTimerAsync()
+    expect((await first).failedDelivery()).toBeTruthy()
+    await jest.advanceTimersByTimeAsync(1999)
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    await jest.advanceTimersByTimeAsync(1)
+    expect((await second).failedDelivery()).toBeUndefined()
+    expect(fetcher).toHaveBeenCalledTimes(3)
+  })
+
   it('finishes ordinary retries when a request listener throws before transport', async () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 1 })
     const error = new Error('request listener')
