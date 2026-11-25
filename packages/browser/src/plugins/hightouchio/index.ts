@@ -193,7 +193,8 @@ export function hightouchio(
           buffer.acknowledge(ctx)
         snapshots.delete(ctx)
       } catch (error) {
-        if (held.size) {
+        if (probe && !analytics.options.retryQueue) held.delete(ctx)
+        if (held.size && analytics.options.retryQueue) {
           defer(ctx)
         } else if (buffer.pushWithBackoff(ctx)) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define

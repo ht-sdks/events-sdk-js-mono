@@ -172,7 +172,7 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
-  function navigate(lockOnRestore = false) {
+  function navigate(lockOnRestore = false, retryQueue = true) {
     window.dispatchEvent(new Event('pagehide'))
     for (const [target, type, listener] of listeners)
       target.removeEventListener(type, listener)
@@ -185,7 +185,7 @@ describe('Hightouch.io pagehide delivery', () => {
         'persisted-queue:v1:pagehide:dest-Hightouch.io:lock',
         String(now + 1)
       )
-    return client()
+    return client(undefined, retryQueue)
   }
 
   it('restores the remaining source cooldown for saved and fresh work', async () => {
@@ -226,6 +226,21 @@ describe('Hightouch.io pagehide delivery', () => {
       expect(requestIds().flat()).toEqual(ids)
     }
   )
+
+  it('applies the current retry setting to new events after restoring a cooldown', async () => {
+    await exhaustRetries(client(), event('saved'))
+    const restored = navigate(false, false)
+    fetch
+      .mockClear()
+      .mockResolvedValueOnce(response)
+      .mockRejectedValue(new Error('offline'))
+    const fresh = event('fresh')
+    await restored.track!(fresh)
+    expect(fetch).not.toHaveBeenCalled()
+    await jest.advanceTimersByTimeAsync(300000)
+    expect(requestIds().flat()).toEqual(['saved', 'fresh', 'fresh'])
+    expect(fresh.failedDelivery()?.reason).toEqual(new Error('offline'))
+  })
 
   it('checkpoints a deferred replay interrupted by a second navigation', async () => {
     await exhaustRetries(client(), event('deferred'))
