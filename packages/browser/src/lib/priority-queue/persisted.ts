@@ -159,7 +159,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
       if (items.length > 0) {
         items.forEach((item) => this.persistedIds.add(item.id))
         try {
-          mutex(key, () => {
+          void mutex(key, () => {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
@@ -191,7 +191,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     if (!this.persistedIds.delete(item.id)) return
 
     try {
-      mutex(this.key, () => {
+      void mutex(this.key, () => {
         const itemsKey = `persisted-queue:v1:${this.key}:items`
         const remaining = persisted(itemsKey).filter(
           (ctx) => ctx.id !== item.id
