@@ -98,7 +98,8 @@ function mutex(
 }
 
 export class PersistedPriorityQueue extends PriorityQueue<Context> {
-  readonly restoring?: Promise<void>
+  readonly waiting = new Set<Context>()
+  restoring?: Promise<void>
   retryAt = 0
   private persistedIds = new Set<string>()
 
@@ -113,6 +114,7 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     const itemsKey = `persisted-queue:v1:${key}:items`
     const seenKey = `persisted-queue:v1:${key}:seen`
+    const waitingPrefix = `${itemsKey}:waiting:`
 
     const wasDeferred = new WeakSet<Context>()
     const saved: Context[] = []
@@ -120,10 +122,17 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     this.restoring = mutex(key, () => {
       try {
+        for (const entry of Object.keys(loc).filter((name) =>
+          name.startsWith(waitingPrefix)
+        )) {
+          persistItems(itemsKey, persisted(entry))
+          remove(entry)
+        }
         for (const { event, id, normalized, deferred, retryAt } of persisted(
           itemsKey
         )) {
           if (retryAt && retryAt > this.retryAt) this.retryAt = retryAt
+          if (this.persistedIds.has(id)) continue // Already waiting on this page.
           const ctx = new Context(event, id)
           if (normalized) snapshots?.set(ctx, event)
           if (deferred && held) {
@@ -142,10 +151,28 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
       }
     })
 
+    if (this.restoring)
+      void this.restoring.then(() => {
+        this.restoring = undefined
+      })
+
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
       held?.forEach((ctx) => wasDeferred.add(ctx))
       const items = [...this.queue, ...this.future, ...Array.from(held ?? [])]
+      // A closing page cannot wait for another tab's storage lock.
+      const waiting = Array.from(this.waiting)
+      if (waiting.length) {
+        const records = waiting.map((ctx) => {
+          this.persistedIds.add(ctx.id)
+          return {
+            ...ctx.toJSON(),
+            event: snapshots?.get(ctx) ?? ctx.event,
+            normalized: !!snapshots?.has(ctx),
+          }
+        })
+        loc.setItem(waitingPrefix + waiting[0].id, JSON.stringify(records))
+      }
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {

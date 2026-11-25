@@ -126,8 +126,15 @@ export function hightouchio(
 
   const restoring =
     buffer instanceof PersistedPriorityQueue ? buffer.restoring : undefined
-  const send = (ctx: Context): Promise<Context> =>
-    restoring ? restoring.then(() => deliver(ctx, false)) : deliver(ctx, false)
+  const send = async (ctx: Context): Promise<Context> => {
+    if (buffer instanceof PersistedPriorityQueue && buffer.restoring) {
+      snapshot(ctx)
+      buffer.waiting.add(ctx)
+      await buffer.restoring
+      buffer.waiting.delete(ctx)
+    }
+    return deliver(ctx, false)
+  }
 
   function snapshot(ctx: Context): HightouchEvent {
     const existing = snapshots.get(ctx)

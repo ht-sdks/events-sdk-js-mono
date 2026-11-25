@@ -188,6 +188,29 @@ describe('Hightouch.io pagehide delivery', () => {
     return client(undefined, retryQueue)
   }
 
+  it.each([false, true])(
+    'checkpoints a track waiting for restoration (navigate=%s)',
+    async (reload) => {
+      localStorage.setItem(
+        'persisted-queue:v1:pagehide:dest-Hightouch.io:lock',
+        String(Date.now() + (reload ? 25 : 1))
+      )
+      const analytics = new Analytics(
+        { writeKey: 'pagehide' },
+        { retryQueue: true }
+      )
+      await analytics.register(client(undefined, true, analytics))
+      void analytics.track('during restore')
+      await jest.advanceTimersByTimeAsync(10)
+      expect(fetch).not.toHaveBeenCalled()
+      window.dispatchEvent(new Event('pagehide'))
+      expect(JSON.stringify(localStorage)).toContain('during restore')
+      if (reload) navigate()
+      await jest.advanceTimersByTimeAsync(5000)
+      expect(fetch).toHaveBeenCalledTimes(1)
+    }
+  )
+
   it('restores the remaining source cooldown for saved and fresh work', async () => {
     const dest = client()
     await exhaustRetries(dest, event('A'))
