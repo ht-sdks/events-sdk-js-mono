@@ -1,3 +1,5 @@
+import { execFileSync } from 'child_process'
+import { resolve } from 'path'
 import { TestFetchClient } from './test-helpers/create-test-analytics'
 import { performance as perf } from 'perf_hooks'
 import { HtEvents } from '../app/analytics-node'
@@ -84,6 +86,34 @@ describe('Ability for users to exit without losing events', () => {
   })
 
   describe('.closeAndFlush()', () => {
+    test.each([false, true])(
+      'idle process can exit during recovery (close=%s)',
+      (close) => {
+        const output = execFileSync(
+          process.execPath,
+          [
+            '-e',
+            `
+        const { HtEvents } = require('./')
+        const client = new HtEvents({
+          writeKey: 'test', maxEventsInBatch: 1, maxRetries: 0,
+          httpClient: { async makeRequest() {
+            console.log('attempt')
+            if (${close}) setImmediate(() => client.closeAndFlush({ timeout: 0 }))
+            return { status: 503, statusText: 'Unavailable' }
+          } },
+        })
+        client.track({ userId: 'user', event: 'event' })
+      `,
+          ],
+          { cwd: resolve(__dirname, '../..'), encoding: 'utf8', timeout: 5000 }
+        )
+        expect(output.trim().split('\n')).toEqual(
+          close ? ['attempt', 'attempt'] : ['attempt']
+        )
+      }
+    )
+
     test('default timeout should be related to flush interval', () => {
       const flushInterval = 500
       ajs = new HtEvents({

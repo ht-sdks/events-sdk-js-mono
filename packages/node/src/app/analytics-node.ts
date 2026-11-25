@@ -82,7 +82,8 @@ export class HtEvents extends NodeEmitter implements CoreAnalytics {
     /** Set a maximum time permitted to wait before resolving. */
     timeout?: number
   } = {}): Promise<void> {
-    this._publisher.flushAfterClose(this._pendingEvents)
+    // A timed close already keeps the event loop alive until its deadline.
+    this._publisher.flushAfterClose(this._pendingEvents, !timeout)
     this._isClosed = true
     const promise = new Promise<void>((resolve) => {
       if (!this._pendingEvents) {

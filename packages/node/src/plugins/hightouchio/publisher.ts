@@ -61,6 +61,8 @@ export class Publisher {
   private _emitter: NodeEmitter
   private _disable: boolean
   private readonly recoveryQueue: Array<() => void> = []
+  private recoveryTimer?: ReturnType<typeof setTimeout>
+  private waitForDrain = false
   private recoveryDeadline = 0
   private recoveryAttempt = 0
   private _httpClient: HTTPClient
@@ -113,7 +115,11 @@ export class Publisher {
     this._batch = undefined
   }
 
-  flushAfterClose(pendingItemsCount: number) {
+  flushAfterClose(pendingItemsCount: number, waitForDrain = true) {
+    if (waitForDrain) {
+      this.waitForDrain = true
+      this.recoveryTimer?.ref?.()
+    }
     this._closeAndFlushPendingItemsCount = pendingItemsCount
     if (!pendingItemsCount) {
       // if number of pending items is 0, there will never be anything else entering the batch, since the app is closed.
@@ -260,7 +266,13 @@ export class Publisher {
         if (turn) {
           await turn
           const remaining = this.recoveryDeadline - Date.now()
-          if (remaining > 0) await sleep(remaining)
+          if (remaining > 0) {
+            await new Promise<void>((resolve) => {
+              this.recoveryTimer = setTimeout(resolve, remaining)
+              if (!this.waitForDrain) this.recoveryTimer.unref?.()
+            })
+            this.recoveryTimer = undefined
+          }
           if (this._closeAndFlushPendingItemsCount !== undefined)
             currentAttempt = maxAttempts - 1
         }
