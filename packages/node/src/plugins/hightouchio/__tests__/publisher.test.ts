@@ -378,6 +378,26 @@ describe('error handling', () => {
     expect((await sent).failedDelivery()?.reason).toBe(error)
   })
 
+  it.each([400, 503])(
+    'classifies an HTTP %s rejected by the adapter',
+    async (status) => {
+      const { plugin } = createTestNodePlugin({ maxRetries: 0 })
+      fetcher.mockRejectedValueOnce({
+        response: { status, statusText: 'Rejected' },
+      })
+      const ctx = new Context(eventFactory.alias('to', 'from'))
+      const sent = plugin.alias(ctx)
+      await jest.advanceTimersByTimeAsync(15000)
+      expect(await sent).toBe(ctx)
+      expect(fetcher).toHaveBeenCalledTimes(status === 400 ? 1 : 2)
+      if (status === 400)
+        expect(ctx.failedDelivery()?.reason).toEqual(
+          new Error('[400] Rejected')
+        )
+      else expect(ctx.failedDelivery()).toBeUndefined()
+    }
+  )
+
   it('continues deferred delivery when an error listener throws', async () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 0 })
     const listener = jest.fn(() => {

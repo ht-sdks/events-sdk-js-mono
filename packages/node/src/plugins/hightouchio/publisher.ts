@@ -5,10 +5,21 @@ import { extractPromiseParts } from '../../lib/extract-promise-parts'
 import { ContextBatch } from './context-batch'
 import { NodeEmitter } from '../../app/emitter'
 import { b64encode } from '../../lib/base-64-encode'
-import { HTTPClient, HTTPClientRequest } from '../../lib/http-client'
+import {
+  HTTPClient,
+  HTTPClientRequest,
+  HTTPResponse,
+} from '../../lib/http-client'
 
 function sleep(timeoutInMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, timeoutInMs))
+}
+
+// Some HTTP clients reject non-2xx responses instead of resolving with them.
+function rejectedResponse(error: unknown): HTTPResponse {
+  const response = (error as { response?: HTTPResponse } | null)?.response
+  if (typeof response?.status === 'number') return response
+  throw error
 }
 
 function noop() {}
@@ -260,7 +271,9 @@ export class Publisher {
 
           const request = createRequest()
           recoverable = true
-          const response = await this._httpClient.makeRequest(request)
+          const response = await this._httpClient
+            .makeRequest(request)
+            .catch(rejectedResponse)
 
           recoverable =
             response.status === 408 ||
