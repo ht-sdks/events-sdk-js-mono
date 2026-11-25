@@ -383,15 +383,12 @@ describe('error handling', () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 0 })
     fetcher.mockReturnValueOnce(createError({ status: 503 }))
     fetcher.mockReturnValueOnce(createError({ status: 429 }))
-    const accepted = [
-      plugin.alias(new Context(eventFactory.alias('to', 'from'))),
-    ]
+    const enqueue = () =>
+      plugin.alias(new Context(eventFactory.alias('to', 'from')))
+    const accepted = [enqueue()]
     await jest.advanceTimersByTimeAsync(0)
-    for (let i = 1; i < 100; i++)
-      accepted.push(plugin.alias(new Context(eventFactory.alias('to', 'from'))))
-    const overflow = await plugin.alias(
-      new Context(eventFactory.alias('to', 'from'))
-    )
+    for (let i = 1; i < 100; i++) accepted.push(enqueue())
+    const overflow = await enqueue()
     expect(overflow.failedDelivery()?.reason).toEqual(
       new Error('Deferred delivery queue is full')
     )

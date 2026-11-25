@@ -48,8 +48,7 @@ export class Publisher {
   private _httpRequestTimeout: number
   private _emitter: NodeEmitter
   private _disable: boolean
-  private sourceRecovery?: Promise<void>
-  private recoveryCount = 0
+  private readonly recoveryQueue: Array<() => void> = []
   private recoveryDeadline = 0
   private recoveryAttempt = 0
   private _httpClient: HTTPClient
@@ -187,25 +186,22 @@ export class Publisher {
   }
 
   private recoveryTurn(batch: ContextBatch, rotating = false) {
-    if (!rotating && this.recoveryCount >= MAX_DEFERRED_BATCHES) {
+    if (!rotating && this.recoveryQueue.length >= MAX_DEFERRED_BATCHES) {
       resolveFailedBatch(batch, new Error('Deferred delivery queue is full'))
       return
     }
-    this.recoveryCount++
-    const previous = this.sourceRecovery
-    const gate = extractPromiseParts<void>()
-    this.sourceRecovery = gate.promise
-    return {
-      previous,
-      release: () => {
-        this.recoveryCount--
-        if (this.sourceRecovery === gate.promise) {
-          this.sourceRecovery = undefined
-          this.recoveryAttempt = 0
-        }
-        gate.resolve()
-      },
-    }
+    const turn = extractPromiseParts<void>()
+    this.recoveryQueue.push(turn.resolve)
+    if (rotating) this.releaseTurn()
+    else if (this.recoveryQueue.length === 1) turn.resolve()
+    return turn.promise
+  }
+
+  private releaseTurn() {
+    this.recoveryQueue.shift()
+    const next = this.recoveryQueue[0]
+    if (next) next()
+    else this.recoveryAttempt = 0
   }
 
   private async send(batch: ContextBatch) {
@@ -215,7 +211,7 @@ export class Publisher {
     const events = batch.getEvents()
     const maxAttempts = this._maxRetries + 1
 
-    let turn: ReturnType<Publisher['recoveryTurn']> | undefined
+    let turn: Promise<void> | undefined
     let currentAttempt = 0
     try {
       const makeRequest = () => {
@@ -242,12 +238,12 @@ export class Publisher {
       }
 
       while (currentAttempt < maxAttempts) {
-        if (this.sourceRecovery && !turn) {
+        if (this.recoveryQueue.length && !turn) {
           turn = this.recoveryTurn(batch)
           if (!turn) return
         }
         if (turn) {
-          await turn.previous
+          await turn
           const remaining = this.recoveryDeadline - Date.now()
           if (remaining > 0) await sleep(remaining)
           if (this._closeAndFlushPendingItemsCount !== undefined)
@@ -296,7 +292,7 @@ export class Publisher {
           recoverable &&
           (currentAttempt === maxAttempts || turn)
         ) {
-          if (!this.sourceRecovery || turn) {
+          if (!this.recoveryQueue.length || turn) {
             this.recoveryDeadline =
               Date.now() +
               backoff({
@@ -305,11 +301,10 @@ export class Publisher {
                 maxTimeout: 60000,
               })
           }
-          const previous = turn
-          turn = this.recoveryTurn(batch, !!previous)
+          const rotating = !!turn
+          turn = this.recoveryTurn(batch, rotating)
           if (!turn) return
-          previous?.release()
-          if (!previous) {
+          if (!rotating) {
             try {
               this._emitter.emit('error', {
                 code: 'unknown',
@@ -339,7 +334,7 @@ export class Publisher {
         )
       }
     } finally {
-      turn?.release()
+      if (turn) this.releaseTurn()
     }
   }
 }
