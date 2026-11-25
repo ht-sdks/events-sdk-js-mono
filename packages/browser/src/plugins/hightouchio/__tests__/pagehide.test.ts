@@ -176,6 +176,27 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
+  it('checkpoints a deferred replay interrupted by a second navigation', async () => {
+    function navigate() {
+      window.dispatchEvent(new Event('pagehide'))
+      for (const [target, type, listener] of listeners)
+        target.removeEventListener(type, listener)
+      listeners = []
+      jest.clearAllTimers()
+      client()
+    }
+
+    await exhaustRetries(client(), event('deferred'))
+    fetch.mockClear().mockReturnValueOnce(createDeferred<Response>().promise)
+    navigate()
+    await jest.advanceTimersByTimeAsync(5000)
+    expect(requestIds()).toEqual([['deferred']])
+    fetch.mockResolvedValue(response)
+    navigate()
+    await jest.advanceTimersByTimeAsync(5000)
+    expect(requestIds()).toEqual([['deferred'], ['deferred']])
+  })
+
   it('reports the rejected message and clears its checkpoint', async () => {
     const request = createDeferred<Response>()
     fetch.mockReturnValueOnce(request.promise)

@@ -17,7 +17,10 @@ try {
   console.warn('Unable to access localStorage', err)
 }
 
-type Checkpoint = SerializedContext & { normalized?: boolean }
+type Checkpoint = SerializedContext & {
+  normalized?: boolean
+  deferred?: boolean
+}
 
 function persisted(key: string): Checkpoint[] {
   const items = loc.getItem(key)
@@ -26,7 +29,7 @@ function persisted(key: string): Checkpoint[] {
 
 function persistItems(key: string, items: Checkpoint[]): void {
   const existing = persisted(key)
-  const all = [...items, ...existing]
+  const all = [...existing, ...items]
 
   const merged = all.reduce(
     (acc, item) => {
@@ -104,16 +107,20 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
     const itemsKey = `persisted-queue:v1:${key}:items`
     const seenKey = `persisted-queue:v1:${key}:seen`
 
+    const wasDeferred = new WeakSet<Context>()
     let saved: Context[] = []
     let lastSeen: Record<string, number> = {}
 
     mutex(key, () => {
       try {
-        saved = persisted(itemsKey).map(({ event, id, normalized }) => {
-          const ctx = new Context(event, id)
-          if (normalized) snapshots?.set(ctx, event)
-          return ctx
-        })
+        saved = persisted(itemsKey).map(
+          ({ event, id, normalized, deferred }) => {
+            const ctx = new Context(event, id)
+            if (deferred) wasDeferred.add(ctx)
+            if (normalized) snapshots?.set(ctx, event)
+            return ctx
+          }
+        )
         lastSeen = seen(seenKey)
         remove(itemsKey)
         remove(seenKey)
@@ -127,10 +134,16 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
 
     window.addEventListener('pagehide', () => {
       // Checkpoint pending requests without adding them to the live retry queue.
-      const items = [...this.queue, ...this.future, ...deferred()]
+      const held = deferred()
+      held.forEach((ctx) => wasDeferred.add(ctx))
+      const items = [...this.queue, ...this.future, ...held]
       const attempts = { ...this.seen }
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {
+        if (wasDeferred.has(item)) {
+          items.push(item)
+          continue
+        }
         attempts[item.id] = this.getAttempts(item) + 1
         if (attempts[item.id] <= this.maxAttempts) items.push(item)
       }
@@ -145,7 +158,10 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
                 .filter((item) => this.persistedIds.has(item.id))
                 .map((item) => {
                   const event = snapshots?.get(item)
-                  const stored = item.toJSON()
+                  const stored = {
+                    ...item.toJSON(),
+                    deferred: wasDeferred.has(item) || undefined,
+                  }
                   return event ? { ...stored, event, normalized: true } : stored
                 })
             )
