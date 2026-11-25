@@ -106,6 +106,12 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([[ctx.event.messageId], [ctx.event.messageId]])
   })
 
+  async function exhaustRetries(dest: ReturnType<typeof client>, ctx: Context) {
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    await dest.track!(ctx)
+    await jest.advanceTimersByTimeAsync(300000)
+  }
+
   it.each([401, 403, 404])(
     'completes a live HTTP %s without retry',
     async (status) => {
@@ -124,10 +130,8 @@ describe('Hightouch.io pagehide delivery', () => {
   it.each([200, 401, 403, 404])(
     'finishes deferred delivery after HTTP %s',
     async (status) => {
-      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
       const ctx = event()
-      await client().track!(ctx)
-      await jest.advanceTimersByTimeAsync(300000)
+      await exhaustRetries(client(), ctx)
       expect(fetch.mock.calls.length).toBeGreaterThan(5)
       expect(ctx.failedDelivery()).toBeFalsy()
       window.dispatchEvent(new Event('pagehide'))
@@ -150,9 +154,7 @@ describe('Hightouch.io pagehide delivery', () => {
       analytics.reset()
       analytics.setAnonymousId('original')
       const original = client(undefined, true, analytics)
-      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
-      await original.track!(event('first'))
-      await jest.advanceTimersByTimeAsync(300000)
+      await exhaustRetries(original, event('first'))
       await original.track!(event('second'))
       analytics.user().id('later-user')
       analytics.setAnonymousId('later-anonymous')
@@ -196,9 +198,7 @@ describe('Hightouch.io pagehide delivery', () => {
       const dest = client(
         strategy === 'batching' ? { strategy, config: { size: 1 } } : undefined
       )
-      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
-      await dest.track!(event('failing'))
-      await jest.advanceTimersByTimeAsync(300000) // Reach the capped probe delay.
+      await exhaustRetries(dest, event('failing'))
 
       const probe = createDeferred<Response>()
       fetch
@@ -244,10 +244,8 @@ describe('Hightouch.io pagehide delivery', () => {
   )
 
   it('bounds deferred events and drains them one at a time past a failing event', async () => {
-    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
     const dest = client()
-    await dest.track!(event('failing'))
-    await jest.advanceTimersByTimeAsync(300000)
+    await exhaustRetries(dest, event('failing'))
     for (let i = 1; i < 100; i++) await dest.track!(event(String(i)))
     const overflow = event('overflow')
     await dest.track!(overflow)
