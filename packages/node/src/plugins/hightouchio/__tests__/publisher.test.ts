@@ -9,6 +9,7 @@ import {
   createError,
 } from '../../../__tests__/test-helpers/factories'
 import { TestFetchClient } from '../../../__tests__/test-helpers/create-test-analytics'
+import { FetchHTTPClient } from '../../../lib/http-client'
 import { PublisherProps } from '../publisher'
 import { assertHTTPRequestOptions } from '../../../__tests__/test-helpers/assert-shape/hightouch-http-api'
 
@@ -375,7 +376,7 @@ describe('error handling', () => {
     expect((await first).failedDelivery()).toBeTruthy()
     await jest.advanceTimersByTimeAsync(1999)
     expect(fetcher).toHaveBeenCalledTimes(2)
-    await jest.advanceTimersByTimeAsync(1)
+    await jest.advanceTimersToNextTimerAsync()
     expect((await second).failedDelivery()).toBeUndefined()
     expect(fetcher).toHaveBeenCalledTimes(3)
   })
@@ -414,6 +415,22 @@ describe('error handling', () => {
       else expect(ctx.failedDelivery()).toBeUndefined()
     }
   )
+
+  it('finishes an unsupported default collector protocol after ordinary retries', async () => {
+    const httpClient = new FetchHTTPClient()
+    const attempts = jest.spyOn(httpClient, 'makeRequest')
+    const { plugin } = createTestNodePlugin({
+      host: 'ftp://collector',
+      httpClient,
+      maxRetries: 1,
+    })
+    const sent = plugin.alias(new Context(eventFactory.alias('to', 'from')))
+    await jest.advanceTimersByTimeAsync(60000)
+    expect(attempts).toHaveBeenCalledTimes(2)
+    expect((await sent).failedDelivery()?.reason).toEqual(
+      new Error('Collector URL must use HTTP or HTTPS')
+    )
+  })
 
   it('continues deferred delivery when an error listener throws', async () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 0 })
