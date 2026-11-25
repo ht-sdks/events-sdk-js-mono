@@ -189,6 +189,34 @@ describe('Hightouch.io pagehide delivery', () => {
     expect(requestIds()).toEqual([['rejected']])
   })
 
+  it.each(['standard', 'batching'] as const)(
+    'holds both events through the source cooldown with %s delivery',
+    async (strategy) => {
+      const dest = client(
+        strategy === 'batching' ? { strategy, config: { size: 1 } } : undefined
+      )
+      fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+      await dest.track!(event('failing'))
+      await jest.advanceTimersByTimeAsync(300000) // Reach the capped probe delay.
+
+      const probe = createDeferred<Response>()
+      fetch
+        .mockClear()
+        .mockReturnValueOnce(probe.promise)
+        .mockResolvedValue(response)
+      await jest.advanceTimersByTimeAsync(60000)
+      await dest.track!(event('healthy'))
+      probe.resolve({ ok: false, status: 429 } as Response)
+
+      await jest.advanceTimersByTimeAsync(59999)
+      expect(requestIds()).toEqual([['failing']])
+      await jest.advanceTimersByTimeAsync(1)
+      expect(requestIds()).toEqual([['failing'], ['healthy']])
+      await jest.advanceTimersByTimeAsync(1000)
+      expect(requestIds()).toEqual([['failing'], ['healthy'], ['failing']])
+    }
+  )
+
   it('bounds deferred events and drains them one at a time past a failing event', async () => {
     fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
     const dest = client()
