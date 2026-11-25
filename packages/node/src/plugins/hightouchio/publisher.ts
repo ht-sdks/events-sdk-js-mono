@@ -214,7 +214,7 @@ export class Publisher {
     let turn: Promise<void> | undefined
     let currentAttempt = 0
     try {
-      const makeRequest = () => {
+      const createRequest = () => {
         const request: HTTPClientRequest = {
           url: this._url,
           method: 'POST',
@@ -234,7 +234,7 @@ export class Publisher {
           headers: request.headers,
         })
 
-        return this._httpClient.makeRequest(request)
+        return request
       }
 
       while (currentAttempt < maxAttempts) {
@@ -258,7 +258,9 @@ export class Publisher {
             return batch.resolveEvents()
           }
 
-          const response = await makeRequest()
+          const request = createRequest()
+          recoverable = true
+          const response = await this._httpClient.makeRequest(request)
 
           recoverable =
             response.status === 408 ||
@@ -282,9 +284,7 @@ export class Publisher {
             )
           }
         } catch (err) {
-          // Network errors get thrown, retry them.
           failureReason = err
-          recoverable = true
         }
 
         if (

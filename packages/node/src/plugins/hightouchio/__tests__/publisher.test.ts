@@ -363,6 +363,21 @@ describe('error handling', () => {
     ).toEqual([a, a, b, a].map((ctx) => ctx.event.messageId))
   })
 
+  it('finishes ordinary retries when a request listener throws before transport', async () => {
+    const { plugin } = createTestNodePlugin({ maxRetries: 1 })
+    const error = new Error('request listener')
+    const listener = jest.fn(() => {
+      throw error
+    })
+    emitter.on('http_request', listener)
+    const ctx = new Context(eventFactory.alias('to', 'from'))
+    const sent = plugin.alias(ctx)
+    await jest.advanceTimersByTimeAsync(120000)
+    expect(listener).toHaveBeenCalledTimes(2)
+    expect(fetcher).not.toHaveBeenCalled()
+    expect((await sent).failedDelivery()?.reason).toBe(error)
+  })
+
   it('continues deferred delivery when an error listener throws', async () => {
     const { plugin } = createTestNodePlugin({ maxRetries: 0 })
     const listener = jest.fn(() => {
