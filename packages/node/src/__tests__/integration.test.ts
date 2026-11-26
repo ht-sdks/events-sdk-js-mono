@@ -59,6 +59,7 @@ describe('Error handling', () => {
     })
     const analytics = createTestAnalytics({
       maxRetries: 0,
+      maxDeferredEvents: 0,
       httpClient: new TestFetchClient({ response: err }),
     })
     try {

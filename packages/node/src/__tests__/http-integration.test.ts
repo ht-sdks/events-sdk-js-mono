@@ -342,6 +342,7 @@ describe('Client: requestTimeout', () => {
       {
         maxEventsInBatch: 1,
         httpRequestTimeout: 0,
+        maxDeferredEvents: 0,
       },
       { useRealHTTPClient: true }
     )

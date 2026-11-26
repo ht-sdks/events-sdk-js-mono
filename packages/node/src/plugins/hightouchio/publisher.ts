@@ -5,6 +5,7 @@ import { extractPromiseParts } from '../../lib/extract-promise-parts'
 import { ContextBatch } from './context-batch'
 import { NodeEmitter } from '../../app/emitter'
 import { b64encode } from '../../lib/base-64-encode'
+import { LocalFetchError } from '../../lib/fetch'
 import { HTTPClient, HTTPClientRequest } from '../../lib/http-client'
 
 function sleep(timeoutInMs: number): Promise<void> {
@@ -24,6 +25,7 @@ export interface PublisherProps {
   flushInterval: number
   maxEventsInBatch: number
   maxRetries: number
+  maxDeferredEvents?: number
   writeKey: string
   httpRequestTimeout?: number
   disable?: boolean
@@ -40,6 +42,10 @@ export class Publisher {
   private _flushInterval: number
   private _maxEventsInBatch: number
   private _maxRetries: number
+  private readonly maxDeferredEvents: number
+  private deferredEvents = 0
+  private recoveryWaits = new Set<() => void>()
+  private closing = false
   private _auth: string
   private _url: string
   private _closeAndFlushPendingItemsCount?: number
@@ -52,6 +58,7 @@ export class Publisher {
       host,
       path,
       maxRetries,
+      maxDeferredEvents = Infinity,
       maxEventsInBatch,
       flushInterval,
       writeKey,
@@ -62,6 +69,7 @@ export class Publisher {
     emitter: NodeEmitter
   ) {
     this._emitter = emitter
+    this.maxDeferredEvents = maxDeferredEvents
     this._maxRetries = maxRetries
     this._maxEventsInBatch = Math.max(maxEventsInBatch, 1)
     this._flushInterval = flushInterval
@@ -97,6 +105,9 @@ export class Publisher {
   }
 
   flushAfterClose(pendingItemsCount: number) {
+    pendingItemsCount -= this.deferredEvents
+    this.closing = true
+    this.recoveryWaits.forEach((cancel) => cancel())
     if (!pendingItemsCount) {
       // if number of pending items is 0, there will never be anything else entering the batch, since the app is closed.
       return
@@ -181,6 +192,19 @@ export class Publisher {
     }
   }
 
+  private waitForRecovery(delay: number): Promise<void> {
+    return new Promise((resolve) => {
+      const finish = () => {
+        clearTimeout(timer)
+        this.recoveryWaits.delete(finish)
+        resolve()
+      }
+      const timer = setTimeout(finish, delay)
+      timer.unref?.()
+      this.recoveryWaits.add(finish)
+    })
+  }
+
   private async send(batch: ContextBatch) {
     if (this._closeAndFlushPendingItemsCount) {
       this._closeAndFlushPendingItemsCount -= batch.length
@@ -189,72 +213,114 @@ export class Publisher {
     const maxAttempts = this._maxRetries + 1
 
     let currentAttempt = 0
-    while (currentAttempt < maxAttempts) {
-      currentAttempt++
+    let retained = false
+    try {
+      while (currentAttempt < maxAttempts || retained) {
+        currentAttempt++
 
-      let failureReason: unknown
-      try {
-        if (this._disable) {
-          return batch.resolveEvents()
+        let recoverable = false
+        let failureReason: unknown
+        try {
+          if (this._disable) {
+            return batch.resolveEvents()
+          }
+
+          const request: HTTPClientRequest = {
+            url: this._url,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Basic ${this._auth}`,
+              'User-Agent': 'events-sdk-js-node/latest',
+            },
+            data: { batch: events, sentAt: new Date() },
+            httpRequestTimeout: this._httpRequestTimeout,
+          }
+
+          this._emitter.emit('http_request', {
+            body: request.data,
+            method: request.method,
+            url: request.url,
+            headers: request.headers,
+          })
+
+          recoverable = true
+          const response = await this._httpClient.makeRequest(request)
+          recoverable =
+            response.status === 408 ||
+            response.status === 429 ||
+            (response.status >= 500 && response.status < 600)
+
+          if (response.status >= 200 && response.status < 300) {
+            // Successfully sent events, so exit!
+            batch.resolveEvents()
+            return
+          } else if (response.status === 400) {
+            // Request either malformed or size exceeded - don't retry.
+            resolveFailedBatch(
+              batch,
+              new Error(`[${response.status}] ${response.statusText}`)
+            )
+            return
+          } else {
+            // Treat other errors as transient and retry.
+            failureReason = new Error(
+              `[${response.status}] ${response.statusText}`
+            )
+          }
+        } catch (err) {
+          // Network errors get thrown, retry them.
+          failureReason = err
+          if (err instanceof LocalFetchError) recoverable = false
+          if (
+            err &&
+            typeof err === 'object' &&
+            'status' in err &&
+            typeof err.status === 'number'
+          ) {
+            recoverable =
+              err.status === 408 ||
+              err.status === 429 ||
+              (err.status >= 500 && err.status < 600)
+          }
         }
 
-        const request: HTTPClientRequest = {
-          url: this._url,
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Basic ${this._auth}`,
-            'User-Agent': 'events-sdk-js-node/latest',
-          },
-          data: { batch: events, sentAt: new Date() },
-          httpRequestTimeout: this._httpRequestTimeout,
-        }
-
-        this._emitter.emit('http_request', {
-          body: request.data,
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-        })
-
-        const response = await this._httpClient.makeRequest(request)
-
-        if (response.status >= 200 && response.status < 300) {
-          // Successfully sent events, so exit!
-          batch.resolveEvents()
+        // Final attempt failed, update context and resolve events.
+        if (currentAttempt >= maxAttempts) {
+          if (
+            recoverable &&
+            !this.closing &&
+            (retained ||
+              this.deferredEvents + batch.length <= this.maxDeferredEvents)
+          ) {
+            if (!retained) {
+              retained = true
+              this.deferredEvents += batch.length
+            }
+            await this.waitForRecovery(
+              backoff({
+                attempt: currentAttempt,
+                minTimeout: 25,
+                maxTimeout: 1000,
+              })
+            )
+            if (!this.closing) continue
+          }
+          resolveFailedBatch(batch, failureReason)
           return
-        } else if (response.status === 400) {
-          // Request either malformed or size exceeded - don't retry.
-          resolveFailedBatch(
-            batch,
-            new Error(`[${response.status}] ${response.statusText}`)
-          )
-          return
-        } else {
-          // Treat other errors as transient and retry.
-          failureReason = new Error(
-            `[${response.status}] ${response.statusText}`
-          )
         }
-      } catch (err) {
-        // Network errors get thrown, retry them.
-        failureReason = err
-      }
 
-      // Final attempt failed, update context and resolve events.
-      if (currentAttempt === maxAttempts) {
-        resolveFailedBatch(batch, failureReason)
-        return
+        // Retry after attempt-based backoff.
+        await sleep(
+          backoff({
+            attempt: currentAttempt,
+            minTimeout: 25,
+            maxTimeout: 1000,
+          })
+        )
       }
-
-      // Retry after attempt-based backoff.
-      await sleep(
-        backoff({
-          attempt: currentAttempt,
-          minTimeout: 25,
-          maxTimeout: 1000,
-        })
-      )
+    } finally {
+      if (retained) this.deferredEvents -= batch.length
     }
   }
 }

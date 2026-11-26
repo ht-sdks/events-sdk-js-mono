@@ -18,6 +18,10 @@ export interface HtEventsSettings {
    * The number of times to retry flushing a batch. Default: 3
    */
   maxRetries?: number
+  /** Maximum number of events retained after ordinary retries. Defaults to unlimited.
+   * Use zero to finish delivery at retry exhaustion. A batch must fit in full.
+   */
+  maxDeferredEvents?: number
   /**
    * The number of messages to enqueue before flushing. Default: 15
    */
@@ -43,6 +47,13 @@ export interface HtEventsSettings {
 }
 
 export const validateSettings = (settings: HtEventsSettings) => {
+  const limit = settings.maxDeferredEvents
+  if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0)) {
+    throw new ValidationError(
+      'maxDeferredEvents',
+      'Expected a non-negative integer.'
+    )
+  }
   if (!settings.writeKey) {
     throw new ValidationError('writeKey', 'writeKey is missing.')
   }

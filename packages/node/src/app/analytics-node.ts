@@ -48,6 +48,7 @@ export class HtEvents extends NodeEmitter implements CoreAnalytics {
         host: settings.host,
         path: settings.path,
         maxRetries: settings.maxRetries ?? 3,
+        maxDeferredEvents: settings.maxDeferredEvents,
         maxEventsInBatch: settings.maxEventsInBatch ?? 15,
         httpRequestTimeout: settings.httpRequestTimeout,
         disable: settings.disable,

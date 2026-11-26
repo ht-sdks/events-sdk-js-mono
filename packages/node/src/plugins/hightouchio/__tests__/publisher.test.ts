@@ -42,6 +42,49 @@ beforeEach(() => {
   jest.useFakeTimers()
 })
 
+it('retains a failing batch while fresh events can complete', async () => {
+  const { publisher } = createTestNodePlugin({
+    maxRetries: 1,
+    maxDeferredEvents: 1,
+  })
+  const a = new Context(eventFactory.alias('a', 'from'))
+  const b = new Context(eventFactory.alias('b', 'from'))
+  fetcher.mockReturnValue(createError({ status: 503 }))
+  const pending = publisher.enqueue(a)
+  for (let i = 0; i < 80 && fetcher.mock.calls.length < 3; i++) {
+    await jest.advanceTimersByTimeAsync(25)
+  }
+  expect(fetcher.mock.calls).toHaveLength(3)
+  fetcher.mockReturnValue(createSuccess())
+  await publisher.enqueue(b)
+  await jest.advanceTimersByTimeAsync(1000)
+  expect(await pending).toBe(a)
+  expect(fetcher.mock.calls.map(([request]) => request.data.batch)).toEqual([
+    [a.event],
+    [a.event],
+    [a.event],
+    [b.event],
+    [a.event],
+  ])
+})
+
+it('enforces the deferred event limit and releases waiting events on close', async () => {
+  const { publisher } = createTestNodePlugin({
+    maxRetries: 0,
+    maxDeferredEvents: 1,
+  })
+  fetcher.mockReturnValue(createError({ status: 429 }))
+  const first = publisher.enqueue(new Context(eventFactory.alias('a', 'from')))
+  const second = await publisher.enqueue(
+    new Context(eventFactory.alias('b', 'from'))
+  )
+  expect(second.failedDelivery()).toBeDefined()
+  publisher.flushAfterClose(1)
+  expect((await first).failedDelivery()).toBeDefined()
+  await jest.advanceTimersByTimeAsync(5000)
+  expect(fetcher.mock.calls).toHaveLength(2)
+})
+
 it('supports multiple events in a batch', async () => {
   const { plugin: hightouchPlugin } = createTestNodePlugin({
     maxRetries: 3,
@@ -320,6 +363,7 @@ describe('error handling', () => {
 
     const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 2,
+      maxDeferredEvents: 0,
       maxEventsInBatch: 1,
     })
 
@@ -347,6 +391,7 @@ describe('error handling', () => {
 
     const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 2,
+      maxDeferredEvents: 0,
       maxEventsInBatch: 1,
     })
 
@@ -374,6 +419,7 @@ describe('error handling', () => {
     fetcher.mockRejectedValue(new Error('Connection Error'))
     const { plugin: hightouchPlugin } = createTestNodePlugin({
       maxRetries: 0,
+      maxDeferredEvents: 0,
       maxEventsInBatch: 1,
     })
 
