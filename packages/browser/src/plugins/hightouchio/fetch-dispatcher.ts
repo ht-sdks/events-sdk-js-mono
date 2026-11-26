@@ -51,7 +51,6 @@ export default function (config?: StandardDispatcherConfig): {
   dispatch: Dispatcher
 } {
   return {
-    dispatch: (url, body) =>
-      post(url, JSON.stringify(body), config?.keepalive),
+    dispatch: (url, body) => post(url, JSON.stringify(body), config?.keepalive),
   }
 }
