@@ -18,7 +18,7 @@ export interface HtEventsSettings {
    * The number of times to retry flushing a batch. Default: 3
    */
   maxRetries?: number
-  /** Maximum number of events retained after ordinary retries. Defaults to unlimited.
+  /** Maximum number of events retained after ordinary retries. Defaults to 1000 events per client.
    * Use zero to finish delivery at retry exhaustion. A batch must fit in full.
    */
   maxDeferredEvents?: number

@@ -68,6 +68,26 @@ it('retains a failing batch while fresh events can complete', async () => {
   ])
 })
 
+it('retains up to 1000 deferred events by default', async () => {
+  const { publisher } = createTestNodePlugin({
+    maxRetries: 0,
+    maxEventsInBatch: 100,
+    flushInterval: 0,
+  })
+  fetcher.mockReturnValue(createError({ status: 503 }))
+  const events = range(1001).map(
+    (i) => new Context(eventFactory.alias(String(i), 'from'))
+  )
+  const pending = events.map((ctx) => publisher.enqueue(ctx))
+  await jest.advanceTimersByTimeAsync(0)
+  expect(events.filter((ctx) => ctx.failedDelivery())).toEqual([events[1000]])
+
+  fetcher.mockReturnValue(createSuccess())
+  await jest.advanceTimersByTimeAsync(1000)
+  await Promise.all(pending)
+  expect(fetcher).toHaveBeenCalledTimes(21) // 11 initial batches, 10 recovered
+})
+
 it('enforces the deferred event limit and releases waiting events on close', async () => {
   const { publisher } = createTestNodePlugin({
     maxRetries: 0,

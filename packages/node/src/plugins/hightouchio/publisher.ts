@@ -58,7 +58,7 @@ export class Publisher {
       host,
       path,
       maxRetries,
-      maxDeferredEvents = Infinity,
+      maxDeferredEvents = 1000,
       maxEventsInBatch,
       flushInterval,
       writeKey,
