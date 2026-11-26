@@ -56,6 +56,7 @@ export function hightouchio(
   integrations?: LegacySettings['integrations']
 ): Plugin {
   const inflightEvents = new Set<Context>()
+  const recovering = new WeakSet<Context>()
   const writeKey = settings?.apiKey ?? ''
 
   const buffer = analytics.options.disableClientPersistence
@@ -63,10 +64,9 @@ export function hightouchio(
     : new PersistedPriorityQueue(
         analytics.queue.queue.maxAttempts,
         `${writeKey}:dest-Hightouch.io`,
-        () => Array.from(inflightEvents)
+        () => Array.from(inflightEvents),
+        analytics.options.retryQueue ? recovering : undefined
       )
-
-  const flushing = false
 
   const apiHost = settings?.apiHost ?? HIGHTOUCH_API_HOST
   const protocol = settings?.protocol ?? 'https'
@@ -81,9 +81,10 @@ export function hightouchio(
 
   async function send(ctx: Context): Promise<Context> {
     if (isOffline()) {
-      buffer.push(ctx)
+      if (recovering.has(ctx)) buffer.pushWithBackoff(ctx, true)
+      else buffer.push(ctx)
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+      scheduleFlush(buffer, hightouch)
       return ctx
     }
 
@@ -117,12 +118,13 @@ export function hightouchio(
             ctx.log('error', reason)
           }
         }
-        if (result?.ok && buffer instanceof PersistedPriorityQueue)
+        if (result && buffer instanceof PersistedPriorityQueue)
           buffer.acknowledge(ctx)
       } catch (error) {
-        if (buffer.pushWithBackoff(ctx)) {
+        if (analytics.options.retryQueue) recovering.add(ctx)
+        if (buffer.pushWithBackoff(ctx, analytics.options.retryQueue)) {
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+          scheduleFlush(buffer, hightouch)
         } else {
           ctx.setFailedDelivery({ reason: error })
         }
@@ -155,7 +157,7 @@ export function hightouchio(
   // Buffer may already have items if they were previously stored in localStorage.
   // Start flushing them immediately.
   if (buffer.todo) {
-    scheduleFlush(flushing, buffer, hightouch, scheduleFlush)
+    scheduleFlush(buffer, hightouch)
   }
 
   return hightouch

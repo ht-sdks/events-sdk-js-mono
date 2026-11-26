@@ -75,6 +75,44 @@ describe('Hightouch.io pagehide delivery', () => {
     }
   )
 
+  it('backs off exhausted events while a new event can send', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5)
+    const destination = client()
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    await destination.track!(event('A'))
+    for (let i = 0; i < 50 && fetch.mock.calls.length < 6; i++)
+      await jest.advanceTimersByTimeAsync(2500)
+    const failures = fetch.mock.calls.length
+    expect(failures).toBe(6)
+    fetch.mockResolvedValue(response)
+    await destination.track!(event('B'))
+    await jest.advanceTimersByTimeAsync(1000)
+    expect(requestIds().slice(failures)).toEqual([['B']])
+    await jest.advanceTimersByTimeAsync(15000)
+    expect(requestIds().slice(failures)).toEqual([['B'], ['A']])
+  })
+
+  it('checkpoints an exhausted event again if its restored upload is interrupted', async () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0.5)
+    fetch.mockResolvedValue({ ok: false, status: 503 } as Response)
+    await client().track!(event('A'))
+    for (let i = 0; i < 50 && fetch.mock.calls.length < 6; i++)
+      await jest.advanceTimersByTimeAsync(2500)
+
+    for (let page = 0; page < 2; page++) {
+      window.dispatchEvent(new Event('pagehide'))
+      for (const [target, type, listener] of listeners.splice(0))
+        target.removeEventListener(type, listener)
+      jest.clearAllTimers()
+      if (page === 0)
+        fetch.mockReturnValueOnce(createDeferred<Response>().promise)
+      else fetch.mockResolvedValue(response)
+      client()
+      await jest.advanceTimersByTimeAsync(5000)
+    }
+    expect(requestIds()).toEqual(Array(8).fill(['A']))
+  })
+
   it('does not retry a transient HTTP response when retries are disabled', async () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response)
     const ctx = event()

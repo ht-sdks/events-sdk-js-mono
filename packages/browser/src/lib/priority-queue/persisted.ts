@@ -1,4 +1,4 @@
-import { PriorityQueue } from '@ht-sdks/events-sdk-js-core'
+import { PriorityQueue } from './index'
 import { Context, SerializedContext } from '../../core/context'
 import { isBrowser } from '../../core/environment'
 
@@ -16,16 +16,25 @@ try {
   console.warn('Unable to access localStorage', err)
 }
 
-function persisted(key: string): Context[] {
+type Checkpoint = SerializedContext & { recovering?: boolean }
+
+function persisted(key: string): Checkpoint[] {
   const items = loc.getItem(key)
-  return (items ? JSON.parse(items) : []).map(
-    (p: SerializedContext) => new Context(p.event, p.id)
-  )
+  return items ? JSON.parse(items) : []
 }
 
-function persistItems(key: string, items: Context[]): void {
-  const existing = persisted(key)
-  const all = [...items, ...existing]
+function persistItems(
+  key: string,
+  items: Context[],
+  recovering?: WeakSet<Context>
+): void {
+  const all = [
+    ...persisted(key),
+    ...items.map((item) => ({
+      ...item.toJSON(),
+      recovering: recovering?.has(item) || undefined,
+    })),
+  ]
 
   const merged = all.reduce(
     (acc, item) => {
@@ -34,7 +43,7 @@ function persistItems(key: string, items: Context[]): void {
         [item.id]: item,
       }
     },
-    {} as Record<string, Context>
+    {} as Record<string, Checkpoint>
   )
 
   loc.setItem(key, JSON.stringify(Object.values(merged)))
@@ -94,20 +103,22 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
   constructor(
     maxAttempts: number,
     private key: string,
-    pending: () => Context[] = () => []
+    pending: () => Context[] = () => [],
+    recovering?: WeakSet<Context>
   ) {
     super(maxAttempts, [])
 
     const itemsKey = `persisted-queue:v1:${key}:items`
     const seenKey = `persisted-queue:v1:${key}:seen`
 
-    let saved: Context[] = []
-    let lastSeen: Record<string, number> = {}
-
     mutex(key, () => {
       try {
-        saved = persisted(itemsKey)
-        lastSeen = seen(seenKey)
+        const saved = persisted(itemsKey).map((item) => {
+          const ctx = new Context(item.event, item.id)
+          if (item.recovering) recovering?.add(ctx)
+          return ctx
+        })
+        const lastSeen = seen(seenKey)
         remove(itemsKey)
         remove(seenKey)
 
@@ -125,6 +136,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
       // Reserve recovery attempts without consuming the live retry budget.
       for (const item of pending()) {
         attempts[item.id] = this.getAttempts(item) + 1
+        if (recovering?.has(item))
+          attempts[item.id] = Math.min(attempts[item.id], this.maxAttempts)
         if (attempts[item.id] <= this.maxAttempts) items.push(item)
       }
       if (items.length > 0) {
@@ -134,7 +147,8 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
             // Requests may be acknowledged while the checkpoint waits for the lock.
             persistItems(
               itemsKey,
-              items.filter((item) => this.persistedIds.has(item.id))
+              items.filter((item) => this.persistedIds.has(item.id)),
+              recovering
             )
             for (const id of Object.keys(this.seen)) {
               attempts[id] = Math.max(attempts[id] ?? 0, this.seen[id])

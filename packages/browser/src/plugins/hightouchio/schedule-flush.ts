@@ -34,25 +34,21 @@ async function flushQueue(
   return queue
 }
 
-export function scheduleFlush(
-  flushing: boolean,
-  buffer: PriorityQueue<Context>,
-  xt: Plugin,
-  scheduleFlush: Function
-): void {
-  if (flushing) {
-    return
-  }
+const scheduled = new WeakSet<PriorityQueue<Context>>()
 
+export function scheduleFlush(
+  buffer: PriorityQueue<Context>,
+  xt: Plugin
+): void {
+  if (scheduled.has(buffer)) return
+  scheduled.add(buffer)
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    let isFlushing = true
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    const newBuffer = await flushQueue(xt, buffer)
-    isFlushing = false
-
-    if (buffer.todo > 0) {
-      scheduleFlush(isFlushing, newBuffer, xt, scheduleFlush)
+    try {
+      await flushQueue(xt, buffer)
+    } finally {
+      scheduled.delete(buffer)
+      if (buffer.todo > 0) scheduleFlush(buffer, xt)
     }
   }, Math.random() * 5000)
 }
