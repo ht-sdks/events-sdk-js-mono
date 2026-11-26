@@ -67,25 +67,24 @@ describe('Hightouch.io pagehide delivery', () => {
     localStorage.clear()
   })
 
-  it('restores a pending request without a pagehide checkpoint', async () => {
-    const pending = createDeferred<Response>()
-    fetch.mockReturnValueOnce(pending.promise)
-    void client().track!(event('unacknowledged'))
-    const key = Object.keys(localStorage).find((key) =>
-      key.startsWith('persisted-queue:v2:')
-    )!
-    expect(JSON.parse(localStorage.getItem(key)!).event.messageId).toBe(
-      'unacknowledged'
-    )
-    const restored = createDeferred<Response>()
-    fetch.mockReturnValueOnce(restored.promise)
+  it('checkpoints a buffered batch until its navigation request succeeds', async () => {
+    const request = createDeferred<Response>()
+    fetch.mockReturnValueOnce(request.promise)
+    const original = client({ strategy: 'batching' })
+    await original.track!(event('first'))
+    await original.track!(event('second'))
+    window.dispatchEvent(new Event('pagehide'))
+    await jest.advanceTimersByTimeAsync(5000)
+    const key = 'persisted-queue:v1:pagehide:dest-Hightouch.io:items'
+    expect(localStorage.getItem(key)).toContain('first')
+    expect(localStorage.getItem(key)).toContain('second')
+    expect(requestIds()).toEqual([['first', 'second']])
+
+    request.resolve(response)
+    await jest.advanceTimersByTimeAsync(100)
     client()
-    expect(requestIds()).toEqual([['unacknowledged'], ['unacknowledged']])
-    expect(localStorage.getItem(key)).not.toBeNull()
-    restored.resolve(response)
-    await jest.advanceTimersByTimeAsync(0)
-    expect(localStorage.getItem(key)).toBeNull()
-    pending.resolve(response)
+    await jest.advanceTimersByTimeAsync(5000)
+    expect(requestIds()).toEqual([['first', 'second']])
   })
 
   it.each([false, true])(

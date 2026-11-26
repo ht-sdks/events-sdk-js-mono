@@ -17,7 +17,7 @@ describe('Hightouch.io retries', () => {
   let options: HightouchioSettings
   let analytics: Analytics
   let hightouch: Plugin
-  let queue: (PPQ.DurablePriorityQueue | PQ.PriorityQueue<Context>) & {
+  let queue: (PPQ.PersistedPriorityQueue | PQ.PriorityQueue<Context>) & {
     __type?: QueueType
   }
   ;[false, true].forEach((persistenceIsDisabled) => {
@@ -46,12 +46,12 @@ describe('Hightouch.io retries', () => {
             value: jest.fn().mockImplementation(() => queue),
           })
         } else {
-          queue = new PPQ.DurablePriorityQueue(
+          queue = new PPQ.PersistedPriorityQueue(
             3,
             `${options.apiKey}:test-hightouch.io`
           )
           queue['__type'] = 'persisted'
-          Object.defineProperty(PPQ, 'DurablePriorityQueue', {
+          Object.defineProperty(PPQ, 'PersistedPriorityQueue', {
             writable: true,
             value: jest.fn().mockImplementation(() => queue),
           })

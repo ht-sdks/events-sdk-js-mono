@@ -1,6 +1,5 @@
 import { PriorityQueue } from '@ht-sdks/events-sdk-js-core'
 import { Context, SerializedContext } from '../../core/context'
-import { HightouchEvent } from '../../core/events'
 import { isBrowser } from '../../core/environment'
 
 let loc:
@@ -162,94 +161,6 @@ export class PersistedPriorityQueue extends PriorityQueue<Context> {
       })
     } catch (err) {
       console.error(err)
-    }
-  }
-}
-
-// One storage key per context lets an acknowledgment remove its own record
-// without rewriting a snapshot another tab may be updating.
-export class DurablePriorityQueue extends PriorityQueue<Context> {
-  readonly restored: Context[] = []
-  private prefix: string
-
-  constructor(
-    maxAttempts: number,
-    key: string,
-    private snapshots?: WeakMap<Context, HightouchEvent>
-  ) {
-    super(maxAttempts, [])
-    this.prefix = `persisted-queue:v2:${encodeURIComponent(key)}:`
-    try {
-      for (const name of Object.keys(window.localStorage)) {
-        if (!name.startsWith(this.prefix)) continue
-        try {
-          const record = JSON.parse(window.localStorage.getItem(name)!)
-          const ctx = new Context(record.event, record.id)
-          if (!record.event?.type || name !== this.prefix + ctx.id) {
-            throw new Error('Invalid persisted event')
-          }
-          if (record.recoveries >= maxAttempts) {
-            this.acknowledge(ctx)
-            console.error(
-              'Recovery attempts exhausted for',
-              ctx.event.messageId
-            )
-            continue
-          }
-          if (record.normalized) this.snapshots?.set(ctx, record.event)
-          this.restored.push(ctx)
-          this.seen[ctx.id] = record.attempts ?? 0
-          this.recoveries[ctx.id] = (record.recoveries ?? 0) + 1
-        } catch (error) {
-          console.error('Unable to restore persisted event', error)
-        }
-      }
-      const legacy = `persisted-queue:v1:${key}`
-      const items = persisted(legacy + ':items')
-      const attempts = seen(legacy + ':seen')
-      let migrated = true
-      for (const ctx of items) {
-        if (this.restored.some((item) => item.id === ctx.id)) continue
-        this.restored.push(ctx)
-        this.seen[ctx.id] = attempts[ctx.id] ?? 0
-        migrated = this.retain(ctx) && migrated
-      }
-      if (migrated && items.length) {
-        remove(legacy + ':items')
-        remove(legacy + ':seen')
-      }
-    } catch (error) {
-      console.error('Unable to read the persisted queue', error)
-    }
-  }
-
-  private recoveries: Record<string, number> = {}
-
-  retain(ctx: Context): boolean {
-    try {
-      window.localStorage.setItem(
-        this.prefix + ctx.id,
-        JSON.stringify({
-          id: ctx.id,
-          event: this.snapshots?.get(ctx) ?? ctx.event,
-          normalized: this.snapshots?.has(ctx) || undefined,
-          attempts: this.getAttempts(ctx),
-          recoveries: this.recoveries[ctx.id] ?? 0,
-        })
-      )
-      return true
-    } catch (error) {
-      console.error('Unable to persist queued event', error)
-      return false
-    }
-  }
-
-  acknowledge(ctx: Context): void {
-    try {
-      window.localStorage.removeItem(this.prefix + ctx.id)
-      delete this.recoveries[ctx.id]
-    } catch (error) {
-      console.error('Unable to remove acknowledged event', error)
     }
   }
 }

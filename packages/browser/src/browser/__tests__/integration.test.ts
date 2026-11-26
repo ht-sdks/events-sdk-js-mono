@@ -6,10 +6,7 @@ import { Plugin } from '../../core/plugin'
 import { JSDOM } from 'jsdom'
 import { Analytics, InitOptions } from '../../core/analytics'
 import { LegacyDestination } from '../../plugins/ajs-destination'
-import {
-  DurablePriorityQueue,
-  PersistedPriorityQueue,
-} from '../../lib/priority-queue/persisted'
+import { PersistedPriorityQueue } from '../../lib/priority-queue/persisted'
 // @ts-ignore loadLegacySettings mocked dependency is accused as unused
 import { HtEventsBrowser, loadLegacySettings } from '..'
 // @ts-ignore isOffline mocked dependency is accused as unused
@@ -340,7 +337,7 @@ describe('Initialization', () => {
         writeKey,
       })
 
-      expect(ajs.queue.queue instanceof DurablePriorityQueue).toBe(true)
+      expect(ajs.queue.queue instanceof PersistedPriorityQueue).toBe(true)
     })
 
     it('disables identity persistance when disableClientPersistence is true', async () => {

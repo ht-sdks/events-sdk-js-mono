@@ -14,9 +14,9 @@ const pending = new Set<Promise<Response>>()
 export async function post(
   url: string,
   body: string,
-  keepalive: boolean
+  keepalive?: boolean
 ): Promise<Response> {
-  const size = byteLength(body)
+  const size = keepalive ? byteLength(body) : 0
   const useKeepalive = keepalive && size <= keepaliveLimit
   if (useKeepalive) {
     while (reserved + size > keepaliveLimit) {
@@ -52,6 +52,6 @@ export default function (config?: StandardDispatcherConfig): {
 } {
   return {
     dispatch: (url, body) =>
-      post(url, JSON.stringify(body), config?.keepalive ?? true),
+      post(url, JSON.stringify(body), config?.keepalive),
   }
 }
